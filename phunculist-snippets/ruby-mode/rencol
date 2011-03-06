@@ -1,0 +1,4 @@
+#contributor: David Porter <david.a.porter@gmail.com>
+#name : rename_column ..., ..., ...
+# --
+rename_column :${1:table}, :${2:old_column}, :${3:new_column}

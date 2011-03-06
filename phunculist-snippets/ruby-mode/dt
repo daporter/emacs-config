@@ -1,0 +1,4 @@
+#contributor: David Porter <david.a.porter@gmail.com>
+#name : drop_table ...
+# --
+drop_table :${1:name}
