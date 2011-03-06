@@ -15,23 +15,26 @@
 
 (defalias 'yes-or-no-p 'y-or-n-p)
 
+(winner-mode 1)
+(windmove-default-keybindings 'ctrl)
 
-;;; Keyboard.
+
+;;;; Keyboard.
 
 ;; Prevent s-q from quitting emacs.
 (global-unset-key (kbd "s-q"))
 ;; Prevent C-z from minimising the frame.
 (global-unset-key (kbd "C-z"))
-(global-set-key (kbd "<M-up>")   'phunculist/move-line-up)
-(global-set-key (kbd "<M-down>") 'phunculist/move-line-down)
-(global-set-key (kbd "C-z c")    'phunculist/copy-line)
-(global-set-key (kbd "C-z d")    'phunculist/duplicate-line)
-(global-set-key (kbd "C-z a")    'align-regexp)
-(global-set-key (kbd "C-z w")    'whitespace-cleanup)
-(global-set-key (kbd "C-z |")    'align)
+(global-set-key (kbd "C-z <up>")   'phunculist/move-line-up)
+(global-set-key (kbd "C-z <down>") 'phunculist/move-line-down)
+(global-set-key (kbd "C-z c")      'phunculist/copy-line)
+(global-set-key (kbd "C-z d")      'phunculist/duplicate-line)
+(global-set-key (kbd "C-z a")      'align-regexp)
+(global-set-key (kbd "C-z w")      'whitespace-cleanup)
+(global-set-key (kbd "C-z |")      'align)
 
 
-;;; Editing settings.
+;;;; Editing settings.
 
 (setq scroll-preserve-screen-position t) ; don't move point when scrolling
 (setq-default indent-tabs-mode nil)     ; don't insert tabs on indent
@@ -312,6 +315,27 @@ NEW-NAME."
         ack
         mode-compile
         markdown-mode
+
+        (:name buffer-move
+               :after (lambda ()
+                        (global-set-key (kbd "<M-up>")    'buf-move-up)
+                        (global-set-key (kbd "<M-down>")  'buf-move-down)
+                        (global-set-key (kbd "<M-left>")  'buf-move-left)
+                        (global-set-key (kbd "<M-right>") 'buf-move-right)))
+
+        (:name tiling
+               :type emacswiki
+               :after (lambda ()
+                        (define-key global-map
+                          (kbd "C-\\") 'tiling-cycle)
+                        (define-key global-map
+                          (kbd "C-M-<up>") 'tiling-tile-up)
+                        (define-key global-map
+                          (kbd "C-M-<down>") 'tiling-tile-down)
+                        (define-key global-map
+                          (kbd "C-M-<right>") 'tiling-tile-right)
+                        (define-key global-map
+                          (kbd "C-M-<left>") 'tiling-tile-left)))
 
         (:name auctex
                :build `("./autogen.sh"
