@@ -313,6 +313,14 @@ NEW-NAME."
         mode-compile
         markdown-mode
 
+        (:name auctex
+               :build `("./autogen.sh"
+                        ,(concat "./configure"
+                                 " --with-lispdir=`pwd`"
+                                 " --with-texmf-dir=/Library/TeX/Root/texmf"
+                                 " --with-emacs=" el-get-emacs)
+                        "make"))
+
         (:name magit
                :after (lambda ()
                         (add-hook 'magit-log-edit-mode-hook
