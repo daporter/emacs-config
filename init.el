@@ -325,6 +325,7 @@ NEW-NAME."
 
         (:name tiling
                :type emacswiki
+               :features "tiling" 
                :after (lambda ()
                         (define-key global-map
                           (kbd "C-\\") 'tiling-cycle)
