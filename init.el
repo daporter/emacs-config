@@ -325,7 +325,7 @@ NEW-NAME."
 
         (:name tiling
                :type emacswiki
-               :features "tiling" 
+               :features "tiling"
                :after (lambda ()
                         (define-key global-map
                           (kbd "C-\\") 'tiling-cycle)
@@ -353,17 +353,13 @@ NEW-NAME."
 
         (:name auto-complete
                :after (lambda ()
-                        (add-to-list 'ac-dictionary-directories
-                                     "~/.emacs.d/ac-dict")
-                        (ac-config-default)
-                        (define-key ac-mode-map (kbd "M-TAB") 'auto-complete)
-
                         (setq-default ac-sources
                                       '(ac-source-yasnippet
                                         ac-source-filename
                                         ac-source-abbrev
                                         ac-source-dictionary
-                                        ac-source-words-in-same-mode-buffers))))
+                                        ac-source-words-in-same-mode-buffers))
+                        (define-key ac-mode-map (kbd "M-TAB") 'auto-complete)))
 
         (:name yasnippet
                :after (lambda ()
