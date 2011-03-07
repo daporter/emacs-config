@@ -315,6 +315,7 @@ NEW-NAME."
         ack
         mode-compile
         markdown-mode
+        haml-mode
 
         (:name buffer-move
                :after (lambda ()
