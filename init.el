@@ -316,6 +316,7 @@ NEW-NAME."
         mode-compile
         markdown-mode
         haml-mode
+        rinari
 
         (:name buffer-move
                :after (lambda ()
