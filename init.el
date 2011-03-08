@@ -317,6 +317,7 @@ NEW-NAME."
         markdown-mode
         haml-mode
         rinari
+        ruby-end
 
         (:name buffer-move
                :after (lambda ()
