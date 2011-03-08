@@ -318,6 +318,7 @@ NEW-NAME."
         haml-mode
         rinari
         ruby-end
+        flymake-ruby
 
         (:name buffer-move
                :after (lambda ()
