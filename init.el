@@ -352,12 +352,11 @@ NEW-NAME."
         (:name magit
                :features (magit magit-svn)
                :after (lambda ()
+                        (global-set-key (kbd "C-z g") 'magit-status)
+                        (setq magit-repo-dirs
+                              '("~/.emacs.d" "~/Documents/Projects"))
                         (add-hook 'magit-log-edit-mode-hook
-                                  (lambda ()
-                                    (setq magit-repo-dirs
-                                          '("~/.emacs.d"
-                                            "~/Documents/Projects"))
-                                    (setq fill-column 72)))))
+                                  (lambda () (setq fill-column 72)))))
 
         (:name auto-complete
                :after (lambda ()
