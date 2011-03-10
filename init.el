@@ -405,6 +405,11 @@ NEW-NAME."
                         (global-set-key (kbd "M-X") 'smex-major-mode-commands)
                         ;; This is the old M-x:
                         (global-set-key (kbd "C-c C-c M-x")
-                                        'execute-extended-command)))))
+                                        'execute-extended-command)))
+
+        (:name idomenu
+               :type emacswiki
+               :features idomenu
+               :after (lambda () (global-set-key (kbd "C-z m") 'idomenu)))
 
 (el-get 'sync)
