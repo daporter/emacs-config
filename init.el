@@ -323,6 +323,7 @@ NEW-NAME."
         flymake-ruby
         full-ack
         ido-hacks
+        yari
 
         (:name buffer-move
                :after (lambda ()
