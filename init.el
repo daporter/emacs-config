@@ -319,6 +319,8 @@ NEW-NAME."
         rinari
         ruby-end
         flymake-ruby
+        full-ack
+        ido-hacks
 
         (:name buffer-move
                :after (lambda ()
