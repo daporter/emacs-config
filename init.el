@@ -23,10 +23,10 @@
 
 ;;;; Keyboard.
 
-;; Prevent s-q from quitting emacs.
-(global-unset-key (kbd "s-q"))
-;; Prevent C-z from minimising the frame.
-(global-unset-key (kbd "C-z"))
+(global-unset-key (kbd "s-q"))          ; prevent s-q from quitting emacs
+(global-unset-key (kbd "C-z"))          ; prevent C-z from minimising the frame
+
+(global-set-key (kbd "RET")        'newline-and-indent)
 (global-set-key (kbd "C-z <up>")   'phunculist/move-line-up)
 (global-set-key (kbd "C-z <down>") 'phunculist/move-line-down)
 (global-set-key (kbd "C-z c")      'phunculist/copy-line)
