@@ -7,12 +7,12 @@
 (set-face-attribute 'default nil :font "Inconsolata" :height 140)
 (setq-default line-spacing 0.2)
 
+(setq inhibit-startup-screen t)
 (menu-bar-mode 1)
 (tool-bar-mode 0)
 (column-number-mode 1)
-(setq inhibit-startup-screen t)
+(scroll-bar-mode 0)
 (global-hl-line-mode 1)
-
 (setq visible-bell t)
 
 (defalias 'yes-or-no-p 'y-or-n-p)
