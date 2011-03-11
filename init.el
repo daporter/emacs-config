@@ -282,7 +282,7 @@ NEW-NAME."
           (set-visited-file-name new-name)
           (set-buffer-modified-p nil))))))
 
-(defun phunculist/insert-current-date()
+(defun phunculist/insert-current-date ()
   "Insert current date in yyyy-mm-dd format."
   (interactive)
   (insert (format-time-string "%Y-%m-%d")))
@@ -324,6 +324,11 @@ NEW-NAME."
         full-ack
         ido-hacks
         yari
+        color-theme
+
+        (:name color-theme-zenburn
+               :features zenburn
+               :after (lambda () (zenburn)))
 
         (:name buffer-move
                :after (lambda ()
