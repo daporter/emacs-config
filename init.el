@@ -418,6 +418,6 @@ NEW-NAME."
         (:name idomenu
                :type emacswiki
                :features idomenu
-               :after (lambda () (global-set-key (kbd "C-z m") 'idomenu)))
+               :after (lambda () (global-set-key (kbd "C-z m") 'idomenu)))))
 
 (el-get 'sync)
