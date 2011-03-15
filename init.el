@@ -325,6 +325,7 @@ NEW-NAME."
         ido-hacks
         yari
         color-theme
+        paredit
 
         (:name color-theme-zenburn
                :features zenburn
