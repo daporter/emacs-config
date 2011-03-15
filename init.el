@@ -1,5 +1,7 @@
 (add-to-list 'exec-path "/usr/local/bin")
 
+(add-to-list 'load-path "/usr/local/share/emacs/site-lisp")
+
 (server-start)
 
 (setq custom-file "~/.emacs.d/custom.el")
