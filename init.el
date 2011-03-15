@@ -113,6 +113,7 @@
 (add-to-list 'auto-mode-alist '("\\.xml$" . nxml-mode))
 (add-to-list 'auto-mode-alist '("\\.rake$" . ruby-mode))
 
+(require 'ledger)
 
 ;;; Ruby Configuration.
 
