@@ -420,4 +420,10 @@ NEW-NAME."
                :features idomenu
                :after (lambda () (global-set-key (kbd "C-z m") 'idomenu)))
 
+        (:name ledger
+               :type git
+               :url "https://github.com/jwiegley/ledger.git"
+               :load-path "lisp"
+               :features ledger)))
+
 (el-get 'sync)
