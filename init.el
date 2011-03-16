@@ -31,9 +31,10 @@
 (global-set-key (kbd "RET")        'newline-and-indent)
 (global-set-key (kbd "C-z <up>")   'phunculist/move-line-up)
 (global-set-key (kbd "C-z <down>") 'phunculist/move-line-down)
+(global-set-key (kbd "C-z a")      'align-regexp)
 (global-set-key (kbd "C-z c")      'phunculist/copy-line)
 (global-set-key (kbd "C-z d")      'phunculist/duplicate-line)
-(global-set-key (kbd "C-z a")      'align-regexp)
+(global-set-key (kbd "C-z l")      'phunculist/ledger-edit)
 (global-set-key (kbd "C-z w")      'whitespace-cleanup)
 (global-set-key (kbd "C-z |")      'align)
 
@@ -113,7 +114,17 @@
 (add-to-list 'auto-mode-alist '("\\.xml$" . nxml-mode))
 (add-to-list 'auto-mode-alist '("\\.rake$" . ruby-mode))
 
+
+;;; Ledger config.
+
 (require 'ledger)
+
+(defun phunculist/ledger-edit ()
+  "Open my ledger."
+  (interactive)
+  (find-file (getenv "LEDGER_FILE"))
+  (ledger-find-slot (current-time)))
+
 
 ;;; Ruby Configuration.
 
