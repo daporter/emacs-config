@@ -5,6 +5,7 @@
 (server-start)
 
 (setq custom-file "~/.emacs.d/custom.el")
+(load custom-file)
 
 (set-face-attribute 'default nil :font "Inconsolata" :height 140)
 (setq-default line-spacing 0.2)
