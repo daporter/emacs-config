@@ -374,7 +374,19 @@ NEW-NAME."
                                  " --with-lispdir=`pwd`"
                                  " --with-texmf-dir=/Library/TeX/Root/texmf"
                                  " --with-emacs=" el-get-emacs)
-                        "make"))
+                        "make")
+               :after (lambda ()
+                        (add-hook 'latex-mode-hook 'TeX-PDF-mode)
+                        (add-hook 'LaTeX-mode-hook 'TeX-PDF-mode)
+                        (setq LaTeX-command "latex -synctex=1"
+                              TeX-view-program-list '(("Skim"
+                                                       "/Applications/Skim.app/Contents/SharedSupport/displayline %n %o %b"))
+                              TeX-view-program-selection '(((output-dvi style-pstricks)
+                                                            "dvips and gv")
+                                                           (output-dvi "xdvi")
+                                                           (output-pdf "Skim")
+                                                           (output-html
+                                                            "xdg-open")))))
 
         (:name magit
                :features (magit magit-svn)
