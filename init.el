@@ -115,6 +115,11 @@
 (add-to-list 'auto-mode-alist '("\\.xml$" . nxml-mode))
 (add-to-list 'auto-mode-alist '("\\.rake$" . ruby-mode))
 
+;; By default Emacs will pass -exec to find, and that makes it very slow. It's
+;; better to collate the matches and then use xargs to run the command.
+(require 'find-dired)
+(setq find-ls-option '("-print0 | xargs -0 ls -ld" . "-ld"))
+
 
 ;;; Ledger config.
 
