@@ -121,6 +121,20 @@
 (setq find-ls-option '("-print0 | xargs -0 ls -ld" . "-ld"))
 
 
+;; Find recent files with Ido.
+
+(require 'recentf)
+(recentf-mode t)
+(setq recentf-max-saved-items 50)
+
+(defun ido-recentf-open ()
+  "Use `ido-completing-read' to \\[find-file] a recent file"
+  (interactive)
+  (find-file (ido-completing-read "Find recent file: " recentf-list)))
+
+(global-set-key (kbd "C-x C-r") 'ido-recentf-open) ; was find-file-read-only
+
+
 ;;; Ledger config.
 
 (require 'ledger)
