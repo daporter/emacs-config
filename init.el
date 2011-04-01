@@ -29,7 +29,7 @@
 (global-unset-key (kbd "s-q"))          ; prevent s-q from quitting emacs
 (global-unset-key (kbd "C-z"))          ; prevent C-z from minimising the frame
 
-(global-set-key (kbd "RET")        'newline-and-indent)
+(global-set-key (kbd "RET")        'reindent-then-newline-and-indent)
 (global-set-key (kbd "C-z <up>")   'phunculist/move-line-up)
 (global-set-key (kbd "C-z <down>") 'phunculist/move-line-down)
 (global-set-key (kbd "C-z a")      'align-regexp)
@@ -227,12 +227,11 @@ separate line."
 
 (add-hook 'ruby-mode-hook
           (lambda ()
-            (define-key ruby-mode-map
-              (kbd "C-z {") 'phunculist/braces-to-do-end-delimiters)
-            (define-key ruby-mode-map
-              (kbd "C-z p") 'phunculist/parenthesise-function-call)
-            (define-key ruby-mode-map
-              (kbd "C-z i") 'phunculist/one-item-per-line)))
+            (local-set-key (kbd "C-z {")
+                           'phunculist/braces-to-do-end-delimiters)
+            (local-set-key (kbd "C-z p") 'phunculist/parenthesise-function-call)
+            (local-set-key (kbd "C-z i") 'phunculist/one-item-per-line)
+            (local-set-key (kbd "RET")   'reindent-then-newline-and-indent)))
 
 
 ;;;; Misc functions.
@@ -360,6 +359,7 @@ NEW-NAME."
         yari
         color-theme
         paredit
+        yaml-mode
 
         (:name color-theme-zenburn
                :features zenburn
