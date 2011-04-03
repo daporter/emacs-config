@@ -462,6 +462,10 @@ NEW-NAME."
                         (global-set-key (kbd "C-c C-c M-x")
                                         'execute-extended-command)))
 
+        (:name lorem-ipsum
+               :type emacswiki
+               :features lorem-ipsum)
+
         (:name idomenu
                :type emacswiki
                :features idomenu
