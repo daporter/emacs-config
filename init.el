@@ -30,7 +30,8 @@
 (global-set-key (kbd "C-z <up>")   'phunculist/move-line-up)
 (global-set-key (kbd "C-z <down>") 'phunculist/move-line-down)
 (global-set-key (kbd "C-z a")      'align-regexp)
-(global-set-key (kbd "C-z c")      'phunculist/copy-line)
+(global-set-key (kbd "C-z c")      'phunculist/cleanup-buffer)
+(global-set-key (kbd "C-z C")      'phunculist/copy-line)
 (global-set-key (kbd "C-z d")      'phunculist/duplicate-line)
 (global-set-key (kbd "C-z l")      'phunculist/ledger-edit)
 (global-set-key (kbd "C-z w")      'whitespace-cleanup)
@@ -317,6 +318,11 @@ NEW-NAME."
   (interactive)
   (insert (format-time-string "%Y-%m-%d")))
 
+(defun phunculist/cleanup-buffer ()
+  "Indent and remove whitespace from buffer."
+  (interactive)
+  (indent-region (point-min) (point-max))
+  (whitespace-cleanup))
 
 ;;;;
 ;;;; Install and configure 3rd-party libraries using el-get.
