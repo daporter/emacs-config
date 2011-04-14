@@ -144,6 +144,12 @@
   (ledger-find-slot (current-time)))
 
 
+;;; Regex Builder config.
+
+(require 're-builder)
+(setq reb-re-syntax 'string)            ; backslashes don't need to be escaped
+
+
 ;;; Ruby Configuration.
 
 ;; Setup align for ruby-mode.
