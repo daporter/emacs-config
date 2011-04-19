@@ -364,7 +364,6 @@ NEW-NAME."
         ruby-end
         flymake-ruby
         full-ack
-        ido-hacks
         yari
         color-theme
         paredit
