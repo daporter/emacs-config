@@ -439,7 +439,6 @@ NEW-NAME."
 
         (:name yasnippet
                :after (lambda ()
-                        (setq yas/trigger-key (kbd "C-c <kp-multiply>"))
                         (add-to-list 'yas/root-directory
                                      "~/.emacs.d/phunculist-snippets")
                         (mapc 'yas/load-directory yas/root-directory)
