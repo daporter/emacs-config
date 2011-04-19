@@ -26,6 +26,10 @@
 (global-unset-key (kbd "s-q"))          ; prevent s-q from quitting emacs
 (global-unset-key (kbd "C-z"))          ; prevent C-z from minimising the frame
 
+;; For some reason the above line doesn't remove the keybinding for C-z (in
+;; emacs 24.0.50.1) so we need this.
+(global-set-key (kbd "C-z") nil)
+
 (global-set-key (kbd "RET")        'reindent-then-newline-and-indent)
 (global-set-key (kbd "C-z <up>")   'phunculist/move-line-up)
 (global-set-key (kbd "C-z <down>") 'phunculist/move-line-down)
