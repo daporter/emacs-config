@@ -374,8 +374,7 @@ NEW-NAME."
         yaml-mode
 
         (:name color-theme-zenburn
-               :features zenburn
-               :after (lambda () (zenburn)))
+               :features zenburn)
 
         (:name buffer-move
                :after (lambda ()
@@ -477,6 +476,12 @@ NEW-NAME."
         (:name lorem-ipsum
                :type emacswiki
                :features lorem-ipsum)
+
+        (:name color-theme-solarized
+               :type git
+               :url "https://github.com/altercation/solarized.git"
+               :load "emacs-colors-solarized/color-theme-solarized.el"
+               :after (lambda () (color-theme-solarized-dark)))
 
         (:name idomenu
                :type emacswiki
