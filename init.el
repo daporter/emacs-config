@@ -360,7 +360,6 @@ NEW-NAME."
 
 (setq el-get-sources
       '(el-get
-        ack
         mode-compile
         markdown-mode
         haml-mode
