@@ -371,9 +371,7 @@ NEW-NAME."
         color-theme
         paredit
         yaml-mode
-
-        (:name color-theme-zenburn
-               :features zenburn)
+        zenburn
 
         (:name buffer-move
                :after (lambda ()
