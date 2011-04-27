@@ -371,7 +371,8 @@ NEW-NAME."
         color-theme
         paredit
         yaml-mode
-        zenburn
+        color-theme-zenburn
+        growl
 
         (:name buffer-move
                :after (lambda ()
