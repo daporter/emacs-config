@@ -154,6 +154,10 @@
 (setq reb-re-syntax 'string)            ; backslashes don't need to be escaped
 
 
+;; Wrap manpages at 80 chars.
+(setq Man-width 80)
+
+
 ;;; Ruby Configuration.
 
 ;; Setup align for ruby-mode.
