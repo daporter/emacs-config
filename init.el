@@ -377,7 +377,8 @@ NEW-NAME."
         yaml-mode
         color-theme-zenburn
         growl
-
+        rhtml-mode
+        
         (:name buffer-move
                :after (lambda ()
                         (global-set-key (kbd "<M-up>")    'buf-move-up)
