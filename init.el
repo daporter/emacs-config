@@ -20,6 +20,7 @@
 (winner-mode 1)
 (windmove-default-keybindings 'ctrl)
 
+(setq uniquify-buffer-name-style 'forward)
 
 ;;;; Keyboard.
 
