@@ -487,6 +487,12 @@ NEW-NAME."
                :load "emacs-colors-solarized/color-theme-solarized.el"
                :after (lambda () (color-theme-solarized-dark)))
 
+        (:name sql-indent
+               :type emacswiki
+               :features sql-indent
+               :after (lambda ()
+                        (eval-after-load "sql"
+                          (load-library "sql-indent"))))
         (:name idomenu
                :type emacswiki
                :features idomenu
