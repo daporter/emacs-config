@@ -1,4 +1,5 @@
 (add-to-list 'exec-path "/usr/local/bin")
+(add-to-list 'exec-path "/usr/texbin")
 
 (add-to-list 'load-path "/usr/local/share/emacs/site-lisp")
 
