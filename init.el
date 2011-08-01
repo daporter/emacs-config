@@ -3,6 +3,8 @@
 
 (add-to-list 'load-path "/usr/local/share/emacs/site-lisp")
 
+(setenv "LEDGER_FILE" "~/Dropbox/ledger/ledger.txt")
+
 (server-start)
 
 (set-face-attribute 'default nil :font "Inconsolata" :height 140)
