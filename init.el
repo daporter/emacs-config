@@ -382,7 +382,7 @@ NEW-NAME."
         color-theme-zenburn
         growl
         rhtml-mode
-        
+
         (:name buffer-move
                :after (lambda ()
                         (global-set-key (kbd "<M-up>")    'buf-move-up)
@@ -483,12 +483,6 @@ NEW-NAME."
                :type emacswiki
                :features lorem-ipsum)
 
-        (:name color-theme-solarized
-               :type git
-               :url "https://github.com/altercation/solarized.git"
-               :load "emacs-colors-solarized/color-theme-solarized.el"
-               :after (lambda () (color-theme-solarized-dark)))
-
         (:name sql-indent
                :type emacswiki
                :features sql-indent
@@ -501,6 +495,8 @@ NEW-NAME."
                :after (lambda () (global-set-key (kbd "C-z m") 'idomenu)))))
 
 (el-get 'sync)
+
+(color-theme-zenburn)
 
 (setq custom-file "~/.emacs.d/custom.el")
 (load custom-file)
