@@ -5,6 +5,11 @@
 
 (setenv "LEDGER_FILE" "~/Dropbox/ledger/ledger.txt")
 
+;; Run in server-mode so other sessions can connet
+(add-hook 'server-visit-hook (lambda () (raise-frame)))
+(add-hook 'server-done-hook
+          (lambda ()
+            (shell-command "osascript -e \"tell application \\\"System Events\\\" to keystroke tab using command down\"")))
 (server-start)
 
 (set-face-attribute 'default nil :font "Inconsolata" :height 140)
@@ -24,6 +29,7 @@
 (windmove-default-keybindings 'ctrl)
 
 (setq uniquify-buffer-name-style 'forward)
+
 
 ;;;; Keyboard.
 
