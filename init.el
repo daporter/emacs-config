@@ -5,12 +5,14 @@
 
 (setenv "LEDGER_FILE" "~/Dropbox/ledger/ledger.txt")
 
-;; Run in server-mode so other sessions can connet
+;; Run in server-mode so other sessions can connect.
 (add-hook 'server-visit-hook (lambda () (raise-frame)))
 (add-hook 'server-done-hook
           (lambda ()
             (shell-command "osascript -e \"tell application \\\"System Events\\\" to keystroke tab using command down\"")))
 (server-start)
+
+(setq redisplay-dont-pause t)
 
 (set-face-attribute 'default nil :font "Inconsolata" :height 140)
 (setq-default line-spacing 0.2)
