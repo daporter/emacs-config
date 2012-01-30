@@ -387,9 +387,9 @@ NEW-NAME."
         color-theme
         paredit
         yaml-mode
-        color-theme-zenburn
         growl
         rhtml-mode
+        expand-region
 
         (:name buffer-move
                :after (lambda ()
@@ -503,8 +503,6 @@ NEW-NAME."
                :after (lambda () (global-set-key (kbd "C-z m") 'idomenu)))))
 
 (el-get 'sync)
-
-(color-theme-zenburn)
 
 (setq custom-file "~/.emacs.d/custom.el")
 (load custom-file)
