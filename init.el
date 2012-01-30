@@ -389,7 +389,11 @@ NEW-NAME."
         yaml-mode
         growl
         rhtml-mode
-        expand-region
+
+        (:name expand-region
+               :after (lambda ()
+                        (global-set-key (kbd "C-@") 'er/expand-region)
+                        (global-set-key (kbd "C-M-@") 'er/contract-region)))
 
         (:name buffer-move
                :after (lambda ()
