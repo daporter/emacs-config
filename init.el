@@ -151,7 +151,7 @@
 
 ;;; Ledger config.
 
-;; (require 'ledger)
+(require 'ledger)
 
 (defun phunculist/ledger-edit ()
   "Open my ledger."
