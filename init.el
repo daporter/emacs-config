@@ -151,7 +151,7 @@
 
 ;;; Ledger config.
 
-(require 'ledger)
+;; (require 'ledger)
 
 (defun phunculist/ledger-edit ()
   "Open my ledger."
@@ -391,12 +391,12 @@ NEW-NAME."
         rhtml-mode
 
         (:name expand-region
-               :after (lambda ()
+               :after (progn
                         (global-set-key (kbd "C-@") 'er/expand-region)
                         (global-set-key (kbd "C-M-@") 'er/contract-region)))
 
         (:name buffer-move
-               :after (lambda ()
+               :after (progn
                         (global-set-key (kbd "<M-up>")    'buf-move-up)
                         (global-set-key (kbd "<M-down>")  'buf-move-down)
                         (global-set-key (kbd "<M-left>")  'buf-move-left)
@@ -405,7 +405,7 @@ NEW-NAME."
         (:name tiling
                :type emacswiki
                :features "tiling"
-               :after (lambda ()
+               :after (progn
                         (define-key global-map
                           (kbd "C-\\") 'tiling-cycle)
                         (define-key global-map
@@ -424,7 +424,7 @@ NEW-NAME."
                                  " --with-texmf-dir=/Library/TeX/Root/texmf"
                                  " --with-emacs=" el-get-emacs)
                         "make")
-               :after (lambda ()
+               :after (progn
                         (add-hook 'latex-mode-hook 'TeX-PDF-mode)
                         (add-hook 'LaTeX-mode-hook 'TeX-PDF-mode)
                         (setq LaTeX-command "latex -synctex=1"
@@ -439,7 +439,7 @@ NEW-NAME."
 
         (:name magit
                :features (magit magit-svn)
-               :after (lambda ()
+               :after (progn
                         (global-set-key (kbd "C-z g") 'magit-status)
                         (setq magit-repo-dirs
                               '("~/.emacs.d" "~/Documents/Projects"))
@@ -447,7 +447,7 @@ NEW-NAME."
                                   (lambda () (setq fill-column 72)))))
 
         (:name auto-complete
-               :after (lambda ()
+               :after (progn
                         (setq-default ac-sources
                                       '(ac-source-yasnippet
                                         ac-source-filename
@@ -457,7 +457,7 @@ NEW-NAME."
                         (define-key ac-mode-map (kbd "M-TAB") 'auto-complete)))
 
         (:name yasnippet
-               :after (lambda ()
+               :after (progn
                         (add-to-list 'yas/root-directory
                                      "~/.emacs.d/phunculist-snippets")
                         (mapc 'yas/load-directory yas/root-directory)
@@ -466,7 +466,7 @@ NEW-NAME."
         (:name ruby-complexity
                :type git
                :url "git://github.com/jsmestad/ruby-complexity.git"
-               :after (lambda ()
+               :after (progn
                         (add-hook 'ruby-mode-hook
                                   (lambda ()
                                     (flymake-mode 1)
@@ -474,17 +474,17 @@ NEW-NAME."
                                     (ruby-complexity-mode 1)))))
 
         (:name haskell-mode
-               :after (lambda ()
+               :after (progn
                         (add-hook 'haskell-mode-hook
                                   'turn-on-haskell-doc-mode)
                         (add-hook 'haskell-mode-hook
                                   'turn-on-haskell-indentation)))
 
         (:name rvm
-               :after (lambda () (rvm-use-default)))
+               :after (progn (rvm-use-default)))
 
         (:name smex
-               :after (lambda ()
+               :after (progn
                         (global-set-key (kbd "M-x") 'smex)
                         (global-set-key (kbd "M-X") 'smex-major-mode-commands)
                         ;; This is the old M-x:
@@ -498,13 +498,13 @@ NEW-NAME."
         (:name sql-indent
                :type emacswiki
                :features sql-indent
-               :after (lambda ()
+               :after (progn
                         (eval-after-load "sql"
                           (load-library "sql-indent"))))
         (:name idomenu
                :type emacswiki
                :features idomenu
-               :after (lambda () (global-set-key (kbd "C-z m") 'idomenu)))))
+               :after (progn (global-set-key (kbd "C-z m") 'idomenu)))))
 
 (el-get 'sync)
 
