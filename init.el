@@ -389,6 +389,7 @@ NEW-NAME."
         yaml-mode
         growl
         rhtml-mode
+        slim-mode
 
         (:name expand-region
                :after (progn
