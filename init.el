@@ -116,7 +116,7 @@
 (add-hook 'css-mode
           (lambda ()
             (add-to-list 'ac-sources 'ac-source-css-property)
-            (setq css-indent-level 2)))
+            (setq css-indent-offset 2)))
 
 (setq ediff-split-window-function 'split-window-horizontally)
 
