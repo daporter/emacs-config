@@ -390,6 +390,7 @@ NEW-NAME."
         growl
         rhtml-mode
         slim-mode
+        scss-mode
 
         (:name expand-region
                :after (progn
