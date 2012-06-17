@@ -364,35 +364,20 @@ NEW-NAME."
              '("ELPA" . "http://tromey.com/elpa/") t)
 
 
-;; Install el-get.  (Detects when el-get is already installed.)
-;; (url-retrieve
-;;  "https://github.com/dimitri/el-get/raw/master/el-get-install.el"
-;;  (lambda (s)
-;;    (end-of-buffer)
-;;    (eval-print-last-sexp)))
+;; Install el-get.
+(unless (require 'el-get nil t)
+  (url-retrieve
+   "https://github.com/dimitri/el-get/raw/master/el-get-install.el"
+   (lambda (s)
+     (end-of-buffer)
+     (eval-print-last-sexp))))
 
 (add-to-list 'load-path "~/.emacs.d/el-get/el-get")
 (require 'el-get)
 
+;; Local recipes.
 (setq el-get-sources
-      '(el-get
-        mode-compile
-        markdown-mode
-        haml-mode
-        rinari
-        ruby-end
-        flymake-ruby
-        full-ack
-        yari
-        color-theme
-        paredit
-        yaml-mode
-        growl
-        rhtml-mode
-        slim-mode
-        scss-mode
-
-        (:name expand-region
+      '((:name expand-region
                :after (progn
                         (global-set-key (kbd "C-@") 'er/expand-region)
                         (global-set-key (kbd "C-M-@") 'er/contract-region)))
@@ -508,7 +493,31 @@ NEW-NAME."
                :features idomenu
                :after (progn (global-set-key (kbd "C-z m") 'idomenu)))))
 
-(el-get 'sync)
+(setq my:el-get-packages '(el-get
+                           mode-compile
+                           markdown-mode
+                           haml-mode
+                           rinari
+                           ruby-end
+                           flymake-ruby
+                           full-ack
+                           yari
+                           color-theme
+                           paredit
+                           yaml-mode
+                           growl
+                           rhtml-mode
+                           slim-mode
+                           scss-mode))
+
+(setq my:el-get-packages
+      (append
+       my:el-get-packages
+       (loop for src in el-get-sources collect (el-get-source-name src))))
+
+;; Install new packages and init already installed packages.
+(el-get 'sync my:el-get-packages)
+
 
 (setq custom-file "~/.emacs.d/custom.el")
 (load custom-file)
