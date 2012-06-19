@@ -499,6 +499,7 @@ NEW-NAME."
                            haml-mode
                            rinari
                            ruby-end
+                           ruby-electric
                            flymake-ruby
                            full-ack
                            yari
