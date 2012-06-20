@@ -1,6 +1,6 @@
 #contributor: David Porter <david.a.porter@gmail.com>
 #name: describe '...' do ... end
 # --
-describe '${1:scenario}' do
+describe "${1:scenario}" do
   $0
 end
