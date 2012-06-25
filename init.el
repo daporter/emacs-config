@@ -363,6 +363,8 @@ NEW-NAME."
 (add-to-list 'package-archives
              '("technomancy" . "http://repo.technomancy.us/emacs/") t)
 (add-to-list 'package-archives
+             '("melpa" . "http://melpa.milkbox.net/packages/") t)
+(add-to-list 'package-archives
              '("ELPA" . "http://tromey.com/elpa/") t)
 
 
