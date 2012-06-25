@@ -25,6 +25,8 @@
 (global-hl-line-mode 1)
 (setq visible-bell t)
 
+(load-theme 'zenburn t)
+
 (defalias 'yes-or-no-p 'y-or-n-p)
 
 (winner-mode 1)
