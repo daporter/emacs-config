@@ -492,6 +492,9 @@ NEW-NAME."
                :after (progn
                         (eval-after-load "sql"
                           (load-library "sql-indent"))))
+        (:name helm
+               :after (progn
+                        (global-set-key (kbd "C-z h") 'helm-mini)))
         (:name idomenu
                :type emacswiki
                :features idomenu
