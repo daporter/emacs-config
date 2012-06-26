@@ -495,6 +495,9 @@ NEW-NAME."
         (:name helm
                :after (progn
                         (global-set-key (kbd "C-z h") 'helm-mini)))
+        (:name ace-jump-mode
+               :after (progn
+                        (global-set-key (kbd "C-c SPC") 'ace-jump-mode)))
         (:name idomenu
                :type emacswiki
                :features idomenu
