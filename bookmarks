@@ -1,0 +1,10 @@
+;;;; Emacs Bookmark Format Version 1 ;;;;
+;;; This format is meant to be slightly human-readable;
+;;; nevertheless, you probably don't want to edit it.
+;;; -*- End Of Bookmark File Format Version Stamp -*-
+(("attributes.rb"
+ (filename . "//Users/u3990518/.rvm/gems/ruby-1.9.3-p125@era2010/bundler/gems/bj-utc-e63611d3813c/lib/bj/attributes.rb")
+ (front-context-string . "{ |*args| defaul")
+ (rear-context-string . "e = b || lambda ")
+ (position . 1039))
+)

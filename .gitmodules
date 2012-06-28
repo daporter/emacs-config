@@ -1,0 +1,15 @@
+[submodule "site-lisp/use-package"]
+	path = site-lisp/use-package
+	url = https://github.com/jwiegley/use-package.git
+[submodule "site-lisp/el-get"]
+	path = site-lisp/el-get
+	url = https://github.com/dimitri/el-get.git
+[submodule "site-lisp/zenburn-theme"]
+	path = site-lisp/zenburn-theme
+	url = https://github.com/emacsmirror/zenburn-theme.git
+[submodule "site-lisp/helm"]
+	path = site-lisp/helm
+	url = https://github.com/emacs-helm/helm
+[submodule "site-lisp/helm-descbinds"]
+	path = site-lisp/helm-descbinds
+	url = https://github.com/emacs-helm/helm-descbinds

@@ -1,0 +1,24 @@
+;; Emacs-W3 HTTP cookies file
+;; Automatically generated file!!! DO NOT EDIT!!!
+
+(setq url-cookie-storage
+ '(("marmalade-repo.org"
+  [url-cookie "connect.sid" "cSsJUHBE4gK01otJ20q87Zzx.u3ejPcRX47N1zsNJi8Dhp5kirnXlMwnnyzouA7%2Bi6As" "Thu, 28 Jun 2012 08:42:11 GMT" "/" "marmalade-repo.org" nil]
+  [url-cookie "httpOnly" nil "Thu, 28 Jun 2012 08:42:11 GMT" "/" "marmalade-repo.org" nil]))
+)
+(setq url-cookie-secure-storage
+ '(("github.com"
+  [url-cookie "_gh_sess" "BAh7BzoPc2Vzc2lvbl9pZCIlZWRmZjdiMWVjZTEwZGMyYThkYWUyNWVhZTljNzQ2OGYiCmZsYXNoSUM6J0FjdGlvbkNvbnRyb2xsZXI6OkZsYXNoOjpGbGFzaEhhc2h7AAY6CkB1c2VkewA%3D--1498065254ba550902423ac2ba821ecb9ab2b404" "01-Jan-2022 00:00:00.00 GMT" "/" "github.com" t]
+  [url-cookie "HttpOnly" nil "01-Jan-2022 00:00:00.00 GMT" "/" "github.com" t])
+ ("gist.github.com"
+  [url-cookie "HttpOnly" nil "01-Jan-2022 00:00:00.00 GMT" "/" "gist.github.com" t]
+  [url-cookie "_gh_sess" "BAh7ByIKZmxhc2hJQzonQWN0aW9uQ29udHJvbGxlcjo6Rmxhc2g6OkZsYXNoSGFzaHsABjoKQHVzZWR7ADoPc2Vzc2lvbl9pZCIlZWRmZjdiMWVjZTEwZGMyYThkYWUyNWVhZTljNzQ2OGY%3D--22383fe2b2db0528e5ea00167a04d77595932fa4" "01-Jan-2022 00:00:00.00 GMT" "/" "gist.github.com" t])
+ ("raw.github.com"
+  [url-cookie "HttpOnly" nil "01-Jan-2022 00:00:00.00 GMT" "/" "raw.github.com" t]
+  [url-cookie "_gh_sess" "BAh7ByIKZmxhc2hJQzonQWN0aW9uQ29udHJvbGxlcjo6Rmxhc2g6OkZsYXNoSGFzaHsABjoKQHVzZWR7ADoPc2Vzc2lvbl9pZCIlZWRmZjdiMWVjZTEwZGMyYThkYWUyNWVhZTljNzQ2OGY%3D--22383fe2b2db0528e5ea00167a04d77595932fa4" "01-Jan-2022 00:00:00.00 GMT" "/" "raw.github.com" t]))
+)
+
+;; Local Variables:
+;; version-control: never
+;; no-byte-compile: t
+;; End:
