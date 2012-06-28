@@ -1056,7 +1056,22 @@
               '(add-to-list 'helm-for-files-prefered-list
                             'helm-c-source-git-files))))
 
+;;;_ , magit
 
+(use-package magit
+  :bind ("C-x g" . magit-status)
+  :config (progn
+	    (setenv "GIT_PAGER" "")
+
+	    (setq magit-repo-dirs '("~/.emacs.d" "~/Documents/Projects"))
+
+	    (add-hook 'magit-log-edit-mode-hook
+		      #'(lambda ()
+			  (set-fill-column 72)
+			  (flyspell-mode)))
+
+	    (require 'magit-topgit)
+	    (require 'rebase-mode)))
 
 ;; Add the user-contributed repository of emacs packages.
 ;; (require 'package)

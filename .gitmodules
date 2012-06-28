@@ -13,3 +13,6 @@
 [submodule "site-lisp/helm-descbinds"]
 	path = site-lisp/helm-descbinds
 	url = https://github.com/emacs-helm/helm-descbinds
+[submodule "site-lisp/magit"]
+	path = site-lisp/magit
+	url = https://github.com/magit/magit
