@@ -1247,7 +1247,7 @@
 ;; (el-get 'sync my:el-get-packages)
 
 
-(setq custom-file "~/.emacs.d/custom.el")
+(setq custom-file "~/.emacs.d/settings.el")
 (load custom-file)
 
 ;; Local Variables:
