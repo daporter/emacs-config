@@ -12,6 +12,3 @@ info/
 mirror
 site-lisp/.loaddefs.el
 site-lisp/.status.el
-ac-comphist.dat
-auto-save-list/
-/tramp
