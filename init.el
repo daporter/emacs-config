@@ -466,17 +466,528 @@
 
 
 
+
+;;;_. Packages
+
+;;;_ , el-get
+
+(use-package el-get
+  ;; :disabled t
+  :commands (el-get
+             el-get-install
+             el-get-update
+             el-get-list-packages)
+  :init (defvar el-get-sources nil)
+
+  :config (defun el-get-read-status-file ()
+            (mapcar #'(lambda (entry)
+                        (cons (plist-get entry :symbol)
+                              `(status "installed" recipe ,entry)))
+                    el-get-sources))
+
+  (defalias 'el-get-init 'ignore
+    "Don't use el-get for making packages available for use."))
+
+(use-package ace-jump-mode
+  :bind ("S-<return>" . ace-jump-mode))
+
+;;;_ , auto-complete
+
+(use-package auto-complete-config
+  :commands auto-complete-mode
+  :diminish auto-complete-mode
+  :config (progn
+            (ac-set-trigger-key "TAB")
+            (setq ac-use-menu-map t)))
+
+;;;_ , autorevert
+
+(use-package autorevert
+  :commands auto-revert-mode
+  :diminish auto-revert-mode
+  :init (add-hook 'find-file-hook
+                  #'(lambda ()
+                      (auto-revert-mode 1))))
+
+;;;_ , flyspell
+
+(use-package ispell
+  :bind (("C-c i c" . ispell-comments-and-strings)
+         ("C-c i d" . ispell-change-dictionary)
+         ("C-c i k" . ispell-kill-ispell)
+         ("C-c i m" . ispell-message)
+         ("C-c i r" . ispell-region)))
+
+(use-package flyspell
+  :bind (("C-c i b" . flyspell-buffer)
+         ("C-c i f" . flyspell-mode))
+  :config (define-key flyspell-mode-map [(control ?.)] nil))
+
+;;;_ , helm
+
+(use-package helm-config
+  :init (progn
+          (bind-key "C-c M-x" 'helm-M-x)
+          (bind-key "C-h a" 'helm-c-apropos)
+          (bind-key "M-s a" 'helm-do-grep)
+
+          (defun my-helm-occur ()
+            (interactive)
+            (require 'helm-regexp)
+            (helm-other-buffer 'helm-c-source-occur "*Helm Occur*"))
+
+          (bind-key "M-s b" 'my-helm-occur)
+          (bind-key "M-s F" 'helm-for-files)
+
+          (defun my-helm-apropos ()
+            (interactive)
+            (require 'helm-elisp)
+            (require 'helm-misc)
+            (let ((default (thing-at-point 'symbol)))
+              (helm
+               :prompt "Info about: "
+               :candidate-number-limit 15
+               :sources
+               (append (mapcar (lambda (func)
+                                 (funcall func default))
+                               '(helm-c-source-emacs-commands
+                                 helm-c-source-emacs-functions
+                                 helm-c-source-emacs-variables
+                                 helm-c-source-emacs-faces
+                                 helm-c-source-helm-attributes))
+                       '(helm-c-source-info-emacs
+                         helm-c-source-info-elisp
+                         helm-c-source-info-gnus
+                         helm-c-source-info-org
+                         helm-c-source-info-cl
+                         helm-c-source-emacs-source-defun)))))
+
+          (bind-key "C-h e a" 'my-helm-apropos)
+
+          (defun helm-c-source-git-files-init ()
+            "Build `helm-candidate-buffer' of Git files."
+            (with-current-buffer (helm-candidate-buffer 'local)
+              (mapcar
+               (lambda (item)
+                 (insert (expand-file-name item) ?\n))
+               (split-string (shell-command-to-string "git ls-files") "\n"))))
+
+          (defun helm-find-git-file ()
+            (interactive)
+            (helm :sources 'helm-c-source-git-files
+                  :input ""
+                  :prompt "Find file: "
+                  :buffer "*Helm git file*"))
+
+          (bind-key "C-x f" 'helm-find-git-file)
+          (bind-key "M-g g" 'helm-find-git-file)
+          (bind-key "C-h b" 'helm-descbinds))
+
+  :config (progn
+            (helm-match-plugin-mode t)
+
+            (use-package helm-descbinds
+              :commands helm-descbinds
+              :init (fset 'describe-bindings 'helm-descbinds))
+
+            (defvar helm-c-source-git-files
+              '((name . "Files under Git version control")
+                (init . helm-c-source-git-files-init)
+                (candidates-in-buffer)
+                (type . file))
+              "Search for files in the current Git project.")
+
+            (eval-after-load "helm-files"
+              '(add-to-list 'helm-for-files-prefered-list
+                            'helm-c-source-git-files))))
+
+;;;_ , ido
+
+(use-package ido
+  :defines (ido-cur-item
+            ido-require-match
+            ido-selected
+            ido-final-text
+            ido-show-confirm-message)
+  :init (ido-mode 'buffer)
+
+  :config (progn
+            (use-package ido-hacks
+              :init (ido-hacks-mode 1))
+
+    (defun ido-smart-select-text ()
+      "Select the current completed item.  Do NOT descend into directories."
+      (interactive)
+      (when (and (or (not ido-require-match)
+                     (if (memq ido-require-match
+                               '(confirm confirm-after-completion))
+                         (if (or (eq ido-cur-item 'dir)
+                                 (eq last-command this-command))
+                             t
+                           (setq ido-show-confirm-message t)
+                           nil))
+                     (ido-existing-item-p))
+                 (not ido-incomplete-regexp))
+        (when ido-current-directory
+          (setq ido-exit 'takeprompt)
+          (unless (and ido-text (= 0 (length ido-text)))
+            (let ((match (ido-name (car ido-matches))))
+              (throw 'ido
+                     (setq ido-selected
+                           (if match
+                               (replace-regexp-in-string "/\\'" "" match)
+                             ido-text)
+                           ido-text ido-selected
+                           ido-final-text ido-text)))))
+        (exit-minibuffer)))
+    
+    (add-hook 'ido-minibuffer-setup-hook
+              #'(lambda ()
+                  (bind-key "<return>" 'ido-smart-select-text
+                            ido-file-completion-map)))
+    
+    (defun ido-switch-buffer-tiny-frame (buffer)
+      (interactive (list (ido-read-buffer "Buffer: " nil t)))
+      (with-selected-frame
+          (make-frame '((width                . 80)
+                        (height               . 22)
+                        (left-fringe          . 0)
+                        (right-fringe         . 0)
+                        (vertical-scroll-bars . nil)
+                        (unsplittable         . t)
+                        (has-modeline-p       . nil)
+                        (minibuffer           . nil)))
+        (switch-to-buffer buffer)
+        (set (make-local-variable 'mode-line-format) nil)))
+    
+    (bind-key "C-x 5 t" 'ido-switch-buffer-tiny-frame)))
+
+;;;_ , Ledger
+
+(use-package "ldg-new"
+  :commands ledger-mode
+  :init (progn
+          (defun my-ledger-start-entry (&optional arg)
+            (interactive "p")
+            (find-file-other-window (getenv "LEDGER_FILE"))
+            (goto-char (point-max))
+            (skip-syntax-backward " ")
+            (if (looking-at "\n\n")
+                (goto-char (point-max))
+              (delete-region (point) (point-max))
+              (insert ?\n)
+              (insert ?\n))
+            (insert (format-time-string "%Y/%m/%d ")))
+
+          (bind-key "C-c L" 'my-ledger-start-entry)))
+
+;;;_ , magit
+
+(use-package magit
+  :bind ("C-x g" . magit-status)
+  :config (progn
+            (setenv "GIT_PAGER" "")
+
+            (setq magit-repo-dirs '("~/.emacs.d" "~/Documents/Projects"))
+
+            (add-hook 'magit-log-edit-mode-hook
+                      #'(lambda ()
+                          (set-fill-column 72)
+                          (flyspell-mode)))
+
+            (require 'magit-topgit)
+            (require 'rebase-mode)))
+
+;;;_ , recentf
+
+(use-package recentf
+  :if (not noninteractive)
+  :init (progn
+          (recentf-mode 1)
+
+          (defun recentf-add-dired-directory ()
+            (if (and dired-directory
+                     (file-directory-p dired-directory)
+                     (not (string= "/" dired-directory)))
+                (let ((last-idx (1- (length dired-directory))))
+                  (recentf-add-file
+                   (if (= ?/ (aref dired-directory last-idx))
+                       (substring dired-directory 0 last-idx)
+                     dired-directory)))))
+          
+          (add-hook 'dired-mode-hook 'recentf-add-dired-directory)))
+
+;;;_ , rvm
+
+(use-package rvm
+  :config (progn (rvm-use-default)))
+
+;;;_ , whitespace
+
+(use-package whitespace
+  :diminish (global-whitespace-mode
+             whitespace-mode
+             whitespace-newline-mode)
+  :commands (whitespace-buffer
+             whitespace-cleanup
+             whitespace-mode)
+  :init (progn
+          (hook-into-modes 'whitespace-mode
+                           '(prog-mode-hook
+                             c-mode-common-hook))
+
+          (defun normalize-file ()
+            (interactive)
+            (save-excursion
+              (goto-char (point-min))
+              (whitespace-cleanup)
+              (delete-trailing-whitespace)
+              (goto-char (point-max))
+              (delete-blank-lines)
+              (set-buffer-file-coding-system 'unix)
+              (goto-char (point-min))
+              (while (re-search-forward "\r$" nil t)
+                (replace-match ""))
+              (set-buffer-file-coding-system 'utf-8)
+              (let ((require-final-newline t))
+                (save-buffer))))
+
+          (defun maybe-turn-on-whitespace ()
+            "Depending on the file, maybe clean up whitespace."
+            (let ((file (expand-file-name ".clean"))
+                  parent-dir)
+              (while (and (not (file-exists-p file))
+                          (progn
+                            (setq parent-dir
+                                  (file-name-directory
+                                   (directory-file-name
+                                    (file-name-directory file))))
+                            ;; Give up if we are already at the root dir.
+                            (not (string= (file-name-directory file)
+                                          parent-dir))))
+                ;; Move up to the parent dir and try again.
+                (setq file (expand-file-name ".clean" parent-dir)))
+              ;; If we found a change log in a parent, use that.
+              (when (and (file-exists-p file)
+                         (not (file-exists-p ".noclean"))
+                         (not (and buffer-file-name
+                                   (string-match "\\.texi\\'"
+                                                 buffer-file-name))))
+                (add-hook 'write-contents-hooks
+                          #'(lambda ()
+                              (ignore (whitespace-cleanup))) nil t)
+                (whitespace-cleanup))))
+
+          (add-hook 'find-file-hooks 'maybe-turn-on-whitespace t))
+
+  :config (progn
+            (remove-hook 'find-file-hooks 'whitespace-buffer)
+            (remove-hook 'kill-buffer-hook 'whitespace-buffer)))
+
+;;;_ , yasnippet
+
+(use-package yasnippet
+  :if (not noninteractive)
+  :diminish yas/minor-mode
+  :commands (yas/minor-mode yas/expand)
+  :mode ("/\\.emacs\\.d/snippets/" . snippet-mode)
+  :init (hook-into-modes #'(lambda () (yas/minor-mode 1))
+                         '(prog-mode-hook
+                           org-mode-hook
+                           ruby-mode-hook
+                           message-mode-hook
+                           gud-mode-hook
+                           erc-mode-hook))
+  :config (progn
+            (yas/initialize)
+            (yas/load-directory
+             (expand-file-name "snippets/" user-emacs-directory))
+
+            (bind-key "<tab>" 'yas/next-field-or-maybe-expand yas/keymap)
+            
+            (defun yas/new-snippet (&optional choose-instead-of-guess)
+              (interactive "P")
+              (let ((guessed-directories (yas/guess-snippet-directories)))
+                (switch-to-buffer "*new snippet*")
+                (erase-buffer)
+                (kill-all-local-variables)
+                (snippet-mode)
+                (set (make-local-variable 'yas/guessed-modes)
+                     (mapcar #'(lambda (d)
+                                 (intern (yas/table-name (car d))))
+                             guessed-directories))
+                (unless (and choose-instead-of-guess
+                             (not (y-or-n-p
+                                   "Insert a snippet with useful headers? ")))
+                  (yas/expand-snippet "\
+# -*- mode: snippet -*-
+# name: $1
+# --
+$0"))))
+
+            (bind-key "C-c y TAB" 'yas/expand)
+            (bind-key "C-c y n" 'yas/new-snippet)
+            (bind-key "C-c y f" 'yas/find-snippets)
+            (bind-key "C-c y r" 'yas/reload-all)
+            (bind-key "C-c y v" 'yas/visit-snippet-file)))
+
+;;;_ , zenburn-theme
+
+(use-package zenburn-theme
+  :init (progn (load-theme 'zenburn)))
+
+
+
+
+;; ;; Local recipes.
+;; (setq el-get-sources
+;;       '((:name expand-region
+;;                :after (progn
+;;                         (global-set-key (kbd "C-@") 'er/expand-region)
+;;                         (global-set-key (kbd "C-M-@") 'er/contract-region)))
+
+;;         (:name buffer-move
+;;                :after (progn
+;;                         (global-set-key (kbd "<M-up>")    'buf-move-up)
+;;                         (global-set-key (kbd "<M-down>")  'buf-move-down)
+;;                         (global-set-key (kbd "<M-left>")  'buf-move-left)
+;;                         (global-set-key (kbd "<M-right>") 'buf-move-right)))
+
+;;         (:name tiling
+;;                :type emacswiki
+;;                :features "tiling"
+;;                :after (progn
+;;                         (define-key global-map
+;;                           (kbd "C-\\") 'tiling-cycle)
+;;                         (define-key global-map
+;;                           (kbd "C-M-<up>") 'tiling-tile-up)
+;;                         (define-key global-map
+;;                           (kbd "C-M-<down>") 'tiling-tile-down)
+;;                         (define-key global-map
+;;                           (kbd "C-M-<right>") 'tiling-tile-right)
+;;                         (define-key global-map
+;;                           (kbd "C-M-<left>") 'tiling-tile-left)))
+
+;;         (:name auctex
+;;                :build `("./autogen.sh"
+;;                         ,(concat "./configure"
+;;                                  " --with-lispdir=`pwd`"
+;;                                  " --with-texmf-dir=/Library/TeX/Root/texmf"
+;;                                  " --with-emacs=" el-get-emacs)
+;;                         "make")
+;;                :after (progn
+;;                         (add-hook 'latex-mode-hook 'TeX-PDF-mode)
+;;                         (add-hook 'LaTeX-mode-hook 'TeX-PDF-mode)
+;;                         (setq LaTeX-command "latex -synctex=1"
+;;                               TeX-view-program-list '(("Skim"
+;;                                                        "/Applications/Skim.app/Contents/SharedSupport/displayline %n %o %b"))
+;;                               TeX-view-program-selection '(((output-dvi style-pstricks)
+;;                                                             "dvips and gv")
+;;                                                            (output-dvi "xdvi")
+;;                                                            (output-pdf "Skim")
+;;                                                            (output-html
+;;                                                             "xdg-open")))))
+
+;;         (:name magit
+;;                :features (magit magit-svn)
+;;                :after (progn
+;;                         (global-set-key (kbd "C-z g") 'magit-status)
+;;                         (setq magit-repo-dirs
+;;                               '("~/.emacs.d" "~/Documents/Projects"))
+;;                         (add-hook 'magit-log-edit-mode-hook
+;;                                   (lambda () (setq fill-column 72)))))
+
+;;         (:name auto-complete
+;;                :after (progn
+;;                         (setq-default ac-sources
+;;                                       '(ac-source-yasnippet
+;;                                         ac-source-filename
+;;                                         ac-source-abbrev
+;;                                         ac-source-dictionary
+;;                                         ac-source-words-in-same-mode-buffers))
+;;                         (define-key ac-mode-map (kbd "M-TAB") 'auto-complete)))
+
+;;         (:name yasnippet
+;;                :after (progn
+;;                         (add-to-list 'yas/root-directory
+;;                                      "~/.emacs.d/phunculist-snippets")
+;;                         (mapc 'yas/load-directory yas/root-directory)
+;;                         (setq yas/wrap-around-region 'cua)))
+
+;;         (:name ruby-complexity
+;;                :type git
+;;                :url "git://github.com/jsmestad/ruby-complexity.git"
+;;                :after (progn
+;;                         (add-hook 'ruby-mode-hook
+;;                                   (lambda ()
+;;                                     (flymake-mode 1)
+;;                                     (linum-mode 1)
+;;                                     (ruby-complexity-mode 1)))))
+
+;;         (:name haskell-mode
+;;                :after (progn
+;;                         (add-hook 'haskell-mode-hook
+;;                                   'turn-on-haskell-doc-mode)
+;;                         (add-hook 'haskell-mode-hook
+;;                                   'turn-on-haskell-indentation)))
+
+;;         (:name smex
+;;                :after (progn
+;;                         (global-set-key (kbd "M-x") 'smex)
+;;                         (global-set-key (kbd "M-X") 'smex-major-mode-commands)
+;;                         ;; This is the old M-x:
+;;                         (global-set-key (kbd "C-c C-c M-x")
+;;                                         'execute-extended-command)))
+
+;;         (:name lorem-ipsum
+;;                :type emacswiki
+;;                :features lorem-ipsum)
+
+;;         (:name sql-indent
+;;                :type emacswiki
+;;                :features sql-indent
+;;                :after (progn
+;;                         (eval-after-load "sql"
+;;                           (load-library "sql-indent"))))
+;;         (:name idomenu
+;;                :type emacswiki
+;;                :features idomenu
+;;                :after (progn (global-set-key (kbd "C-z m") 'idomenu)))))
+
+;; (setq my:el-get-packages '(el-get
+;;                            mode-compile
+;;                            markdown-mode
+;;                            haml-mode
+;;                            rinari
+;;                            ruby-end
+;;                            ruby-electric
+;;                            flymake-ruby
+;;                            full-ack
+;;                            yari
+;;                            color-theme
+;;                            paredit
+;;                            yaml-mode
+;;                            growl
+;;                            rhtml-mode
+;;                            slim-mode
+;;                            scss-mode))
+
+;; (setq my:el-get-packages
+;;       (append
+;;        my:el-get-packages
+;;        (loop for src in el-get-sources collect (el-get-source-name src))))
+
+;; ;; Install new packages and init already installed packages.
+;; (el-get 'sync my:el-get-packages)
+
+
+(setq custom-file "~/.emacs.d/settings.el")
+(load custom-file)
+
+
+;;;_. My stuff
+
 ;; ;;;; Editing settings.
-
-
-
-;; (ido-mode 1)
-;; (setq ido-enable-flex-matching t
-;;       ido-create-new-buffer 'always)
-
-
-;; (add-hook 'text-mode-hook 'turn-on-auto-fill)
-;; (add-hook 'text-mode-hook 'turn-on-flyspell)
 
 ;; ;; Hippie expand: at times perhaps too hip
 ;; (dolist (f '(try-expand-line try-expand-list try-complete-file-name-partially))
@@ -514,10 +1025,6 @@
 
 
 ;; ;; Find recent files with Ido.
-
-;; (require 'recentf)
-;; (recentf-mode t)
-;; (setq recentf-max-saved-items 50)
 
 ;; (defun ido-recentf-open ()
 ;;   "Use `ido-completing-read' to \\[find-file] a recent file"
@@ -728,427 +1235,6 @@
 ;;   (indent-region (point-min) (point-max))
 ;;   (whitespace-cleanup))
 
-;;;_. Packages
-
-;;;_ , el-get
-
-(use-package el-get
-  ;; :disabled t
-  :commands (el-get
-             el-get-install
-             el-get-update
-             el-get-list-packages)
-  :init (defvar el-get-sources nil)
-
-  :config (defun el-get-read-status-file ()
-            (mapcar #'(lambda (entry)
-                        (cons (plist-get entry :symbol)
-                              `(status "installed" recipe ,entry)))
-                    el-get-sources))
-
-  (defalias 'el-get-init 'ignore
-    "Don't use el-get for making packages available for use."))
-
-(use-package ace-jump-mode
-  :bind ("S-<return>" . ace-jump-mode))
-
-;;;_ , auto-complete
-
-(use-package auto-complete-config
-  :commands auto-complete-mode
-  :diminish auto-complete-mode
-  :config (progn
-            (ac-set-trigger-key "TAB")
-            (setq ac-use-menu-map t)))
-
-;;;_ , autorevert
-
-(use-package autorevert
-  :commands auto-revert-mode
-  :diminish auto-revert-mode
-  :init (add-hook 'find-file-hook
-                  #'(lambda ()
-                      (auto-revert-mode 1))))
-
-;;;_ , helm
-
-(use-package helm-config
-  :init (progn
-          (bind-key "C-c M-x" 'helm-M-x)
-          (bind-key "C-h a" 'helm-c-apropos)
-          (bind-key "M-s a" 'helm-do-grep)
-
-          (defun my-helm-occur ()
-            (interactive)
-            (require 'helm-regexp)
-            (helm-other-buffer 'helm-c-source-occur "*Helm Occur*"))
-
-          (bind-key "M-s b" 'my-helm-occur)
-          (bind-key "M-s F" 'helm-for-files)
-
-          (defun my-helm-apropos ()
-            (interactive)
-            (require 'helm-elisp)
-            (require 'helm-misc)
-            (let ((default (thing-at-point 'symbol)))
-              (helm
-               :prompt "Info about: "
-               :candidate-number-limit 15
-               :sources
-               (append (mapcar (lambda (func)
-                                 (funcall func default))
-                               '(helm-c-source-emacs-commands
-                                 helm-c-source-emacs-functions
-                                 helm-c-source-emacs-variables
-                                 helm-c-source-emacs-faces
-                                 helm-c-source-helm-attributes))
-                       '(helm-c-source-info-emacs
-                         helm-c-source-info-elisp
-                         helm-c-source-info-gnus
-                         helm-c-source-info-org
-                         helm-c-source-info-cl
-                         helm-c-source-emacs-source-defun)))))
-
-          (bind-key "C-h e a" 'my-helm-apropos)
-
-          (defun helm-c-source-git-files-init ()
-            "Build `helm-candidate-buffer' of Git files."
-            (with-current-buffer (helm-candidate-buffer 'local)
-              (mapcar
-               (lambda (item)
-                 (insert (expand-file-name item) ?\n))
-               (split-string (shell-command-to-string "git ls-files") "\n"))))
-
-          (defun helm-find-git-file ()
-            (interactive)
-            (helm :sources 'helm-c-source-git-files
-                  :input ""
-                  :prompt "Find file: "
-                  :buffer "*Helm git file*"))
-
-          (bind-key "C-x f" 'helm-find-git-file)
-          (bind-key "M-g g" 'helm-find-git-file)
-          (bind-key "C-h b" 'helm-descbinds))
-
-  :config (progn
-            (helm-match-plugin-mode t)
-
-            (use-package helm-descbinds
-              :commands helm-descbinds
-              :init (fset 'describe-bindings 'helm-descbinds))
-
-            (defvar helm-c-source-git-files
-              '((name . "Files under Git version control")
-                (init . helm-c-source-git-files-init)
-                (candidates-in-buffer)
-                (type . file))
-              "Search for files in the current Git project.")
-
-            (eval-after-load "helm-files"
-              '(add-to-list 'helm-for-files-prefered-list
-                            'helm-c-source-git-files))))
-
-;;;_ , ido
-
-(use-package ido
-  :defines (ido-cur-item
-            ido-require-match
-            ido-selected
-            ido-final-text
-            ido-show-confirm-message)
-  :init (ido-mode 'buffer)
-
-  :config (progn
-            (use-package ido-hacks
-              :init (ido-hacks-mode 1))
-
-    (defun ido-smart-select-text ()
-      "Select the current completed item.  Do NOT descend into directories."
-      (interactive)
-      (when (and (or (not ido-require-match)
-                     (if (memq ido-require-match
-                               '(confirm confirm-after-completion))
-                         (if (or (eq ido-cur-item 'dir)
-                                 (eq last-command this-command))
-                             t
-                           (setq ido-show-confirm-message t)
-                           nil))
-                     (ido-existing-item-p))
-                 (not ido-incomplete-regexp))
-        (when ido-current-directory
-          (setq ido-exit 'takeprompt)
-          (unless (and ido-text (= 0 (length ido-text)))
-            (let ((match (ido-name (car ido-matches))))
-              (throw 'ido
-                     (setq ido-selected
-                           (if match
-                               (replace-regexp-in-string "/\\'" "" match)
-                             ido-text)
-                           ido-text ido-selected
-                           ido-final-text ido-text)))))
-        (exit-minibuffer)))
-    
-    (add-hook 'ido-minibuffer-setup-hook
-              #'(lambda ()
-                  (bind-key "<return>" 'ido-smart-select-text
-                            ido-file-completion-map)))
-    
-    (defun ido-switch-buffer-tiny-frame (buffer)
-      (interactive (list (ido-read-buffer "Buffer: " nil t)))
-      (with-selected-frame
-          (make-frame '((width                . 80)
-                        (height               . 22)
-                        (left-fringe          . 0)
-                        (right-fringe         . 0)
-                        (vertical-scroll-bars . nil)
-                        (unsplittable         . t)
-                        (has-modeline-p       . nil)
-                        (minibuffer           . nil)))
-        (switch-to-buffer buffer)
-        (set (make-local-variable 'mode-line-format) nil)))
-    
-    (bind-key "C-x 5 t" 'ido-switch-buffer-tiny-frame)))
-
-;;;_ , magit
-
-(use-package magit
-  :bind ("C-x g" . magit-status)
-  :config (progn
-            (setenv "GIT_PAGER" "")
-
-            (setq magit-repo-dirs '("~/.emacs.d" "~/Documents/Projects"))
-
-            (add-hook 'magit-log-edit-mode-hook
-                      #'(lambda ()
-                          (set-fill-column 72)
-                          (flyspell-mode)))
-
-            (require 'magit-topgit)
-            (require 'rebase-mode)))
-
-;;;_ , whitespace
-
-(use-package whitespace
-  :diminish (global-whitespace-mode
-             whitespace-mode
-             whitespace-newline-mode)
-  :commands (whitespace-buffer
-             whitespace-cleanup
-             whitespace-mode)
-  :init (progn
-          (hook-into-modes 'whitespace-mode
-                           '(prog-mode-hook
-                             c-mode-common-hook))
-
-          (defun normalize-file ()
-            (interactive)
-            (save-excursion
-              (goto-char (point-min))
-              (whitespace-cleanup)
-              (delete-trailing-whitespace)
-              (goto-char (point-max))
-              (delete-blank-lines)
-              (set-buffer-file-coding-system 'unix)
-              (goto-char (point-min))
-              (while (re-search-forward "\r$" nil t)
-                (replace-match ""))
-              (set-buffer-file-coding-system 'utf-8)
-              (let ((require-final-newline t))
-                (save-buffer))))
-
-          (defun maybe-turn-on-whitespace ()
-            "Depending on the file, maybe clean up whitespace."
-            (let ((file (expand-file-name ".clean"))
-                  parent-dir)
-              (while (and (not (file-exists-p file))
-                          (progn
-                            (setq parent-dir
-                                  (file-name-directory
-                                   (directory-file-name
-                                    (file-name-directory file))))
-                            ;; Give up if we are already at the root dir.
-                            (not (string= (file-name-directory file)
-                                          parent-dir))))
-                ;; Move up to the parent dir and try again.
-                (setq file (expand-file-name ".clean" parent-dir)))
-              ;; If we found a change log in a parent, use that.
-              (when (and (file-exists-p file)
-                         (not (file-exists-p ".noclean"))
-                         (not (and buffer-file-name
-                                   (string-match "\\.texi\\'"
-                                                 buffer-file-name))))
-                (add-hook 'write-contents-hooks
-                          #'(lambda ()
-                              (ignore (whitespace-cleanup))) nil t)
-                (whitespace-cleanup))))
-
-          (add-hook 'find-file-hooks 'maybe-turn-on-whitespace t))
-
-  :config (progn
-            (remove-hook 'find-file-hooks 'whitespace-buffer)
-            (remove-hook 'kill-buffer-hook 'whitespace-buffer)))
-
-;;;_ , zenburn-theme
-
-(use-package zenburn-theme
-  :init (progn (load-theme 'zenburn)))
-
-
-
-
-;; ;; Local recipes.
-;; (setq el-get-sources
-;;       '((:name expand-region
-;;                :after (progn
-;;                         (global-set-key (kbd "C-@") 'er/expand-region)
-;;                         (global-set-key (kbd "C-M-@") 'er/contract-region)))
-
-;;         (:name buffer-move
-;;                :after (progn
-;;                         (global-set-key (kbd "<M-up>")    'buf-move-up)
-;;                         (global-set-key (kbd "<M-down>")  'buf-move-down)
-;;                         (global-set-key (kbd "<M-left>")  'buf-move-left)
-;;                         (global-set-key (kbd "<M-right>") 'buf-move-right)))
-
-;;         (:name tiling
-;;                :type emacswiki
-;;                :features "tiling"
-;;                :after (progn
-;;                         (define-key global-map
-;;                           (kbd "C-\\") 'tiling-cycle)
-;;                         (define-key global-map
-;;                           (kbd "C-M-<up>") 'tiling-tile-up)
-;;                         (define-key global-map
-;;                           (kbd "C-M-<down>") 'tiling-tile-down)
-;;                         (define-key global-map
-;;                           (kbd "C-M-<right>") 'tiling-tile-right)
-;;                         (define-key global-map
-;;                           (kbd "C-M-<left>") 'tiling-tile-left)))
-
-;;         (:name auctex
-;;                :build `("./autogen.sh"
-;;                         ,(concat "./configure"
-;;                                  " --with-lispdir=`pwd`"
-;;                                  " --with-texmf-dir=/Library/TeX/Root/texmf"
-;;                                  " --with-emacs=" el-get-emacs)
-;;                         "make")
-;;                :after (progn
-;;                         (add-hook 'latex-mode-hook 'TeX-PDF-mode)
-;;                         (add-hook 'LaTeX-mode-hook 'TeX-PDF-mode)
-;;                         (setq LaTeX-command "latex -synctex=1"
-;;                               TeX-view-program-list '(("Skim"
-;;                                                        "/Applications/Skim.app/Contents/SharedSupport/displayline %n %o %b"))
-;;                               TeX-view-program-selection '(((output-dvi style-pstricks)
-;;                                                             "dvips and gv")
-;;                                                            (output-dvi "xdvi")
-;;                                                            (output-pdf "Skim")
-;;                                                            (output-html
-;;                                                             "xdg-open")))))
-
-;;         (:name magit
-;;                :features (magit magit-svn)
-;;                :after (progn
-;;                         (global-set-key (kbd "C-z g") 'magit-status)
-;;                         (setq magit-repo-dirs
-;;                               '("~/.emacs.d" "~/Documents/Projects"))
-;;                         (add-hook 'magit-log-edit-mode-hook
-;;                                   (lambda () (setq fill-column 72)))))
-
-;;         (:name auto-complete
-;;                :after (progn
-;;                         (setq-default ac-sources
-;;                                       '(ac-source-yasnippet
-;;                                         ac-source-filename
-;;                                         ac-source-abbrev
-;;                                         ac-source-dictionary
-;;                                         ac-source-words-in-same-mode-buffers))
-;;                         (define-key ac-mode-map (kbd "M-TAB") 'auto-complete)))
-
-;;         (:name yasnippet
-;;                :after (progn
-;;                         (add-to-list 'yas/root-directory
-;;                                      "~/.emacs.d/phunculist-snippets")
-;;                         (mapc 'yas/load-directory yas/root-directory)
-;;                         (setq yas/wrap-around-region 'cua)))
-
-;;         (:name ruby-complexity
-;;                :type git
-;;                :url "git://github.com/jsmestad/ruby-complexity.git"
-;;                :after (progn
-;;                         (add-hook 'ruby-mode-hook
-;;                                   (lambda ()
-;;                                     (flymake-mode 1)
-;;                                     (linum-mode 1)
-;;                                     (ruby-complexity-mode 1)))))
-
-;;         (:name haskell-mode
-;;                :after (progn
-;;                         (add-hook 'haskell-mode-hook
-;;                                   'turn-on-haskell-doc-mode)
-;;                         (add-hook 'haskell-mode-hook
-;;                                   'turn-on-haskell-indentation)))
-
-;;         (:name rvm
-;;                :after (progn (rvm-use-default)))
-
-;;         (:name smex
-;;                :after (progn
-;;                         (global-set-key (kbd "M-x") 'smex)
-;;                         (global-set-key (kbd "M-X") 'smex-major-mode-commands)
-;;                         ;; This is the old M-x:
-;;                         (global-set-key (kbd "C-c C-c M-x")
-;;                                         'execute-extended-command)))
-
-;;         (:name lorem-ipsum
-;;                :type emacswiki
-;;                :features lorem-ipsum)
-
-;;         (:name sql-indent
-;;                :type emacswiki
-;;                :features sql-indent
-;;                :after (progn
-;;                         (eval-after-load "sql"
-;;                           (load-library "sql-indent"))))
-;;         (:name helm
-;;                :after (progn
-;;                         (global-set-key (kbd "C-z h") 'helm-mini)))
-;;         (:name ace-jump-mode
-;;                :after (progn
-;;                         (global-set-key (kbd "C-c SPC") 'ace-jump-mode)))
-;;         (:name idomenu
-;;                :type emacswiki
-;;                :features idomenu
-;;                :after (progn (global-set-key (kbd "C-z m") 'idomenu)))))
-
-;; (setq my:el-get-packages '(el-get
-;;                            mode-compile
-;;                            markdown-mode
-;;                            haml-mode
-;;                            rinari
-;;                            ruby-end
-;;                            ruby-electric
-;;                            flymake-ruby
-;;                            full-ack
-;;                            yari
-;;                            color-theme
-;;                            paredit
-;;                            yaml-mode
-;;                            growl
-;;                            rhtml-mode
-;;                            slim-mode
-;;                            scss-mode))
-
-;; (setq my:el-get-packages
-;;       (append
-;;        my:el-get-packages
-;;        (loop for src in el-get-sources collect (el-get-source-name src))))
-
-;; ;; Install new packages and init already installed packages.
-;; (el-get 'sync my:el-get-packages)
-
-
-(setq custom-file "~/.emacs.d/settings.el")
-(load custom-file)
 
 ;; Local Variables:
 ;;   mode: emacs-lisp

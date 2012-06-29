@@ -16,3 +16,9 @@
 [submodule "site-lisp/magit"]
 	path = site-lisp/magit
 	url = https://github.com/magit/magit
+[submodule "site-lisp/rvm"]
+	path = site-lisp/rvm
+	url = https://github.com/senny/rvm.el
+[submodule "site-lisp/yasnippet"]
+	path = site-lisp/yasnippet
+	url = https://github.com/jwiegley/yasnippet
