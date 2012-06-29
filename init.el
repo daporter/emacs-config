@@ -470,23 +470,10 @@
 
 
 
-;; (require 'whitespace)
-;; (setq whitespace-style '(face
-;;                          trailing
-;;                          tabs
-;;                          lines-tail
-;;                          empty
-;;                          indentation
-;;                          space-before-tab
-;;                          space-after-tab))
-;; (global-whitespace-mode 1)
-
-;; (require 'uniquify)
-;; (setq uniquify-buffer-file-name 'forward)
-
 ;; (ido-mode 1)
 ;; (setq ido-enable-flex-matching t
 ;;       ido-create-new-buffer 'always)
+
 
 ;; (add-hook 'text-mode-hook 'turn-on-auto-fill)
 ;; (add-hook 'text-mode-hook 'turn-on-flyspell)
@@ -783,11 +770,6 @@
                   #'(lambda ()
                       (auto-revert-mode 1))))
 
-;;;_ , zenburn-theme
-
-(use-package zenburn-theme
-  :init (progn (load-theme 'zenburn)))
-
 ;;;_ , helm
 
 (use-package helm-config
@@ -865,6 +847,67 @@
             (eval-after-load "helm-files"
               '(add-to-list 'helm-for-files-prefered-list
                             'helm-c-source-git-files))))
+
+;;;_ , ido
+
+(use-package ido
+  :defines (ido-cur-item
+            ido-require-match
+            ido-selected
+            ido-final-text
+            ido-show-confirm-message)
+  :init (ido-mode 'buffer)
+
+  :config (progn
+            (use-package ido-hacks
+              :init (ido-hacks-mode 1))
+
+    (defun ido-smart-select-text ()
+      "Select the current completed item.  Do NOT descend into directories."
+      (interactive)
+      (when (and (or (not ido-require-match)
+                     (if (memq ido-require-match
+                               '(confirm confirm-after-completion))
+                         (if (or (eq ido-cur-item 'dir)
+                                 (eq last-command this-command))
+                             t
+                           (setq ido-show-confirm-message t)
+                           nil))
+                     (ido-existing-item-p))
+                 (not ido-incomplete-regexp))
+        (when ido-current-directory
+          (setq ido-exit 'takeprompt)
+          (unless (and ido-text (= 0 (length ido-text)))
+            (let ((match (ido-name (car ido-matches))))
+              (throw 'ido
+                     (setq ido-selected
+                           (if match
+                               (replace-regexp-in-string "/\\'" "" match)
+                             ido-text)
+                           ido-text ido-selected
+                           ido-final-text ido-text)))))
+        (exit-minibuffer)))
+    
+    (add-hook 'ido-minibuffer-setup-hook
+              #'(lambda ()
+                  (bind-key "<return>" 'ido-smart-select-text
+                            ido-file-completion-map)))
+    
+    (defun ido-switch-buffer-tiny-frame (buffer)
+      (interactive (list (ido-read-buffer "Buffer: " nil t)))
+      (with-selected-frame
+          (make-frame '((width                . 80)
+                        (height               . 22)
+                        (left-fringe          . 0)
+                        (right-fringe         . 0)
+                        (vertical-scroll-bars . nil)
+                        (unsplittable         . t)
+                        (has-modeline-p       . nil)
+                        (minibuffer           . nil)))
+        (switch-to-buffer buffer)
+        (set (make-local-variable 'mode-line-format) nil)))
+    
+    (bind-key "C-x 5 t" 'ido-switch-buffer-tiny-frame)))
 
 ;;;_ , magit
 
@@ -945,29 +988,13 @@
             (remove-hook 'find-file-hooks 'whitespace-buffer)
             (remove-hook 'kill-buffer-hook 'whitespace-buffer)))
 
+;;;_ , zenburn-theme
 
-;; Add the user-contributed repository of emacs packages.
-;; (require 'package)
-;; (add-to-list 'package-archives
-;;              '("marmalade" . "http://marmalade-repo.org/packages/") t)
-;; (add-to-list 'package-archives
-;;              '("technomancy" . "http://repo.technomancy.us/emacs/") t)
-;; (add-to-list 'package-archives
-;;              '("melpa" . "http://melpa.milkbox.net/packages/") t)
-;; (add-to-list 'package-archives
-;;              '("ELPA" . "http://tromey.com/elpa/") t)
+(use-package zenburn-theme
+  :init (progn (load-theme 'zenburn)))
 
 
-;; ;; Install el-get.
-;; (unless (require 'el-get nil t)
-;;   (url-retrieve
-;;    "https://github.com/dimitri/el-get/raw/master/el-get-install.el"
-;;    (lambda (s)
-;;      (end-of-buffer)
-;;      (eval-print-last-sexp))))
 
-;; (add-to-list 'load-path "~/.emacs.d/el-get/el-get")
-;; (require 'el-get)
 
 ;; ;; Local recipes.
 ;; (setq el-get-sources
