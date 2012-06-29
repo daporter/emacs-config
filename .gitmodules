@@ -22,3 +22,6 @@
 [submodule "site-lisp/yasnippet"]
 	path = site-lisp/yasnippet
 	url = https://github.com/jwiegley/yasnippet
+[submodule "site-lisp/Enhanced-Ruby-Mode"]
+	path = site-lisp/Enhanced-Ruby-Mode
+	url = https://github.com/jacott/Enhanced-Ruby-Mode
