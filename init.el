@@ -827,6 +827,17 @@
             (remove-hook 'find-file-hooks 'whitespace-buffer)
             (remove-hook 'kill-buffer-hook 'whitespace-buffer)))
 
+;;;_ , winner
+
+(use-package winner
+  :diminish winner-mode
+  :if (not noninteractive)
+  :init (progn
+          (winner-mode 1)
+          
+          (bind-key "M-N" 'winner-redo)
+          (bind-key "M-P" 'winner-undo)))
+
 ;;;_ , yasnippet
 
 (use-package yasnippet
