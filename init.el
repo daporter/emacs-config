@@ -11,6 +11,14 @@
 (eval-when-compile
   (setq use-package-verbose (null byte-compile-current-file)))
 
+(set-face-attribute 'default nil :font "Inconsolata" :height 140)
+
+;;;_ , Utility macros and functions
+
+(defmacro hook-into-modes (func modes)
+  `(dolist (mode-hook ,modes)
+     (add-hook mode-hook ,func)))
+
 ;;;_ , Read system environment
 
 (let ((plist (expand-file-name "~/.MacOSX/environment.plist")))
@@ -38,21 +46,6 @@
 (put 'set-goal-column  'disabled nil)
 (put 'upcase-region    'disabled nil)   ; Let upcasing work
 
-;;;_. Display
-
-(setq redisplay-dont-pause t)
-
-(set-face-attribute 'default nil :font "Inconsolata" :height 140)
-(setq-default line-spacing 0.2)
-
-(setq inhibit-startup-screen t)
-(menu-bar-mode 1)
-(tool-bar-mode 0)
-(column-number-mode 1)
-(scroll-bar-mode 0)
-(global-hl-line-mode 1)
-(setq visible-bell t)
-
 ;;;_. Keybindings
 
 ;; Main keymaps for personal bindings are:
@@ -76,6 +69,8 @@
 ;;   M- ?#
 
 ;;;_ , global-map
+
+(global-unset-key (kbd "s-q"))       ; prevent s-q from quitting emacs
 
 ;;;_  . C-?
 
@@ -111,6 +106,10 @@
 (bind-key "M-[" 'align-code)
 (bind-key "M-`" 'other-frame)
 
+(defun delete-indentation-forward ()
+  (interactive)
+  (delete-indentation t))
+
 (bind-key "M-j" 'delete-indentation-forward)
 (bind-key "M-J" 'delete-indentation)
 
@@ -140,14 +139,8 @@
 (bind-key "M-g c" 'goto-char)
 (bind-key "M-g l" 'goto-line)
 
-(defun delete-indentation-forward ()
-  (interactive)
-  (delete-indentation t))
-
 (bind-key "M-s n" 'find-name-dired)
 (bind-key "M-s o" 'occur)
-
-(bind-key "A-M-w" 'copy-code-as-rtf)
 
 ;;;_  . M-C-?
 
@@ -275,12 +268,12 @@
        (recursive-edit))))
 
 (bind-key "C-c 0"
-	  (recursive-edit-preserving-window-config (delete-window)))
+          (recursive-edit-preserving-window-config (delete-window)))
 (bind-key "C-c 1"
-	  (recursive-edit-preserving-window-config
-	   (if (one-window-p 'ignore-minibuffer)
-	       (error "Current window is the only window in its frame")
-	     (delete-other-windows))))
+          (recursive-edit-preserving-window-config
+           (if (one-window-p 'ignore-minibuffer)
+               (error "Current window is the only window in its frame")
+             (delete-other-windows))))
 
 (defun delete-current-line (&optional arg)
   (interactive "p")
@@ -305,7 +298,6 @@
 (bind-key "C-c e f" 'emacs-lisp-byte-compile-and-load)
 (bind-key "C-c e l" 'find-library)
 (bind-key "C-c e r" 'eval-region)
-(bind-key "C-c e s" 'scratch)
 (bind-key "C-c e v" 'edit-variable)
 
 (defun find-which (name)
@@ -317,140 +309,16 @@
 (bind-key "C-c e z" 'byte-recompile-directory)
 
 (bind-key "C-c f" 'flush-lines)
-(bind-key "C-c g" 'goto-line)
 
 (bind-key "C-c k" 'keep-lines)
 
-(eval-when-compile
-  (defvar emacs-min-top)
-  (defvar emacs-min-left)
-  (defvar emacs-min-height)
-  (defvar emacs-min-width))
-
-(unless noninteractive
-  (defvar emacs-min-top 22)
-  (defvar emacs-min-left (- (x-display-pixel-width) 918))
-  (defvar emacs-min-height (if (= 1050 (x-display-pixel-height)) 55 64))
-  (defvar emacs-min-width 100)))
-
-(defun emacs-min ()
-  (interactive)
-  (set-frame-parameter (selected-frame) 'fullscreen nil)
-  (set-frame-parameter (selected-frame) 'vertical-scroll-bars nil)
-  (set-frame-parameter (selected-frame) 'horizontal-scroll-bars nil)
-  (set-frame-parameter (selected-frame) 'top emacs-min-top)
-  (set-frame-parameter (selected-frame) 'left emacs-min-left)
-  (set-frame-parameter (selected-frame) 'height emacs-min-height)
-  (set-frame-parameter (selected-frame) 'width emacs-min-width)
-
-  (when running-alternate-emacs
-    (set-background-color "grey85")
-    (set-face-background 'fringe "gray80")))
-
-(if window-system
-    (add-hook 'after-init-hook 'emacs-min))
-
-(defun emacs-max ()
-  (interactive)
-  (if t
-      (progn
-        (set-frame-parameter (selected-frame) 'fullscreen 'fullboth)
-        (set-frame-parameter (selected-frame) 'vertical-scroll-bars nil)
-        (set-frame-parameter (selected-frame) 'horizontal-scroll-bars nil))
-    (set-frame-parameter (selected-frame) 'top 26)
-    (set-frame-parameter (selected-frame) 'left 2)
-    (set-frame-parameter (selected-frame) 'width
-                         (floor (/ (float (x-display-pixel-width)) 9.15)))
-    (if (= 1050 (x-display-pixel-height))
-        (set-frame-parameter (selected-frame) 'height
-                             (if (>= emacs-major-version 24)
-                                 66
-                               55))
-      (set-frame-parameter (selected-frame) 'height
-                           (if (>= emacs-major-version 24)
-                               75
-                             64)))))
-
-(defun emacs-toggle-size ()
-  (interactive)
-  (if (> (cdr (assq 'width (frame-parameters))) 100)
-      (emacs-min)
-    (emacs-max)))
-
-(bind-key "C-c m" 'emacs-toggle-size)
-
-(defcustom user-initials nil
-  "*Initials of this user."
-  :set
-  #'(lambda (symbol value)
-      (if (fboundp 'font-lock-add-keywords)
-          (mapc
-           #'(lambda (mode)
-               (font-lock-add-keywords
-                mode (list (list (concat "\\<\\(" value " [^:\n]+\\):")
-                                 1 font-lock-warning-face t))))
-           '(c-mode c++-mode emacs-lisp-mode lisp-mode
-                    python-mode perl-mode java-mode groovy-mode)))
-      (set symbol value))
-  :type 'string
-  :group 'mail)
-
-(defun insert-user-timestamp ()
-  "Insert a quick timestamp using the value of `user-initials'."
-  (interactive)
-  (insert (format "%s (%s): " user-initials
-                  (format-time-string "%Y-%m-%d" (current-time)))))
-
-(bind-key "C-c n" 'insert-user-timestamp)
 (bind-key "C-c o" 'customize-option)
 (bind-key "C-c O" 'customize-group)
 
-(defvar printf-index 0)
-
-(defun insert-counting-printf (arg)
-  (interactive "P")
-  (if arg
-      (setq printf-index 0))
-  (if t
-      (insert (format "std::cerr << \"step %d..\" << std::endl;\n"
-                      (setq printf-index (1+ printf-index))))
-    (insert (format "printf(\"step %d..\\n\");\n"
-                    (setq printf-index (1+ printf-index)))))
-  (forward-line -1)
-  (indent-according-to-mode)
-  (forward-line))
-
-(bind-key "C-c p" 'insert-counting-printf)
 (bind-key "C-c q" 'fill-region)
 (bind-key "C-c r" 'replace-regexp)
 (bind-key "C-c s" 'replace-string)
 (bind-key "C-c u" 'rename-uniquely)
-
-(autoload 'auth-source-search "auth-source")
-
-(defun tinify-url (url)
-  (interactive "sURL to shorten: ")
-  (let* ((api-login "jwiegley")
-         (api-key
-          (funcall
-           (plist-get
-            (car (auth-source-search :host "api.j.mp" :user api-login
-                                     :type 'netrc :port 80))
-            :secret))))
-    (flet ((message (&rest ignore)))
-      (with-current-buffer
-          (let ((query
-                 (format "format=txt&longUrl=%s&login=%s&apiKey=%s"
-                         (url-hexify-string url) api-login api-key)))
-            (url-retrieve-synchronously
-             (concat "http://api.j.mp/v3/shorten?" query)))
-        (goto-char (point-min))
-        (re-search-forward "^$")
-        (prog1
-            (kill-new (buffer-substring (1+ (point)) (1- (point-max))))
-          (kill-buffer (current-buffer)))))))
-
-(bind-key "C-c U" 'tinify-url)
 (bind-key "C-c v" 'ffap)
 
 (defun view-clipboard ()
@@ -596,69 +464,11 @@
 (bind-key "C-h e v" 'find-variable)
 (bind-key "C-h e V" 'apropos-value)
 
-;; ;; Run in server-mode so other sessions can connect.
-;; (add-hook 'server-visit-hook (lambda () (raise-frame)))
-;; (add-hook 'server-done-hook
-;;           (lambda ()
-;;             (shell-command "osascript -e \"tell application \\\"System Events\\\" to keystroke tab using command down\"")))
-;; (server-start)
-
-
-;;                                         ;(load-theme 'zenburn t)
-
-;; (defalias 'yes-or-no-p 'y-or-n-p)
-
-;; (winner-mode 1)
-;; (windmove-default-keybindings 'ctrl)
-
-;; (setq uniquify-buffer-name-style 'forward)
-
-
-;; ;;;; Keyboard.
-
-;; (global-unset-key (kbd "s-q"))          ; prevent s-q from quitting emacs
-;; (global-unset-key (kbd "C-z"))          ; prevent C-z from minimising the frame
-
-;; ;; For some reason the above line doesn't remove the keybinding for C-z (in
-;; ;; emacs 24.0.50.1) so we need this.
-;; (global-set-key (kbd "C-z") nil)
-
-;; (global-set-key (kbd "RET")        'reindent-then-newline-and-indent)
-;; (global-set-key (kbd "C-z <up>")   'phunculist/move-line-up)
-;; (global-set-key (kbd "C-z <down>") 'phunculist/move-line-down)
-;; (global-set-key (kbd "C-z a")      'align-regexp)
-;; (global-set-key (kbd "C-z c")      'phunculist/cleanup-buffer)
-;; (global-set-key (kbd "C-z C")      'phunculist/copy-line)
-;; (global-set-key (kbd "C-z d")      'phunculist/duplicate-line)
-;; (global-set-key (kbd "C-z l")      'phunculist/ledger-edit)
-;; (global-set-key (kbd "C-z w")      'whitespace-cleanup)
-;; (global-set-key (kbd "C-z |")      'align)
 
 
 ;; ;;;; Editing settings.
 
-;; (setq scroll-preserve-screen-position t) ; don't move point when scrolling
-;; (setq-default indent-tabs-mode nil)     ; don't insert tabs on indent
-;; (setq-default fill-column 80)
-;; (setq require-final-newline t)          ; crontabs break without this
 
-;; ;; Put all backups in a single directory.
-;; (setq backup-directory-alist '(("." . "~/.emacs.d/backups")))
-
-;; (show-paren-mode 1)
-
-;; ;; Configure automatic scrolling to prevent the window from jumping around too
-;; ;; much.
-;; (setq scroll-margin 1)
-;; (setq-default scroll-up-aggressively   0.0
-;;               scroll-down-aggressively 0.0)
-
-;; ;; Activating cua-mode enables yasnippet to wrap snippets around the current
-;; ;; region.
-;; (cua-mode 1)
-;; ;; But we don't want the CUA keybindings unless the last region was marked
-;; ;; using a shifted movement key.
-;; (setq cua-enable-cua-keys 'shift)
 
 ;; (require 'whitespace)
 ;; (setq whitespace-style '(face
@@ -1061,17 +871,80 @@
 (use-package magit
   :bind ("C-x g" . magit-status)
   :config (progn
-	    (setenv "GIT_PAGER" "")
+            (setenv "GIT_PAGER" "")
 
-	    (setq magit-repo-dirs '("~/.emacs.d" "~/Documents/Projects"))
+            (setq magit-repo-dirs '("~/.emacs.d" "~/Documents/Projects"))
 
-	    (add-hook 'magit-log-edit-mode-hook
-		      #'(lambda ()
-			  (set-fill-column 72)
-			  (flyspell-mode)))
+            (add-hook 'magit-log-edit-mode-hook
+                      #'(lambda ()
+                          (set-fill-column 72)
+                          (flyspell-mode)))
 
-	    (require 'magit-topgit)
-	    (require 'rebase-mode)))
+            (require 'magit-topgit)
+            (require 'rebase-mode)))
+
+;;;_ , whitespace
+
+(use-package whitespace
+  :diminish (global-whitespace-mode
+             whitespace-mode
+             whitespace-newline-mode)
+  :commands (whitespace-buffer
+             whitespace-cleanup
+             whitespace-mode)
+  :init (progn
+          (hook-into-modes 'whitespace-mode
+                           '(prog-mode-hook
+                             c-mode-common-hook))
+
+          (defun normalize-file ()
+            (interactive)
+            (save-excursion
+              (goto-char (point-min))
+              (whitespace-cleanup)
+              (delete-trailing-whitespace)
+              (goto-char (point-max))
+              (delete-blank-lines)
+              (set-buffer-file-coding-system 'unix)
+              (goto-char (point-min))
+              (while (re-search-forward "\r$" nil t)
+                (replace-match ""))
+              (set-buffer-file-coding-system 'utf-8)
+              (let ((require-final-newline t))
+                (save-buffer))))
+
+          (defun maybe-turn-on-whitespace ()
+            "Depending on the file, maybe clean up whitespace."
+            (let ((file (expand-file-name ".clean"))
+                  parent-dir)
+              (while (and (not (file-exists-p file))
+                          (progn
+                            (setq parent-dir
+                                  (file-name-directory
+                                   (directory-file-name
+                                    (file-name-directory file))))
+                            ;; Give up if we are already at the root dir.
+                            (not (string= (file-name-directory file)
+                                          parent-dir))))
+                ;; Move up to the parent dir and try again.
+                (setq file (expand-file-name ".clean" parent-dir)))
+              ;; If we found a change log in a parent, use that.
+              (when (and (file-exists-p file)
+                         (not (file-exists-p ".noclean"))
+                         (not (and buffer-file-name
+                                   (string-match "\\.texi\\'"
+                                                 buffer-file-name))))
+                (add-hook 'write-contents-hooks
+                          #'(lambda ()
+                              (ignore (whitespace-cleanup))) nil t)
+                (whitespace-cleanup))))
+
+          (add-hook 'find-file-hooks 'maybe-turn-on-whitespace t))
+
+  :config (progn
+            (remove-hook 'find-file-hooks 'whitespace-buffer)
+            (remove-hook 'kill-buffer-hook 'whitespace-buffer)))
+
 
 ;; Add the user-contributed repository of emacs packages.
 ;; (require 'package)
