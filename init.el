@@ -807,8 +807,11 @@
 ;;;_ , Enhanced-Ruby-Mode
 
 (use-package ruby-mode
-  :mode ("\\.rb\\'" . ruby-mode)
+  :mode (("\\.rb\\'"   . ruby-mode)
+         ("Gemfile\\'" . ruby-mode))
+
   :interpreter ("ruby" . ruby-mode)
+
   :config (progn
             (use-package rvm
               :config (progn (rvm-use-default)))
