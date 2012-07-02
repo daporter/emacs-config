@@ -28,3 +28,6 @@
 [submodule "site-lisp/scss-mode"]
 	path = site-lisp/scss-mode
 	url = https://github.com/antonj/scss-mode
+[submodule "site-lisp/inf-ruby"]
+	path = site-lisp/inf-ruby
+	url = https://github.com/nonsequitur/inf-ruby

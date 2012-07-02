@@ -731,7 +731,8 @@
   :mode ("\\.rb\\'" . ruby-mode)
   :interpreter ("ruby" . ruby-mode)
   :config (progn
-            (setq enh-ruby-program (concat (car rvm--current-ruby-binary-path) "ruby"))
+            (setq enh-ruby-program
+                  (concat (car rvm--current-ruby-binary-path) "ruby"))
 
             (use-package yari
               :init ((progn )
@@ -749,16 +750,15 @@
                        (helm 'yari-helm-source-ri-pages
                              (yari-symbol-at-point)))))
 
+            (use-package inf-ruby)
+
             (defun my-ruby-smart-return ()
               (interactive)
               (when (memq (char-after) '(?\| ?\" ?\'))
                 (forward-char))
               (call-interactively 'newline-and-indent))
-            
-            (defun my-ruby-mode-hook ()
-              (require 'inf-ruby)
-              (inf-ruby-keys)
 
+            (defun my-ruby-mode-hook ()
               (bind-key "<return>" 'my-ruby-smart-return ruby-mode-map)
               (bind-key "C-h C-i" 'helm-yari ruby-mode-map)
 
