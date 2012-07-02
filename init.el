@@ -735,20 +735,20 @@
                   (concat (car rvm--current-ruby-binary-path) "ruby"))
 
             (use-package yari
-              :init ((progn )
-                     (defvar yari-helm-source-ri-pages
-                       '((name . "RI documentation")
-                         (candidates . (lambda () (yari-ruby-obarray)))
-                         (action  ("Show with Yari" . yari))
-                         (candidate-number-limit . 300)
-                         (requires-pattern . 2)
-                         "Source for completing RI documentation."))
+              :init (progn
+                      (defvar yari-helm-source-ri-pages
+                        '((name . "RI documentation")
+                          (candidates . (lambda () (yari-ruby-obarray)))
+                          (action  ("Show with Yari" . yari))
+                          (candidate-number-limit . 300)
+                          (requires-pattern . 2)
+                          "Source for completing RI documentation."))
 
-                     (defun helm-yari (&optional rehash)
-                       (interactive (list current-prefix-arg))
-                       (when current-prefix-arg (yari-ruby-obarray rehash))
-                       (helm 'yari-helm-source-ri-pages
-                             (yari-symbol-at-point)))))
+                      (defun helm-yari (&optional rehash)
+                        (interactive (list current-prefix-arg))
+                        (when current-prefix-arg (yari-ruby-obarray rehash))
+                        (helm 'yari-helm-source-ri-pages
+                              (yari-symbol-at-point)))))
 
             (use-package inf-ruby)
 
