@@ -25,3 +25,6 @@
 [submodule "site-lisp/Enhanced-Ruby-Mode"]
 	path = site-lisp/Enhanced-Ruby-Mode
 	url = https://github.com/jacott/Enhanced-Ruby-Mode
+[submodule "site-lisp/scss-mode"]
+	path = site-lisp/scss-mode
+	url = https://github.com/antonj/scss-mode

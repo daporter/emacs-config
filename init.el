@@ -470,24 +470,7 @@
 
 ;;;_. Packages
 
-;;;_ , el-get
-
-(use-package el-get
-  ;; :disabled t
-  :commands (el-get
-             el-get-install
-             el-get-update
-             el-get-list-packages)
-  :init (defvar el-get-sources nil)
-
-  :config (defun el-get-read-status-file ()
-            (mapcar #'(lambda (entry)
-                        (cons (plist-get entry :symbol)
-                              `(status "installed" recipe ,entry)))
-                    el-get-sources))
-
-  (defalias 'el-get-init 'ignore
-    "Don't use el-get for making packages available for use."))
+;;;_ , ace-jump-mode
 
 (use-package ace-jump-mode
   :bind ("S-<return>" . ace-jump-mode))
@@ -509,6 +492,30 @@
   :init (add-hook 'find-file-hook
                   #'(lambda ()
                       (auto-revert-mode 1))))
+
+;;;_ , el-get
+
+(use-package el-get
+  :commands (el-get
+             el-get-install
+             el-get-update
+             el-get-list-packages)
+
+  :init (progn
+          (defvar el-get-sources nil)
+          (setq el-get-auto-update-cached-recipes nil)
+          (setq el-get-dir "~/.emacs.d/site-lisp/")
+          (setq el-get-generate-autoloads nil))
+
+
+  :config (defun el-get-read-status-file ()
+            (mapcar #'(lambda (entry)
+                        (cons (plist-get entry :symbol)
+                              `(status "installed" recipe ,entry)))
+                    el-get-sources))
+
+  (defalias 'el-get-init 'ignore
+    "Don't use el-get for making packages available for use."))
 
 ;;;_ , flyspell
 
@@ -765,6 +772,10 @@
 
 (use-package rvm
   :config (progn (rvm-use-default)))
+
+;;;_ , scss-mode
+
+(use-package scss-mode)
 
 ;;;_ , whitespace
 
