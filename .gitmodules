@@ -40,3 +40,6 @@
 [submodule "site-lisp/paredit"]
 	path = site-lisp/paredit
 	url = https://github.com/emacsmirror/paredit
+[submodule "site-lisp/springboard"]
+	path = site-lisp/springboard
+	url = https://github.com/jwiegley/springboard
