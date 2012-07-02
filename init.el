@@ -731,8 +731,8 @@
   :mode ("\\.rb\\'" . ruby-mode)
   :interpreter ("ruby" . ruby-mode)
   :config (progn
-            (setq enh-ruby-program
-                  (concat (car rvm--current-ruby-binary-path) "ruby"))
+            (use-package rvm
+              :config (progn (rvm-use-default)))
 
             (use-package yari
               :init (progn
@@ -767,11 +767,6 @@
               (bind-key "<tab>" 'yas/expand-from-trigger-key ruby-mode-map))
 
             (add-hook 'ruby-mode-hook 'my-ruby-mode-hook)))
-
-;;;_ , rvm
-
-(use-package rvm
-  :config (progn (rvm-use-default)))
 
 ;;;_ , scss-mode
 
