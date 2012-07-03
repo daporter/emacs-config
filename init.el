@@ -851,6 +851,10 @@
 
 (use-package scss-mode)
 
+;;;_ , slim-mode
+
+(use-package slim-mode)
+
 ;;;_ , whitespace
 
 (use-package whitespace
