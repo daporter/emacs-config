@@ -568,43 +568,17 @@
                          helm-c-source-emacs-source-defun)))))
 
           (bind-key "C-h e a" 'my-helm-apropos)
-
-          (defun helm-c-source-git-files-init ()
-            "Build `helm-candidate-buffer' of Git files."
-            (with-current-buffer (helm-candidate-buffer 'local)
-              (mapcar
-               (lambda (item)
-                 (insert (expand-file-name item) ?\n))
-               (split-string (shell-command-to-string "git ls-files") "\n"))))
-
-          (defun helm-find-git-file ()
-            (interactive)
-            (helm :sources 'helm-c-source-git-files
-                  :input ""
-                  :prompt "Find file: "
-                  :buffer "*Helm git file*"))
-
-          (bind-key "C-x f" 'helm-find-git-file)
-          (bind-key "M-g g" 'helm-find-git-file)
           (bind-key "C-h b" 'helm-descbinds))
 
   :config (progn
             (helm-match-plugin-mode t)
 
+            (use-package helm-git
+              :commands helm-git-find-files)
+
             (use-package helm-descbinds
               :commands helm-descbinds
-              :init (fset 'describe-bindings 'helm-descbinds))
-
-            (defvar helm-c-source-git-files
-              '((name . "Files under Git version control")
-                (init . helm-c-source-git-files-init)
-                (candidates-in-buffer)
-                (type . file))
-              "Search for files in the current Git project.")
-
-            (eval-after-load "helm-files"
-              '(add-to-list 'helm-for-files-prefered-list
-                            'helm-c-source-git-files))))
+              :init (fset 'describe-bindings 'helm-descbinds))))
 
 ;;;_ , ido
 
@@ -854,7 +828,8 @@
 ;;;_ , slim-mode
 
 (use-package slim-mode
-  :mode ("\\.slim\\'" . slim-mode))
+  :init (progn
+          (setq css-indent-offset 2)))
 
 ;;;_ , whitespace
 

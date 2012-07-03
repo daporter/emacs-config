@@ -49,3 +49,6 @@
 [submodule "site-lisp/slim-mode"]
 	path = site-lisp/slim-mode
 	url = https://github.com/minad/emacs-slim
+[submodule "site-lisp/helm-git"]
+	path = site-lisp/helm-git
+	url = https://github.com/maio/helm-git
