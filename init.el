@@ -465,9 +465,6 @@
 (bind-key "C-h e v" 'find-variable)
 (bind-key "C-h e V" 'apropos-value)
 
-
-
-
 ;;;_. Packages
 
 ;;;_ , ace-jump-mode

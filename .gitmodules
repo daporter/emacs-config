@@ -43,3 +43,6 @@
 [submodule "site-lisp/springboard"]
 	path = site-lisp/springboard
 	url = https://github.com/jwiegley/springboard
+[submodule "site-lisp/ace-jump-mode"]
+	path = site-lisp/ace-jump-mode
+	url = https://github.com/winterTTr/ace-jump-mode
