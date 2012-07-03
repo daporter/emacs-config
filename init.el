@@ -853,7 +853,8 @@
 
 ;;;_ , slim-mode
 
-(use-package slim-mode)
+(use-package slim-mode
+  :mode ("\\.slim\\'" . slim-mode))
 
 ;;;_ , whitespace
 
