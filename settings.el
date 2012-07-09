@@ -43,6 +43,7 @@
  '(show-paren-mode t)
  '(text-mode-hook (quote (turn-on-auto-fill (lambda nil (ignore-errors (diminish (quote auto-fill-function)))))))
  '(tool-bar-mode nil)
+ '(tramp-auto-save-directory "~/.emacs.d/backups")
  '(visible-bell t)
  '(whitespace-style (quote (face tabs trailing space-before-tab indentation empty space-after-tab lines))))
 (custom-set-faces
