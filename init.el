@@ -642,6 +642,12 @@
 
             (bind-key "C-x 5 t" 'ido-switch-buffer-tiny-frame)))
 
+;;;_ , jump-char
+
+(use-package jump-char
+  :bind (("M-m"   . jump-char-forward)
+         ("M-S-m" . jump-char-backward)))
+
 ;;;_ , Ledger
 
 (use-package ldg-new
