@@ -524,6 +524,11 @@
   (defalias 'el-get-init 'ignore
     "Don't use el-get for making packages available for use."))
 
+;;;_ , expand-region
+
+(use-package expand-region
+  :bind ("C-=" . er/expand-region))
+
 ;;;_ , flyspell
 
 (use-package ispell

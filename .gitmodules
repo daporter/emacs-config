@@ -61,3 +61,6 @@
 [submodule "site-lisp/mark-multiple"]
 	path = site-lisp/mark-multiple
 	url = https://github.com/magnars/mark-multiple.el.git
+[submodule "site-lisp/expand-region"]
+	path = site-lisp/expand-region
+	url = https://github.com/magnars/expand-region.el
