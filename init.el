@@ -669,6 +669,14 @@
                        (cons (file-name-nondirectory (getenv "LEDGER_FILE"))
                              'ledger-mode))
 
+          (defun my-goto-ledger ()
+            "Goto my ledger file."
+            (interactive)
+            (find-file (getenv "LEDGER_FILE"))
+            (ledger-find-slot (current-time)))
+
+          (bind-key "C-c l" 'my-goto-ledger)
+
           (defun my-ledger-start-entry (&optional arg)
             (interactive "p")
             (find-file-other-window (getenv "LEDGER_FILE"))
