@@ -9,6 +9,7 @@
  '(ac-ignore-case nil)
  '(ac-use-fuzzy nil)
  '(backup-directory-alist (quote ((".*" . "~/.emacs.d/backups"))))
+ '(bind-key-segregation-regexp "\\`\\(\\(C-[chx.] \\|M-[gso] \\)\\([CM]-\\)?\\|.+-\\)")
  '(column-number-mode t)
  '(custom-safe-themes (quote ("71b172ea4aad108801421cc5251edb6c792f3adbaecfa1c52e94e3d99634dee7" "d6a00ef5e53adf9b6fe417d2b4404895f26210c52bb8716971be106550cea257" default)))
  '(diff-mode-hook (quote (diff-delete-empty-files diff-make-unified smerge-mode)))

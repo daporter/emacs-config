@@ -655,8 +655,8 @@
 ;;;_ , jump-char
 
 (use-package jump-char
-  :bind (("M-m"   . jump-char-forward)
-         ("M-S-m" . jump-char-backward)))
+  :bind (("M-m" . jump-char-forward)
+         ("M-M" . jump-char-backward)))
 
 ;;;_ , Ledger
 
