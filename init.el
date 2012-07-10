@@ -80,6 +80,16 @@
 
 (bind-key* "<C-return>" 'other-window)
 
+(defun beginning-of-indentation-or-line ()
+  "Move to beginning of indentation, or line."
+  (interactive)
+  (let ((p (point)))
+    (back-to-indentation)
+    (when (eq p (point))
+      (beginning-of-line))))
+
+(bind-key "C-a" 'beginning-of-indentation-or-line)
+
 (defun collapse-or-expand ()
   (interactive)
   (if (> (length (window-list)) 1)
