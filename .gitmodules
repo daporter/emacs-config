@@ -1,66 +1,66 @@
 [submodule "site-lisp/use-package"]
-	path = site-lisp/use-package
-	url = https://github.com/jwiegley/use-package.git
+        path = site-lisp/use-package
+        url = https://github.com/jwiegley/use-package.git
 [submodule "site-lisp/el-get"]
-	path = site-lisp/el-get
-	url = https://github.com/dimitri/el-get.git
+        path = site-lisp/el-get
+        url = https://github.com/dimitri/el-get.git
 [submodule "site-lisp/zenburn-theme"]
-	path = site-lisp/zenburn-theme
-	url = https://github.com/emacsmirror/zenburn-theme.git
+        path = site-lisp/zenburn-theme
+        url = https://github.com/emacsmirror/zenburn-theme.git
 [submodule "site-lisp/helm"]
-	path = site-lisp/helm
-	url = https://github.com/emacs-helm/helm
+        path = site-lisp/helm
+        url = https://github.com/emacs-helm/helm
 [submodule "site-lisp/helm-descbinds"]
-	path = site-lisp/helm-descbinds
-	url = https://github.com/emacs-helm/helm-descbinds
+        path = site-lisp/helm-descbinds
+        url = https://github.com/emacs-helm/helm-descbinds
 [submodule "site-lisp/magit"]
-	path = site-lisp/magit
-	url = https://github.com/magit/magit
+        path = site-lisp/magit
+        url = https://github.com/magit/magit
 [submodule "site-lisp/rvm"]
-	path = site-lisp/rvm
-	url = https://github.com/senny/rvm.el
+        path = site-lisp/rvm
+        url = https://github.com/senny/rvm.el
 [submodule "site-lisp/yasnippet"]
-	path = site-lisp/yasnippet
-	url = https://github.com/jwiegley/yasnippet
+        path = site-lisp/yasnippet
+        url = https://github.com/jwiegley/yasnippet
 [submodule "site-lisp/Enhanced-Ruby-Mode"]
-	path = site-lisp/Enhanced-Ruby-Mode
-	url = https://github.com/jacott/Enhanced-Ruby-Mode
+        path = site-lisp/Enhanced-Ruby-Mode
+        url = https://github.com/jacott/Enhanced-Ruby-Mode
 [submodule "site-lisp/scss-mode"]
-	path = site-lisp/scss-mode
-	url = https://github.com/antonj/scss-mode
+        path = site-lisp/scss-mode
+        url = https://github.com/antonj/scss-mode
 [submodule "site-lisp/inf-ruby"]
-	path = site-lisp/inf-ruby
-	url = https://github.com/nonsequitur/inf-ruby
+        path = site-lisp/inf-ruby
+        url = https://github.com/nonsequitur/inf-ruby
 [submodule "site-lisp/yari"]
-	path = site-lisp/yari
-	url = https://github.com/hron/yari.el
-[submodule "site-lisp/ido-hacks"]
-	path = site-lisp/ido-hacks
-	url = https://github.com/jwiegley/ido-hacks
+        path = site-lisp/yari
+        url = https://github.com/hron/yari.el
 [submodule "site-lisp/paredit"]
-	path = site-lisp/paredit
-	url = https://github.com/emacsmirror/paredit
+        path = site-lisp/paredit
+        url = https://github.com/emacsmirror/paredit
 [submodule "site-lisp/springboard"]
-	path = site-lisp/springboard
-	url = https://github.com/jwiegley/springboard
+        path = site-lisp/springboard
+        url = https://github.com/jwiegley/springboard
 [submodule "site-lisp/ace-jump-mode"]
-	path = site-lisp/ace-jump-mode
-	url = https://github.com/winterTTr/ace-jump-mode
+        path = site-lisp/ace-jump-mode
+        url = https://github.com/winterTTr/ace-jump-mode
 [submodule "site-lisp/slim-mode"]
-	path = site-lisp/slim-mode
-	url = https://github.com/minad/emacs-slim
+        path = site-lisp/slim-mode
+        url = https://github.com/minad/emacs-slim
 [submodule "site-lisp/helm-git"]
-	path = site-lisp/helm-git
-	url = https://github.com/maio/helm-git
+        path = site-lisp/helm-git
+        url = https://github.com/maio/helm-git
 [submodule "site-lisp/jump-char"]
-	path = site-lisp/jump-char
-	url = https://github.com/lewang/jump-char
+        path = site-lisp/jump-char
+        url = https://github.com/lewang/jump-char
 [submodule "site-lisp/rainbow-delimiters"]
-	path = site-lisp/rainbow-delimiters
-	url = https://github.com/jlr/rainbow-delimiters
+        path = site-lisp/rainbow-delimiters
+        url = https://github.com/jlr/rainbow-delimiters
 [submodule "site-lisp/mark-multiple"]
-	path = site-lisp/mark-multiple
-	url = https://github.com/magnars/mark-multiple.el.git
+        path = site-lisp/mark-multiple
+        url = https://github.com/magnars/mark-multiple.el.git
 [submodule "site-lisp/expand-region"]
-	path = site-lisp/expand-region
-	url = https://github.com/magnars/expand-region.el
+        path = site-lisp/expand-region
+        url = https://github.com/magnars/expand-region.el
+[submodule "site-lisp/ido-ubiquitous"]
+        path = site-lisp/ido-ubiquitous
+        url = https://github.com/DarwinAwardWinner/ido-ubiquitous.git
