@@ -708,6 +708,25 @@
             (require 'magit-topgit)
             (require 'rebase-mode)))
 
+;;;_ , mark-multiple
+
+(use-package mark-multiple
+  :init (progn
+          (use-package inline-string-rectangle
+            :bind ("C-x r t" . inline-string-rectangle))
+
+          (use-package mark-more-like-this
+            :bind (("C->"   . mark-next-like-this)
+                   ("C-<"   . mark-previous-like-this)
+                   ("C-M-m" . mark-more-like-this)
+                   ("C-*"   . mark-all-like-this)))
+
+          (use-package rename-sgml-tag
+            :bind ("C-c C-r" . rename-sgml-tag))
+
+          (use-package js2-rename-var
+            :bind ("C-c C-r" . js2-rename-var))))
+
 ;;;_ , paredit
 
 (use-package paredit

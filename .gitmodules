@@ -58,3 +58,6 @@
 [submodule "site-lisp/rainbow-delimiters"]
 	path = site-lisp/rainbow-delimiters
 	url = https://github.com/jlr/rainbow-delimiters
+[submodule "site-lisp/mark-multiple"]
+	path = site-lisp/mark-multiple
+	url = https://github.com/magnars/mark-multiple.el.git
