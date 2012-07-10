@@ -33,6 +33,7 @@
  '(indent-tabs-mode nil)
  '(inhibit-startup-screen t)
  '(ispell-extra-args (quote ("--sug-mode=fast" "--keyboard=dvorak")))
+ '(ledger-reports (quote (("bal" "ledger -f %(ledger-file) bal") ("reg" "ledger -f %(ledger-file) reg") ("payee" "ledger -f %(ledger-file) reg -- %(payee)") ("account" "ledger -f %(ledger-file) reg %(account)") ("buckets" "ledger -f %(ledger-file) bal Buckets"))))
  '(line-spacing 0.2)
  '(menu-bar-mode t)
  '(recentf-auto-cleanup (quote never))
