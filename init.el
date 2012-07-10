@@ -647,6 +647,8 @@
 (use-package ldg-new
   :commands ledger-mode
   :init (progn
+          (use-package ledger)
+
           (add-to-list 'auto-mode-alist
                        (cons (file-name-nondirectory (getenv "LEDGER_FILE"))
                              'ledger-mode))
