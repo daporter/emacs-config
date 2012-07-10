@@ -912,6 +912,11 @@ Including indent-buffer, which should not be called automatically on save."
 
 (use-package scss-mode)
 
+;;;_ , server
+
+(use-package server
+  :init (unless (server-running-p) (server-start)))
+
 ;;;_ , slim-mode
 
 (use-package slim-mode
