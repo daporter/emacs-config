@@ -644,9 +644,13 @@
 
 ;;;_ , Ledger
 
-(use-package "ldg-new"
+(use-package ldg-new
   :commands ledger-mode
   :init (progn
+          (add-to-list 'auto-mode-alist
+                       (cons (file-name-nondirectory (getenv "LEDGER_FILE"))
+                             'ledger-mode))
+
           (defun my-ledger-start-entry (&optional arg)
             (interactive "p")
             (find-file-other-window (getenv "LEDGER_FILE"))
