@@ -786,6 +786,11 @@
                           (bind-key "M-h"
                                     'mark-containing-sexp allout-mode-map)))))
 
+;;;_ , rainbow-delimiters
+
+(use-package rainbow-delimiters
+  :init (hook-into-modes 'rainbow-delimiters-mode '(prog-mode-hook)))
+
 ;;;_ , recentf
 
 (use-package recentf
