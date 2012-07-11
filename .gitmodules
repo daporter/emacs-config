@@ -64,3 +64,12 @@
 [submodule "site-lisp/ido-ubiquitous"]
         path = site-lisp/ido-ubiquitous
         url = https://github.com/DarwinAwardWinner/ido-ubiquitous.git
+[submodule "site-lisp/auto-complete"]
+	path = site-lisp/auto-complete
+	url = https://github.com/m2ym/auto-complete
+[submodule "site-lisp/popup"]
+	path = site-lisp/popup
+	url = https://github.com/m2ym/popup-el
+[submodule "site-lisp/fuzzy"]
+	path = site-lisp/fuzzy
+	url = https://github.com/m2ym/fuzzy-el

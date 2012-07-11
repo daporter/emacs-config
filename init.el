@@ -513,11 +513,16 @@ Including indent-buffer, which should not be called automatically on save."
 ;;;_ , auto-complete
 
 (use-package auto-complete-config
-  :commands auto-complete-mode
   :diminish auto-complete-mode
   :config (progn
-            (ac-set-trigger-key "TAB")
-            (setq ac-use-menu-map t)))
+            (use-package popup)
+            (use-package fuzzy)
+
+            (setq ac-use-menu-map          t
+                  ac-user-dictionary-files '("~/.emacs.d/data/dict"))
+
+            (ac-config-default)
+            (ac-set-trigger-key "TAB")))
 
 ;;;_ , autorevert
 
@@ -862,11 +867,14 @@ Including indent-buffer, which should not be called automatically on save."
 
             (defun my-ruby-mode-hook ()
               (bind-key "<return>" 'my-ruby-smart-return ruby-mode-map)
-              (bind-key "C-h C-i" 'helm-yari ruby-mode-map)
+              (bind-key "C-h C-i" 'helm-yari ruby-mode-map))
 
-              (set (make-local-variable 'yas/fallback-behavior)
-                   '(apply ruby-indent-command . nil))
-              (bind-key "<tab>" 'yas/expand-from-trigger-key ruby-mode-map))
+            (defun ac-ruby-mode-setup ()
+              (setq ac-sources '(ac-source-yasnippet
+                                 ac-source-abbrev
+                                 ac-source-imenu
+                                 ac-source-dictionary
+                                 ac-source-words-in-same-mode-buffers)))
 
             (add-hook 'ruby-mode-hook 'my-ruby-mode-hook)))
 
