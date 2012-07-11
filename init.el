@@ -799,6 +799,8 @@ Including indent-buffer, which should not be called automatically on save."
             (paredit-annotate-mode-with-examples)
             (paredit-annotate-functions-with-examples)
 
+            (hook-into-modes 'paredit-mode '(emacs-lisp-mode-hook))
+
             (add-hook 'allout-mode-hook
                       #'(lambda ()
                           (bind-key "M-k" 'paredit-raise-sexp allout-mode-map)
