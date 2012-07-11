@@ -519,7 +519,7 @@ Including indent-buffer, which should not be called automatically on save."
             (use-package fuzzy)
 
             (setq ac-use-menu-map          t
-                  ac-user-dictionary-files '("~/.emacs.d/data/dict"))
+                  ac-user-dictionary-files (concat user-data-directory "dict"))
 
             (ac-config-default)
             (ac-set-trigger-key "TAB")))
@@ -544,7 +544,7 @@ Including indent-buffer, which should not be called automatically on save."
   :init (progn
           (defvar el-get-sources nil)
           (setq el-get-auto-update-cached-recipes nil)
-          (setq el-get-dir "~/.emacs.d/site-lisp/")
+          (setq el-get-dir user-site-lisp-directory)
           (setq el-get-generate-autoloads nil))
 
 
@@ -638,9 +638,9 @@ Including indent-buffer, which should not be called automatically on save."
                 ido-enable-flex-matching     t
                 ido-create-new-buffer        'always
                 ido-use-filename-at-point    nil
-                ido-save-directory-list-file "~/.emacs.d/data/ido.last"
                 ido-max-prospects            10)
-
+          (setq ido-save-directory-list-file
+                (concat user-data-directory "ido.last"))
           ;; Always rescan buffer for imenu.
           (set-default 'imenu-auto-rescan t)
 
@@ -698,7 +698,8 @@ Including indent-buffer, which should not be called automatically on save."
   :config (progn
             (setenv "GIT_PAGER" "")
 
-            (setq magit-repo-dirs '("~/.emacs.d" "~/Documents/Projects"))
+            (setq magit-repo-dirs
+                  (list user-emacs-directory "~/Documents/Projects"))
 
             (add-hook 'magit-log-edit-mode-hook
                       #'(lambda ()
@@ -898,7 +899,7 @@ Including indent-buffer, which should not be called automatically on save."
 
   :config (progn
             (smex-initialize)
-            (setq smex-save-file "~/.emacs.d/data/smex-items")))
+            (setq smex-save-file (concat user-data-directory "smex-items"))))
 
 ;;;_ , slim-mode
 
@@ -991,7 +992,7 @@ Including indent-buffer, which should not be called automatically on save."
                            '(prog-mode-hook ruby-mode-hook)))
 
   :config (progn
-            (setq yas/snippet-dirs     "~/.emacs.d/snippets"
+            (setq yas/snippet-dirs     (concat user-emacs-directory "snippets")
                   yas/trigger-key      (kbd "C-c y TAB")
                   yas/prompt-functions '(yas/ido-prompt yas/completing-prompt))
 
@@ -1010,7 +1011,7 @@ Including indent-buffer, which should not be called automatically on save."
 
 ;;;_. Settings
 
-(setq custom-file "~/.emacs.d/settings.el")
+(setq custom-file (concat user-emacs-directory "settings.el"))
 (load custom-file)
 
 ;; Local Variables:
