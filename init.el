@@ -189,6 +189,8 @@
 (bind-key "C-x F" 'set-fill-column)
 (bind-key "C-x t" 'toggle-truncate-lines)
 
+;;;_  .
+
 ;;;_  . C-x C-?
 
 (defun duplicate-line ()
@@ -508,7 +510,7 @@ Including indent-buffer, which should not be called automatically on save."
 ;;;_ , ace-jump-mode
 
 (use-package ace-jump-mode
-  :bind ("S-<return>" . ace-jump-mode))
+  :bind ("C-. C-s" . ace-jump-mode))
 
 ;;;_ , auto-complete
 
