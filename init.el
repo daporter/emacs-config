@@ -559,6 +559,22 @@ Including indent-buffer, which should not be called automatically on save."
   (defalias 'el-get-init 'ignore
     "Don't use el-get for making packages available for use."))
 
+;;;_ , eproject
+
+(use-package eproject
+  :load-path ("site-lisp/eproject/lang/" "site-lisp/eproject/contrib")
+
+  :init (progn
+          (use-package eproject-extras
+            :bind (("C-x p k" . eproject-kill-project-buffers)
+                   ("C-x p v" . eproject-revisit-project)
+                   ("C-x p b" . eproject-ibuffer)
+                   ("C-x p o" . eproject-open-all-project-files)))
+
+          (use-package eproject-ruby)
+          (use-package eproject-ruby-on-rails)
+          (use-package eproject-tags)))
+
 ;;;_ , expand-region
 
 (use-package expand-region
@@ -567,7 +583,11 @@ Including indent-buffer, which should not be called automatically on save."
 ;;;_ , find-file-in-project
 
 (use-package find-file-in-project
-  :bind ("C-x f" . find-file-in-project))
+  :bind ("C-x f" . find-file-in-project)
+
+  :config (progn
+            ;; Use eproject to find the project root.
+            (setq ffip-project-root-function 'eproject-root)))
 
 ;;;_ , flyspell
 

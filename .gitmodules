@@ -82,3 +82,6 @@
 [submodule "site-lisp/find-file-in-project"]
 	path = site-lisp/find-file-in-project
 	url = https://github.com/technomancy/find-file-in-project
+[submodule "site-lisp/eproject"]
+	path = site-lisp/eproject
+	url = https://github.com/jrockway/eproject/
