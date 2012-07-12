@@ -810,6 +810,11 @@ Including indent-buffer, which should not be called automatically on save."
                           (bind-key "M-h"
                                     'mark-containing-sexp allout-mode-map)))))
 
+;;;_ , perspective
+
+(use-package perspective
+  :init (progn (persp-mode t)))
+
 ;;;_ , rainbow-delimiters
 
 (use-package rainbow-delimiters

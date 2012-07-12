@@ -76,3 +76,6 @@
 [submodule "site-lisp/smex"]
 	path = site-lisp/smex
 	url = https://github.com/nonsequitur/smex
+[submodule "site-lisp/perspective"]
+	path = site-lisp/perspective
+	url = https://github.com/magnars/perspective-el
