@@ -5,7 +5,7 @@
 (unless noninteractive
   (message "Loading %s..." load-file-name))
 
-(load (expand-file-name "load-path" (file-name-directory load-file-name)))
+(load (expand-file-name "load-path" user-emacs-directory))
 
 (require 'use-package)
 (eval-when-compile
