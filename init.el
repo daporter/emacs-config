@@ -564,6 +564,11 @@ Including indent-buffer, which should not be called automatically on save."
 (use-package expand-region
   :bind ("C-=" . er/expand-region))
 
+;;;_ , find-file-in-project
+
+(use-package find-file-in-project
+  :bind ("C-x f" . find-file-in-project))
+
 ;;;_ , flyspell
 
 (use-package ispell
