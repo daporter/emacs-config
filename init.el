@@ -13,6 +13,9 @@
 
 (set-face-attribute 'default nil :font "Inconsolata" :height 140)
 
+(setq auto-save-list-file-prefix
+      (concat user-emacs-directory "backups/auto-save-list/.saves-"))
+
 ;;;_ , Utility macros and functions
 
 (defmacro hook-into-modes (func modes)
