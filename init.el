@@ -15,6 +15,7 @@
 
 (setq auto-save-list-file-prefix
       (concat user-emacs-directory "backups/auto-save-list/.saves-"))
+(setq bookmark-default-file (concat user-data-directory "bookmarks"))
 
 ;;;_ , Utility macros and functions
 
