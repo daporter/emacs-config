@@ -569,10 +569,11 @@ Including indent-buffer, which should not be called automatically on save."
 
   :init (progn
           (use-package eproject-extras
-            :bind (("C-x p k" . eproject-kill-project-buffers)
-                   ("C-x p v" . eproject-revisit-project)
-                   ("C-x p b" . eproject-ibuffer)
-                   ("C-x p o" . eproject-open-all-project-files)))
+            :init (progn
+                    (bind-key "C-x p k" 'eproject-kill-project-buffers)
+                    (bind-key "C-x p v" 'eproject-revisit-project)
+                    (bind-key "C-x p b" 'eproject-ibuffer)
+                    (bind-key "C-x p o" 'eproject-open-all-project-files)))
 
           (use-package eproject-ruby)
           (use-package eproject-ruby-on-rails)
