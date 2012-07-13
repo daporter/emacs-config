@@ -15,7 +15,6 @@
 
 (setq auto-save-list-file-prefix
       (concat user-emacs-directory "backups/auto-save-list/.saves-"))
-(setq bookmark-default-file (concat user-data-directory "bookmarks"))
 
 ;;;_ , Utility macros and functions
 
@@ -538,6 +537,12 @@ Including indent-buffer, which should not be called automatically on save."
   :init (add-hook 'find-file-hook
                   #'(lambda ()
                       (auto-revert-mode 1))))
+
+;;;_ , bookmark
+
+(use-package bookmark
+  :init (setq bookmark-default-file
+              (concat user-data-directory "bookmarks")))
 
 ;;;_ , el-get
 
