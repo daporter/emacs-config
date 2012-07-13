@@ -577,7 +577,12 @@ Including indent-buffer, which should not be called automatically on save."
 
           (use-package eproject-ruby)
           (use-package eproject-ruby-on-rails)
-          (use-package eproject-tags)))
+          (use-package eproject-tags)
+
+          (setq eproject-completing-read-function
+                'eproject--ido-completing-read)
+
+          (bind-key "C-x f" 'eproject-find-file)))
 
 ;;;_ , expand-region
 
