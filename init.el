@@ -592,6 +592,7 @@ Including indent-buffer, which should not be called automatically on save."
 ;;;_ , find-file-in-project
 
 (use-package find-file-in-project
+  :disabled t
   :bind ("C-x f" . find-file-in-project)
 
   :config (progn
