@@ -16,6 +16,9 @@
 (setq auto-save-list-file-prefix
       (concat user-emacs-directory "backups/auto-save-list/.saves-"))
 
+;; Make the command keys act as control keys when in emacs.
+(setq mac-command-modifier 'control)
+
 ;;;_ , Utility macros and functions
 
 (defmacro hook-into-modes (func modes)
