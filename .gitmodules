@@ -1,9 +1,6 @@
 [submodule "site-lisp/use-package"]
         path = site-lisp/use-package
         url = https://github.com/jwiegley/use-package.git
-[submodule "site-lisp/el-get"]
-        path = site-lisp/el-get
-        url = https://github.com/dimitri/el-get.git
 [submodule "site-lisp/zenburn-theme"]
         path = site-lisp/zenburn-theme
         url = https://github.com/emacsmirror/zenburn-theme.git
@@ -65,23 +62,23 @@
         path = site-lisp/ido-ubiquitous
         url = https://github.com/DarwinAwardWinner/ido-ubiquitous.git
 [submodule "site-lisp/auto-complete"]
-	path = site-lisp/auto-complete
-	url = https://github.com/m2ym/auto-complete
+        path = site-lisp/auto-complete
+        url = https://github.com/m2ym/auto-complete
 [submodule "site-lisp/popup"]
-	path = site-lisp/popup
-	url = https://github.com/m2ym/popup-el
+        path = site-lisp/popup
+        url = https://github.com/m2ym/popup-el
 [submodule "site-lisp/fuzzy"]
-	path = site-lisp/fuzzy
-	url = https://github.com/m2ym/fuzzy-el
+        path = site-lisp/fuzzy
+        url = https://github.com/m2ym/fuzzy-el
 [submodule "site-lisp/smex"]
-	path = site-lisp/smex
-	url = https://github.com/nonsequitur/smex
+        path = site-lisp/smex
+        url = https://github.com/nonsequitur/smex
 [submodule "site-lisp/perspective"]
-	path = site-lisp/perspective
-	url = https://github.com/magnars/perspective-el
+        path = site-lisp/perspective
+        url = https://github.com/magnars/perspective-el
 [submodule "site-lisp/find-file-in-project"]
-	path = site-lisp/find-file-in-project
-	url = https://github.com/technomancy/find-file-in-project
+        path = site-lisp/find-file-in-project
+        url = https://github.com/technomancy/find-file-in-project
 [submodule "site-lisp/eproject"]
-	path = site-lisp/eproject
-	url = https://github.com/jrockway/eproject/
+        path = site-lisp/eproject
+        url = https://github.com/jrockway/eproject/

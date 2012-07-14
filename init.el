@@ -547,30 +547,6 @@ Including indent-buffer, which should not be called automatically on save."
   :init (setq bookmark-default-file
               (concat user-data-directory "bookmarks")))
 
-;;;_ , el-get
-
-(use-package el-get
-  :commands (el-get
-             el-get-install
-             el-get-update
-             el-get-list-packages)
-
-  :init (progn
-          (defvar el-get-sources nil)
-          (setq el-get-auto-update-cached-recipes nil)
-          (setq el-get-dir user-site-lisp-directory)
-          (setq el-get-generate-autoloads nil))
-
-
-  :config (defun el-get-read-status-file ()
-            (mapcar #'(lambda (entry)
-                        (cons (plist-get entry :symbol)
-                              `(status "installed" recipe ,entry)))
-                    el-get-sources))
-
-  (defalias 'el-get-init 'ignore
-    "Don't use el-get for making packages available for use."))
-
 ;;;_ , eproject
 
 (use-package eproject
