@@ -963,6 +963,7 @@ Including indent-buffer, which should not be called automatically on save."
 (use-package yasnippet
   :mode     ("/\\.emacs\\.d/snippets/" . snippet-mode)
   :commands (yas/minor-mode yas/expand)
+  :diminish yas/minor-mode
 
   :init (progn
           (hook-into-modes #'(lambda () (yas/minor-mode 1))
