@@ -518,6 +518,7 @@ Including indent-buffer, which should not be called automatically on save."
 
 (use-package auto-complete-config
   :diminish auto-complete-mode
+
   :config (progn
             (use-package popup)
             (use-package fuzzy)
@@ -533,6 +534,7 @@ Including indent-buffer, which should not be called automatically on save."
 (use-package autorevert
   :commands auto-revert-mode
   :diminish auto-revert-mode
+
   :init (add-hook 'find-file-hook
                   #'(lambda ()
                       (auto-revert-mode 1))))
@@ -540,8 +542,8 @@ Including indent-buffer, which should not be called automatically on save."
 ;;;_ , bookmark
 
 (use-package bookmark
-  :init (setq bookmark-default-file
-              (concat user-data-directory "bookmarks")))
+  :config (setq bookmark-default-file
+                (concat user-data-directory "bookmarks")))
 
 ;;;_ , eproject
 
@@ -558,12 +560,13 @@ Including indent-buffer, which should not be called automatically on save."
 
           (use-package eproject-ruby)
           (use-package eproject-ruby-on-rails)
-          (use-package eproject-tags)
+          (use-package eproject-tags))
 
-          (setq eproject-completing-read-function
-                'eproject--ido-completing-read)
+  :config (progn
+            (setq eproject-completing-read-function
+                  'eproject--ido-completing-read)
 
-          (bind-key "C-x f" 'eproject-find-file)))
+            (bind-key "C-x f" 'eproject-find-file)))
 
 ;;;_ , expand-region
 
@@ -650,25 +653,28 @@ Including indent-buffer, which should not be called automatically on save."
 
 (use-package ido
   :init (progn
-          (ido-mode t)
+          (ido-mode t))
 
-          (setq ido-enable-prefix            nil
-                ido-enable-flex-matching     t
-                ido-create-new-buffer        'always
-                ido-use-filename-at-point    nil
-                ido-max-prospects            10)
-          (setq ido-save-directory-list-file
-                (concat user-data-directory "ido.last"))
-          ;; Always rescan buffer for imenu.
-          (set-default 'imenu-auto-rescan t)
+  :config (progn
+            (use-package ido-ubiquitous
+              :init (ido-ubiquitous-mode 1))
 
-          (bind-key "C-w" 'ido-delete-backward-updir
-                    ido-file-completion-map)
-          (bind-key "C-x C-w" 'ido-copy-current-file-name
-                    ido-file-completion-map)
+            (use-package ido-springboard)
 
-          (use-package ido-ubiquitous
-            :init (ido-ubiquitous-mode 1))))
+            (setq ido-enable-prefix         nil
+                  ido-enable-flex-matching  t
+                  ido-create-new-buffer     'always
+                  ido-use-filename-at-point nil
+                  ido-max-prospects         10)
+            (setq ido-save-directory-list-file
+                  (concat user-data-directory "ido.last"))
+            ;; Always rescan buffer for imenu.
+            (set-default 'imenu-auto-rescan t)
+
+            (bind-key "C-w" 'ido-delete-backward-updir
+                      ido-file-completion-map)
+            (bind-key "C-x C-w" 'ido-copy-current-file-name
+                      ido-file-completion-map)))
 
 ;;;_ , jump-char
 
@@ -680,6 +686,7 @@ Including indent-buffer, which should not be called automatically on save."
 
 (use-package ldg-new
   :commands ledger-mode
+
   :init (progn
           (use-package ledger)
 
@@ -713,6 +720,7 @@ Including indent-buffer, which should not be called automatically on save."
 
 (use-package magit
   :bind ("C-x g" . magit-status)
+
   :config (progn
             (setenv "GIT_PAGER" "")
 
@@ -824,6 +832,7 @@ Including indent-buffer, which should not be called automatically on save."
               (bind-key "<return>" 'my-ruby-smart-return ruby-mode-map)
               (bind-key "C-h C-i" 'helm-yari ruby-mode-map))
 
+            ;; This gets called automatically by auto-complete.
             (defun ac-ruby-mode-setup ()
               (setq ac-sources '(ac-source-yasnippet
                                  ac-source-abbrev
@@ -835,12 +844,21 @@ Including indent-buffer, which should not be called automatically on save."
 
 ;;;_ , scss-mode
 
-(use-package scss-mode)
+(use-package scss-mode
+  :mode ("\\.scss\\'" . scss-mode))
 
 ;;;_ , server
 
 (use-package server
   :init (unless (server-running-p) (server-start)))
+
+;;;_ , slim-mode
+
+(use-package slim-mode
+  :mode ("\\.slim\\'" . slim-mode)
+
+  :config (progn
+            (setq css-indent-offset 2)))
 
 ;;;_ , smex
 
@@ -852,12 +870,6 @@ Including indent-buffer, which should not be called automatically on save."
   :config (progn
             (smex-initialize)
             (setq smex-save-file (concat user-data-directory "smex-items"))))
-
-;;;_ , slim-mode
-
-(use-package slim-mode
-  :init (progn
-          (setq css-indent-offset 2)))
 
 ;;;_ , whitespace
 
@@ -925,8 +937,9 @@ Including indent-buffer, which should not be called automatically on save."
 ;;;_ , winner
 
 (use-package winner
-  :diminish winner-mode
   :if (not noninteractive)
+  :diminish winner-mode
+
   :init (progn
           (winner-mode 1)
 
