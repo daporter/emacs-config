@@ -871,6 +871,11 @@ Including indent-buffer, which should not be called automatically on save."
             (smex-initialize)
             (setq smex-save-file (concat user-data-directory "smex-items"))))
 
+;;;_ , uniquify
+
+(use-package uniquify
+  :config (setq uniquify-buffer-name-style 'forward))
+
 ;;;_ , whitespace
 
 (use-package whitespace
