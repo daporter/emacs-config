@@ -82,3 +82,6 @@
 [submodule "site-lisp/eproject"]
         path = site-lisp/eproject
         url = https://github.com/jrockway/eproject/
+[submodule "site-lisp/solarized-theme"]
+	path = site-lisp/solarized-theme
+	url = https://github.com/sellout/emacs-color-theme-solarized

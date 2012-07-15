@@ -545,6 +545,13 @@ Including indent-buffer, which should not be called automatically on save."
   :config (setq bookmark-default-file
                 (concat user-data-directory "bookmarks")))
 
+;;;_ , solarized-theme
+
+(use-package solarized-light-theme)
+
+(use-package solarized-dark-theme
+  :init (load-theme 'solarized-dark t))
+
 ;;;_ , eproject
 
 (use-package eproject
@@ -976,8 +983,7 @@ Including indent-buffer, which should not be called automatically on save."
 
 ;;;_ , zenburn-theme
 
-(use-package zenburn-theme
-  :init (progn (load-theme 'zenburn t)))
+(use-package zenburn-theme)
 
 
 ;;;_. Settings
