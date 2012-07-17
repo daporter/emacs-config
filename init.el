@@ -557,12 +557,13 @@ Including indent-buffer, which should not be called automatically on save."
   :config (setq bookmark-default-file
                 (concat user-data-directory "bookmarks")))
 
-;;;_ , solarized-theme
+;;;_ , buffer-move
 
-(use-package solarized-light-theme)
-
-(use-package solarized-dark-theme
-  :init (load-theme 'solarized-dark t))
+(use-package buffer-move
+  :bind (("C-S-<up>"    . buf-move-up)
+         ("C-S-<down>"  . buf-move-down)
+         ("C-S-<left>"  . buf-move-left)
+         ("C-S-<right>" . buf-move-right)))
 
 ;;;_ , eproject
 
@@ -889,6 +890,13 @@ Including indent-buffer, which should not be called automatically on save."
   :config (progn
             (smex-initialize)
             (setq smex-save-file (concat user-data-directory "smex-items"))))
+
+;;;_ , solarized-theme
+
+(use-package solarized-light-theme
+  :init (load-theme 'solarized-light t))
+
+;;(use-package solarized-dark-theme)
 
 ;;;_ , uniquify
 
