@@ -39,6 +39,9 @@
     (mapc (apply-partially #'add-to-list 'exec-path)
           (nreverse (split-string (getenv "PATH") ":")))))
 
+;; "y or n" instead of "yes or no"
+(fset 'yes-or-no-p 'y-or-n-p)
+
 ;;;_ , Enable disabled commands
 
 (put 'downcase-region  'disabled nil)   ; Let downcasing work
