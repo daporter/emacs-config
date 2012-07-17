@@ -75,13 +75,22 @@
 
 (global-unset-key (kbd "s-q"))       ; prevent s-q from quitting emacs
 
+(unbind-key "C-x 0")                    ; was delete-window
+(unbind-key "C-x 1")                    ; was delete-other-windows
+(unbind-key "C-x 2")                    ; was split-window-vertically
+(unbind-key "C-x 3")                    ; was split-window-horizontally
+(unbind-key "C-x o")                    ; was other-window
+(bind-key "M-0" 'delete-window)         ; was digit-argument
+(bind-key "M-1" 'delete-other-windows)  ; was digit-argument
+(bind-key "M-2" 'split-window-vertically)   ; was digit-argument
+(bind-key "M-3" 'split-window-horizontally) ; was digit-argument
+(bind-key "M-o" 'other-window)          ; was face-menu-keymap
+
 ;;;_  . C-?
 
 (defvar ctl-period-map)
 (define-prefix-command 'ctl-period-map)
 (bind-key "C-." 'ctl-period-map)
-
-(bind-key* "<C-return>" 'other-window)
 
 (defun beginning-of-indentation-or-line ()
   "Move to beginning of indentation, or line."
