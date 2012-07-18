@@ -899,6 +899,11 @@ Including indent-buffer, which should not be called automatically on save."
 (use-package solarized-dark-theme
   :disabled t)
 
+;;;_ , undo-tree
+
+(use-package undo-tree
+  :init (global-undo-tree-mode 1))
+
 ;;;_ , uniquify
 
 (use-package uniquify
