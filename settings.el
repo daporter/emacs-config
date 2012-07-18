@@ -12,7 +12,7 @@
  '(bind-key-segregation-regexp "\\`\\(\\(C-[chx.] \\|M-[gso] \\)\\([CM]-\\)?\\|.+-\\)")
  '(bookmark-default-file "~/.emacs.d/data/bookmarks")
  '(column-number-mode t)
- '(custom-safe-themes (quote ("71b172ea4aad108801421cc5251edb6c792f3adbaecfa1c52e94e3d99634dee7" "d6a00ef5e53adf9b6fe417d2b4404895f26210c52bb8716971be106550cea257" default)))
+ '(custom-safe-themes (quote ("1e7e097ec8cb1f8c3a912d7e1e0331caeed49fef6cff220be63bd2a6ba4cc365" default)))
  '(diff-mode-hook (quote (diff-delete-empty-files diff-make-unified smerge-mode)))
  '(el-get-auto-update-cached-recipes nil t)
  '(el-get-generate-autoloads nil t)

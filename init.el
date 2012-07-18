@@ -896,7 +896,8 @@ Including indent-buffer, which should not be called automatically on save."
 (use-package solarized-light-theme
   :init (load-theme 'solarized-light t))
 
-;;(use-package solarized-dark-theme)
+(use-package solarized-dark-theme
+  :disabled t)
 
 ;;;_ , uniquify
 
@@ -1003,7 +1004,8 @@ Including indent-buffer, which should not be called automatically on save."
 
 ;;;_ , zenburn-theme
 
-(use-package zenburn-theme)
+(use-package zenburn-theme
+  :disabled t)
 
 
 ;;;_. Settings
