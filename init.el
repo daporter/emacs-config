@@ -812,7 +812,7 @@ Including indent-buffer, which should not be called automatically on save."
 
           (add-hook 'dired-mode-hook 'recentf-add-dired-directory)))
 
-;;;_ , Enhanced-Ruby-Mode
+;;;_ , ruby-mode
 
 (use-package ruby-mode
   :mode (("\\.rb\\'"   . ruby-mode)

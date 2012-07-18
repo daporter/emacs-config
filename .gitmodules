@@ -19,9 +19,6 @@
 [submodule "site-lisp/yasnippet"]
         path = site-lisp/yasnippet
         url = https://github.com/jwiegley/yasnippet
-[submodule "site-lisp/Enhanced-Ruby-Mode"]
-        path = site-lisp/Enhanced-Ruby-Mode
-        url = https://github.com/jacott/Enhanced-Ruby-Mode
 [submodule "site-lisp/scss-mode"]
         path = site-lisp/scss-mode
         url = https://github.com/antonj/scss-mode
@@ -85,3 +82,6 @@
 [submodule "site-lisp/solarized-theme"]
 	path = site-lisp/solarized-theme
 	url = https://github.com/sellout/emacs-color-theme-solarized
+[submodule "site-lisp/ruby-mode"]
+	path = site-lisp/ruby-mode
+	url = https://github.com/jwiegley/ruby-mode
