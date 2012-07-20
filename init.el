@@ -541,6 +541,18 @@ Including indent-buffer, which should not be called automatically on save."
             (ac-config-default)
             (ac-set-trigger-key "TAB")))
 
+;;;_ , autopair
+
+(use-package autopair
+  :commands autopair-mode
+  :diminish autopair-mode
+
+  :init (hook-into-modes #'autopair-mode '(c-mode-common-hook
+                                           text-mode-hook
+                                           ruby-mode-hook
+                                           python-mode-hook
+                                           sh-mode-hook)))
+
 ;;;_ , autorevert
 
 (use-package autorevert
