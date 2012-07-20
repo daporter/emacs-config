@@ -80,14 +80,11 @@
         path = site-lisp/eproject
         url = https://github.com/jrockway/eproject/
 [submodule "site-lisp/solarized-theme"]
-	path = site-lisp/solarized-theme
-	url = https://github.com/sellout/emacs-color-theme-solarized
-[submodule "site-lisp/ruby-mode"]
-	path = site-lisp/ruby-mode
-	url = https://github.com/jwiegley/ruby-mode
+        path = site-lisp/solarized-theme
+        url = https://github.com/sellout/emacs-color-theme-solarized
 [submodule "site-lisp/undo-tree"]
-	path = site-lisp/undo-tree
-	url = http://www.dr-qubit.org/git/undo-tree.git
+        path = site-lisp/undo-tree
+        url = http://www.dr-qubit.org/git/undo-tree.git
 [submodule "site-lisp/autopair"]
-	path = site-lisp/autopair
-	url = https://github.com/capitaomorte/autopair
+        path = site-lisp/autopair
+        url = https://github.com/capitaomorte/autopair
