@@ -1,0 +1,7 @@
+# contributor: David Porter <david.a.porter@gmail.com>
+# name: it 'should ...' do ... end
+# key: itd
+# --
+it 'should ${1:description}' do
+  $0
+end
