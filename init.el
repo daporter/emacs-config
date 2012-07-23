@@ -748,6 +748,12 @@ Including indent-buffer, which should not be called automatically on save."
 
           (bind-key "C-c L" 'my-ledger-start-entry)))
 
+;;;_ , linum
+
+(use-package linum
+  :commands linum-mode
+  :init (hook-into-modes 'linum-mode '(prog-mode-hook)))
+
 ;;;_ , lorem-ipsum
 
 (use-package lorem-ipsum
