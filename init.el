@@ -16,6 +16,10 @@
 (setq auto-save-list-file-prefix
       (concat user-emacs-directory "backups/auto-save-list/.saves-"))
 
+;; Use GNU Coreutils version of `ls', which is called `gls' when installed via
+;; Homebrew.
+(setq insert-directory-program "gls")
+
 ;;;_ , Utility macros and functions
 
 (defmacro hook-into-modes (func modes)
