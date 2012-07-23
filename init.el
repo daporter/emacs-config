@@ -846,9 +846,6 @@ Including indent-buffer, which should not be called automatically on save."
   :interpreter ("ruby" . ruby-mode)
 
   :config (progn
-            (use-package rvm
-              :config (progn (rvm-use-default)))
-
             (use-package yari
               :init (progn
                       (defvar yari-helm-source-ri-pages
@@ -886,6 +883,13 @@ Including indent-buffer, which should not be called automatically on save."
                                  ac-source-words-in-same-mode-buffers)))
 
             (add-hook 'ruby-mode-hook 'my-ruby-mode-hook)))
+
+;;;_ , rvm
+
+(use-package rvm
+  :init (progn
+          (rvm-use-default)
+          (rvm-autodetect-ruby)))
 
 ;;;_ , scss-mode
 
