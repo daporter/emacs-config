@@ -748,6 +748,13 @@ Including indent-buffer, which should not be called automatically on save."
 
           (bind-key "C-c L" 'my-ledger-start-entry)))
 
+;;;_ , lorem-ipsum
+
+(use-package lorem-ipsum
+  :commands (Lorem-ipsum-insert-paragraphs
+             Lorem-ipsum-insert-sentences
+             Lorem-ipsum-insert-list))
+
 ;;;_ , magit
 
 (use-package magit
