@@ -931,6 +931,7 @@ Including indent-buffer, which should not be called automatically on save."
 ;;;_ , undo-tree
 
 (use-package undo-tree
+  :diminish undo-tree-mode
   :init (global-undo-tree-mode 1))
 
 ;;;_ , uniquify
