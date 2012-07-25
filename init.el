@@ -20,6 +20,9 @@
 ;; Homebrew.
 (setq insert-directory-program "gls")
 
+;; Replace list-buffers with ibuffer.
+(defalias 'list-buffers 'ibuffer)
+
 ;;;_ , Utility macros and functions
 
 (defmacro hook-into-modes (func modes)
