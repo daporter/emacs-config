@@ -533,6 +533,46 @@ Including indent-buffer, which should not be called automatically on save."
 (use-package ace-jump-mode
   :bind ("C-. C-s" . ace-jump-mode))
 
+;;;_ , AUCTeX
+
+(use-package tex-site
+  :load-path "site-lisp/auctex/preview/"
+
+  :init (progn
+          (hook-into-modes 'TeX-source-correlate-mode '(LaTeX-mode-hook))
+          (hook-into-modes 'TeX-PDF-mode '(LaTeX-mode-hook))
+          (hook-into-modes (lambda ()
+                             (add-to-list 'TeX-expand-list
+                                          '("%q" make-skim-url)))
+                           '(LaTeX-mode-hook))
+
+          (use-package reftex
+            :init (hook-into-modes 'turn-on-reftex '(LaTeX-mode-hook))))
+
+  :config (progn
+            (use-package preview-latex)
+
+            ;; Make AUCTeX aware of style files and multi-file documents.
+            (setq TeX-auto-save t)
+            (setq TeX-parse-self t)
+            (setq-default TeX-master nil)
+
+            (defun make-skim-url ()
+              (concat
+               (TeX-current-line)
+               " \""
+               (expand-file-name (funcall file (TeX-output-extension) t)
+                                 (file-name-directory (TeX-master-file)))
+               "\" \""
+               (buffer-file-name)
+               "\""))
+
+            (setq TeX-source-correlate-method 'synctex)
+            (setq TeX-view-program-list
+                  '(("Skim"
+                     "/Applications/Skim.app/Contents/SharedSupport/displayline %q")))
+            (setq TeX-view-program-selection '((output-pdf "Skim")))))
+
 ;;;_ , auto-complete
 
 (use-package auto-complete-config

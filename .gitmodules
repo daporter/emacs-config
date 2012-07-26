@@ -88,3 +88,6 @@
 [submodule "site-lisp/autopair"]
         path = site-lisp/autopair
         url = https://github.com/capitaomorte/autopair
+[submodule "site-lisp/auctex"]
+	path = site-lisp/auctex
+	url = git://github.com/jwiegley/auctex.git
