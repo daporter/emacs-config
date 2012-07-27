@@ -910,6 +910,7 @@ Including indent-buffer, which should not be called automatically on save."
                               (yari-symbol-at-point)))))
 
             (use-package inf-ruby)
+            (use-package ruby-tools)
 
             (defun my-ruby-smart-return ()
               (interactive)
