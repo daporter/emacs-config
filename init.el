@@ -309,14 +309,12 @@
                (error "Current window is the only window in its frame")
              (delete-other-windows))))
 
-(defun delete-current-line (&optional arg)
-  (interactive "p")
-  (let ((here (point)))
-    (beginning-of-line)
-    (kill-line arg)
-    (goto-char here)))
+(defun insert-date (arg)
+  (interactive "P")
+  (let ((format (if arg "%d/%m/%y" "%Y-%m-%d")))
+    (insert (format-time-string format))))
 
-(bind-key "C-c d" 'delete-current-line)
+(bind-key "C-c d" 'insert-date)
 
 (bind-key "C-c e E" 'elint-current-buffer)
 
