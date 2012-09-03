@@ -969,10 +969,10 @@ Including indent-buffer, which should not be called automatically on save."
 ;;;_ , solarized-theme
 
 (use-package solarized-light-theme
-  :init (load-theme 'solarized-light t))
+  :disabled t)
 
 (use-package solarized-dark-theme
-  :disabled t)
+  :init (load-theme 'solarized-dark t))
 
 ;;;_ , undo-tree
 
