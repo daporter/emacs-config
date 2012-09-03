@@ -857,12 +857,6 @@ Including indent-buffer, which should not be called automatically on save."
 (use-package perspective
   :init (progn (persp-mode t)))
 
-;;;_ , rainbow-delimiters
-
-(use-package rainbow-delimiters
-  :commands rainbow-delimiters-mode
-  :init (hook-into-modes 'rainbow-delimiters-mode '(prog-mode-hook)))
-
 ;;;_ , recentf
 
 (use-package recentf

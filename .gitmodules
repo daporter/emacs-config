@@ -46,9 +46,6 @@
 [submodule "site-lisp/jump-char"]
         path = site-lisp/jump-char
         url = https://github.com/lewang/jump-char
-[submodule "site-lisp/rainbow-delimiters"]
-        path = site-lisp/rainbow-delimiters
-        url = https://github.com/jlr/rainbow-delimiters
 [submodule "site-lisp/mark-multiple"]
         path = site-lisp/mark-multiple
         url = https://github.com/magnars/mark-multiple.el.git
@@ -89,8 +86,8 @@
         path = site-lisp/autopair
         url = https://github.com/capitaomorte/autopair
 [submodule "site-lisp/auctex"]
-	path = site-lisp/auctex
-	url = git://github.com/jwiegley/auctex.git
+        path = site-lisp/auctex
+        url = git://github.com/jwiegley/auctex.git
 [submodule "site-lisp/ruby-tools"]
-	path = site-lisp/ruby-tools
-	url = git://github.com/rejeep/ruby-tools.git
+        path = site-lisp/ruby-tools
+        url = git://github.com/rejeep/ruby-tools.git
