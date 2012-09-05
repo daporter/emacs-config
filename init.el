@@ -674,6 +674,10 @@ Including indent-buffer, which should not be called automatically on save."
          ("C-c i f" . flyspell-mode))
   :config (define-key flyspell-mode-map [(control ?.)] nil))
 
+;;;_ , haml-mode
+
+(use-package haml-mode)
+
 ;;;_ , helm
 
 (use-package helm-config

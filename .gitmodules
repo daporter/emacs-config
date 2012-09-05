@@ -91,3 +91,6 @@
 [submodule "site-lisp/ruby-tools"]
         path = site-lisp/ruby-tools
         url = git://github.com/rejeep/ruby-tools.git
+[submodule "site-lisp/haml-mode"]
+	path = site-lisp/haml-mode
+	url = https://github.com/nex3/haml-mode.git
