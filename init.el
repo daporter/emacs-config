@@ -661,7 +661,10 @@ Including indent-buffer, which should not be called automatically on save."
   :init (setq ispell-dictionary-base-alist
               '((nil                    ; default
                  "[A-Za-z]" "[^A-Za-z]" "[']" t
-                 ("-d" "/Library/Spelling/en_AU" "-i" "utf-8") nil utf-8)
+                 ("-d" "/Library/Spelling/en_GB" "-i" "utf-8") nil utf-8)
+                ("british"              ; British English
+                 "[A-Za-z]" "[^A-Za-z]" "[']" t
+                 ("-d" "/Library/Spelling/en_GB" "-i" "utf-8") nil utf-8)
                 ("australian"           ; Australian English
                  "[A-Za-z]" "[^A-Za-z]" "[']" t
                  ("-d" "/Library/Spelling/en_AU" "-i" "utf-8") nil utf-8)
@@ -674,7 +677,7 @@ Including indent-buffer, which should not be called automatically on save."
 
   :config (progn
             (setq ispell-program-name "hunspell"
-                  ispell-dictionary "australian"
+                  ispell-dictionary "british"
                   ispell-extra-args nil
                   ispell-silently-savep t)))
 
