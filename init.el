@@ -895,8 +895,9 @@ Including indent-buffer, which should not be called automatically on save."
 ;;;_ , ruby-mode
 
 (use-package ruby-mode
-  :mode (("\\.rb\\'"   . ruby-mode)
-         ("Gemfile\\'" . ruby-mode))
+  :mode (("\\.rb\\'"     . ruby-mode)
+         ("Guardfile\\'" . ruby-mode)
+         ("Gemfile\\'"   . ruby-mode))
 
   :interpreter ("ruby" . ruby-mode)
 
