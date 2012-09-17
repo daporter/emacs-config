@@ -860,6 +860,10 @@ Including indent-buffer, which should not be called automatically on save."
           (use-package js2-rename-var
             :bind ("C-c C-r" . js2-rename-var))))
 
+;;;_ , markdown-mode
+(use-package markdown-mode
+  :mode (("\\.md\\'" . markdown-mode)))
+
 ;;;_ , paredit
 
 (use-package paredit

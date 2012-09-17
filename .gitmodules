@@ -94,3 +94,6 @@
 [submodule "site-lisp/haml-mode"]
         path = site-lisp/haml-mode
         url = https://github.com/nex3/haml-mode.git
+[submodule "site-lisp/markdown-mode"]
+	path = site-lisp/markdown-mode
+	url = git://jblevins.org/git/markdown-mode.git
