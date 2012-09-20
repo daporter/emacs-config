@@ -46,6 +46,16 @@
     (mapc (apply-partially #'add-to-list 'exec-path)
           (nreverse (split-string (getenv "PATH") ":")))))
 
+
+;; rbenv
+
+(setq    exec-path (cons   "/usr/local/opt/rbenv/bin"      exec-path))
+(setenv  "PATH"    (concat "/usr/local/opt/rbenv/bin:"     (getenv "PATH")))
+(setq    exec-path (cons   "/usr/local/opt/rbenv/shims"    exec-path))
+(setenv  "PATH"    (concat "/usr/local/opt/rbenv/shims:"   (getenv "PATH")))
+(setq    exec-path (cons   "/usr/local/opt/rbenv/libexec"  exec-path))
+(setenv  "PATH"    (concat "/usr/local/opt/rbenv/libexec:" (getenv "PATH")))
+
 ;; "y or n" instead of "yes or no"
 (fset 'yes-or-no-p 'y-or-n-p)
 
