@@ -94,3 +94,6 @@
 [submodule "site-lisp/markdown-mode"]
         path = site-lisp/markdown-mode
         url = git://jblevins.org/git/markdown-mode.git
+[submodule "site-lisp/yaml-mode"]
+	path = site-lisp/yaml-mode
+	url = https://github.com/yoshiki/yaml-mode.git

@@ -1078,6 +1078,10 @@ Including indent-buffer, which should not be called automatically on save."
           (bind-key "M-N" 'winner-redo)
           (bind-key "M-P" 'winner-undo)))
 
+;;;_ , YAML mode
+
+(use-package yaml-mode)
+
 ;;;_ , yasnippet
 
 (use-package yasnippet
