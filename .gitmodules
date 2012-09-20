@@ -13,9 +13,6 @@
 [submodule "site-lisp/magit"]
         path = site-lisp/magit
         url = https://github.com/magit/magit
-[submodule "site-lisp/rvm"]
-        path = site-lisp/rvm
-        url = https://github.com/senny/rvm.el
 [submodule "site-lisp/yasnippet"]
         path = site-lisp/yasnippet
         url = https://github.com/jwiegley/yasnippet
@@ -95,5 +92,5 @@
         path = site-lisp/haml-mode
         url = https://github.com/nex3/haml-mode.git
 [submodule "site-lisp/markdown-mode"]
-	path = site-lisp/markdown-mode
-	url = git://jblevins.org/git/markdown-mode.git
+        path = site-lisp/markdown-mode
+        url = git://jblevins.org/git/markdown-mode.git

@@ -945,13 +945,6 @@ Including indent-buffer, which should not be called automatically on save."
 
             (add-hook 'ruby-mode-hook 'my-ruby-mode-hook)))
 
-;;;_ , rvm
-
-(use-package rvm
-  :init (progn
-          (rvm-use-default)
-          (rvm-autodetect-ruby)))
-
 ;;;_ , scss-mode
 
 (use-package scss-mode
