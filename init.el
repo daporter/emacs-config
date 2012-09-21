@@ -29,23 +29,12 @@
   `(dolist (mode-hook ,modes)
      (add-hook mode-hook ,func)))
 
-;;;_ , Read system environment
+;;;_ , exec-path-from-shell
 
-(let ((plist (expand-file-name "~/.MacOSX/environment.plist")))
-  (when (file-readable-p plist)
-    (let ((dict (cdr (assq 'dict (cdar (xml-parse-file plist))))))
-      (while dict
-        (if (and (listp (car dict))
-                 (eq 'key (caar dict)))
-            (setenv (car (cddr (car dict)))
-                    (car (cddr (car (cddr dict))))))
-        (setq dict (cdr dict))))
-
-    ;; Configure exec-path based on the new PATH
-    (setq exec-path nil)
-    (mapc (apply-partially #'add-to-list 'exec-path)
-          (nreverse (split-string (getenv "PATH") ":")))))
-
+(use-package exec-path-from-shell
+  :config (progn
+            (exec-path-from-shell-initialize)
+            (exec-path-from-shell-copy-env "LEDGER_FILE")))
 
 ;; rbenv
 
