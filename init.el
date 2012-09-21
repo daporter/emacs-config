@@ -788,7 +788,8 @@ Including indent-buffer, which should not be called automatically on save."
 ;;;_ , Ledger
 
 (use-package ldg-new
-  :commands ledger-mode
+  :load-path "/Library/Caches/Homebrew/ledger--git/lisp"
+  :commands  ledger-mode
 
   :init (progn
           (use-package ledger)
