@@ -689,58 +689,6 @@ Including indent-buffer, which should not be called automatically on save."
 
 (use-package haml-mode)
 
-;;;_ , helm
-
-(use-package helm-config
-  :init (progn
-          (bind-key "C-c M-x" 'helm-M-x)
-          (bind-key "C-h a" 'helm-c-apropos)
-          (bind-key "M-s a" 'helm-do-grep)
-
-          (defun my-helm-occur ()
-            (interactive)
-            (require 'helm-regexp)
-            (helm-other-buffer 'helm-c-source-occur "*Helm Occur*"))
-
-          (bind-key "M-s b" 'my-helm-occur)
-          (bind-key "M-s F" 'helm-for-files)
-
-          (defun my-helm-apropos ()
-            (interactive)
-            (require 'helm-elisp)
-            (require 'helm-misc)
-            (let ((default (thing-at-point 'symbol)))
-              (helm
-               :prompt "Info about: "
-               :candidate-number-limit 15
-               :sources
-               (append (mapcar (lambda (func)
-                                 (funcall func default))
-                               '(helm-c-source-emacs-commands
-                                 helm-c-source-emacs-functions
-                                 helm-c-source-emacs-variables
-                                 helm-c-source-emacs-faces
-                                 helm-c-source-helm-attributes))
-                       '(helm-c-source-info-emacs
-                         helm-c-source-info-elisp
-                         helm-c-source-info-gnus
-                         helm-c-source-info-org
-                         helm-c-source-info-cl
-                         helm-c-source-emacs-source-defun)))))
-
-          (bind-key "C-h e a" 'my-helm-apropos)
-          (bind-key "C-h b" 'helm-descbinds))
-
-  :config (progn
-            (helm-match-plugin-mode t)
-
-            (use-package helm-git
-              :commands helm-git-find-files)
-
-            (use-package helm-descbinds
-              :commands helm-descbinds
-              :init (fset 'describe-bindings 'helm-descbinds))))
-
 ;;;_ , ido
 
 (use-package ido
@@ -906,22 +854,7 @@ Including indent-buffer, which should not be called automatically on save."
   :interpreter ("ruby" . ruby-mode)
 
   :config (progn
-            (use-package yari
-              :init (progn
-                      (defvar yari-helm-source-ri-pages
-                        '((name . "RI documentation")
-                          (candidates . (lambda () (yari-ruby-obarray)))
-                          (action  ("Show with Yari" . yari))
-                          (candidate-number-limit . 300)
-                          (requires-pattern . 2)
-                          "Source for completing RI documentation."))
-
-                      (defun helm-yari (&optional rehash)
-                        (interactive (list current-prefix-arg))
-                        (when current-prefix-arg (yari-ruby-obarray rehash))
-                        (helm 'yari-helm-source-ri-pages
-                              (yari-symbol-at-point)))))
-
+            (use-package yari)
             (use-package inf-ruby)
             (use-package ruby-tools)
 
@@ -932,8 +865,7 @@ Including indent-buffer, which should not be called automatically on save."
               (call-interactively 'newline-and-indent))
 
             (defun my-ruby-mode-hook ()
-              (bind-key "<return>" 'my-ruby-smart-return ruby-mode-map)
-              (bind-key "C-h C-i" 'helm-yari ruby-mode-map))
+              (bind-key "<return>" 'my-ruby-smart-return ruby-mode-map))
 
             ;; This gets called automatically by auto-complete.
             (defun ac-ruby-mode-setup ()

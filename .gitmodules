@@ -4,12 +4,6 @@
 [submodule "site-lisp/zenburn-theme"]
         path = site-lisp/zenburn-theme
         url = https://github.com/emacsmirror/zenburn-theme.git
-[submodule "site-lisp/helm"]
-        path = site-lisp/helm
-        url = https://github.com/emacs-helm/helm
-[submodule "site-lisp/helm-descbinds"]
-        path = site-lisp/helm-descbinds
-        url = https://github.com/emacs-helm/helm-descbinds
 [submodule "site-lisp/magit"]
         path = site-lisp/magit
         url = https://github.com/magit/magit
@@ -37,9 +31,6 @@
 [submodule "site-lisp/slim-mode"]
         path = site-lisp/slim-mode
         url = https://github.com/minad/emacs-slim
-[submodule "site-lisp/helm-git"]
-        path = site-lisp/helm-git
-        url = https://github.com/maio/helm-git
 [submodule "site-lisp/jump-char"]
         path = site-lisp/jump-char
         url = https://github.com/lewang/jump-char
@@ -95,8 +86,8 @@
         path = site-lisp/markdown-mode
         url = git://jblevins.org/git/markdown-mode.git
 [submodule "site-lisp/yaml-mode"]
-	path = site-lisp/yaml-mode
-	url = https://github.com/yoshiki/yaml-mode.git
+        path = site-lisp/yaml-mode
+        url = https://github.com/yoshiki/yaml-mode.git
 [submodule "site-lisp/exec-path-from-shell"]
-	path = site-lisp/exec-path-from-shell
-	url = https://github.com/purcell/exec-path-from-shell.git
+        path = site-lisp/exec-path-from-shell
+        url = https://github.com/purcell/exec-path-from-shell.git
