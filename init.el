@@ -789,28 +789,22 @@ Including indent-buffer, which should not be called automatically on save."
             (require 'magit-topgit)
             (require 'rebase-mode)))
 
-;;;_ , mark-multiple
-
-(use-package mark-multiple
-  :init (progn
-          (use-package inline-string-rectangle
-            :bind ("C-x r t" . inline-string-rectangle))
-
-          (use-package mark-more-like-this
-            :bind (("C->"   . mark-next-like-this)
-                   ("C-<"   . mark-previous-like-this)
-                   ("C-M-m" . mark-more-like-this)
-                   ("C-*"   . mark-all-like-this)))
-
-          (use-package rename-sgml-tag
-            :bind ("C-c C-r" . rename-sgml-tag))
-
-          (use-package js2-rename-var
-            :bind ("C-c C-r" . js2-rename-var))))
-
 ;;;_ , markdown-mode
 (use-package markdown-mode
   :mode (("\\.md\\'" . markdown-mode)))
+
+;;;_ , multiple-cursors
+(use-package multiple-cursors
+  :bind (("C-S-c C-S-c" . mc/edit-lines)
+         ("C-S-c C-e"   . mc/edit-ends-of-lines)
+         ("C-S-c C-a"   . mc/edit-beginnings-of-lines)
+         ("S-s-SPC"     . set-rectangular-region-anchor)
+         ("C->"         . mc/mark-next-like-this)
+         ("C-<"         . mc/mark-previous-like-this)
+         ("C-c C-<"     . mc/mark-all-like-this))
+
+  :config (progn
+            (setq mc/list-file (concat user-data-directory "mc-lists.el"))))
 
 ;;;_ , paredit
 
