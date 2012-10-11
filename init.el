@@ -963,7 +963,8 @@ See the variable `align-rules-list' for more details.")
           (hook-into-modes 'whitespace-mode
                            '(prog-mode-hook
                              c-mode-common-hook
-                             ruby-mode-hook))
+                             ruby-mode-hook
+                             haml-mode-hook))
 
           (defun normalize-file ()
             (interactive)
