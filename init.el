@@ -869,7 +869,38 @@ Including indent-buffer, which should not be called automatically on save."
                                  ac-source-dictionary
                                  ac-source-words-in-same-mode-buffers)))
 
-            (add-hook 'ruby-mode-hook 'my-ruby-mode-hook)))
+            (defun my-ruby-align-setup()
+              (require 'align)
+
+              (defconst align-ruby-modes '(ruby-mode)
+                "align-perl-modes is a variable defined in `align.el'.")
+
+              (defconst ruby-align-rules-list
+                '((ruby-comma-delimiter
+                   (regexp . ",\\(\\s-*\\)[^/ \t\n]")
+                   (modes  . align-ruby-modes)
+                   (repeat . t))
+                  (ruby-string-after-func
+                   (regexp . "^\\s-*[a-zA-Z0-9.:?_]+\\(\\s-+\\)['\"]\\w+['\"]")
+                   (modes  . align-ruby-modes)
+                   (repeat . t))
+                  (ruby-symbol-after-func
+                   (regexp . "^\\s-*[a-zA-Z0-9.:?_]+\\(\\s-+\\):\\w+")
+                   (modes  . align-ruby-modes)))
+                "Alignment rules specific to the ruby mode.
+See the variable `align-rules-list' for more details.")
+
+              (dolist (it '(align-perl-modes
+                            align-dq-string-modes
+                            align-sq-string-modes
+                            align-open-comment-modes))
+                (add-to-list it 'ruby-mode))
+
+              (dolist (it ruby-align-rules-list)
+                (add-to-list 'align-rules-list it)))
+
+            (add-hook 'ruby-mode-hook 'my-ruby-mode-hook)
+            (add-hook 'ruby-mode-hook 'my-ruby-align-setup)))
 
 ;;;_ , scss-mode
 
