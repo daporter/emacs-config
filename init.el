@@ -851,6 +851,7 @@ Including indent-buffer, which should not be called automatically on save."
             (use-package yari)
             (use-package inf-ruby)
             (use-package ruby-tools)
+            (use-package ruby-mode-expansions)
 
             (defun my-ruby-smart-return ()
               (interactive)
