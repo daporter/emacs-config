@@ -610,6 +610,10 @@ Including indent-buffer, which should not be called automatically on save."
          ("C-S-<left>"  . buf-move-left)
          ("C-S-<right>" . buf-move-right)))
 
+;;;_ , coffee-mode
+
+(use-package coffee-mode)
+
 ;;;_ , eproject
 
 (use-package eproject
