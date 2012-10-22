@@ -360,8 +360,24 @@ Including indent-buffer, which should not be called automatically on save."
 
 (bind-key "C-c n" 'cleanup-buffer)
 
-(bind-key "C-c o" 'customize-option)
-(bind-key "C-c O" 'customize-group)
+(defun my-newline-previous ()
+  "Insert a blank line above the cursor and move the cursor up
+one line."
+  (interactive)
+  (beginning-of-line)
+  (newline)
+  (previous-line)
+  (indent-according-to-mode))
+
+(defun my-newline-next ()
+  "Inserts an indented newline after the current line and moves
+the point to it."
+  (interactive)
+  (end-of-line)
+  (newline-and-indent))
+
+(bind-key "C-c o" 'my-newline-next)
+(bind-key "C-c O" 'my-newline-previous)
 
 (bind-key "C-c q" 'fill-region)
 (bind-key "C-c r" 'replace-regexp)
