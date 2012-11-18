@@ -709,6 +709,18 @@ the point to it."
 
 (use-package haml-mode)
 
+;;;_ , haskell-mode
+
+(use-package haskell-mode
+  :commands haskell-mode
+
+  :init (progn
+          (add-to-list 'auto-mode-alist '("\\.l?hs$" . haskell-mode))
+          (add-hook 'haskell-mode-hook 'turn-on-haskell-indentation))
+
+  :config (progn
+            (use-package inf-haskell)))
+
 ;;;_ , ido
 
 (use-package ido
