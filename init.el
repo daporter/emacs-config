@@ -793,7 +793,8 @@ the point to it."
 
 (use-package linum
   :commands linum-mode
-  :init (hook-into-modes 'linum-mode '(prog-mode-hook)))
+  :init (hook-into-modes 'linum-mode '(prog-mode-hook
+                                       haml-mode-hook)))
 
 ;;;_ , lorem-ipsum
 
