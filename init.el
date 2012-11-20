@@ -955,10 +955,7 @@ See the variable `align-rules-list' for more details.")
 ;;;_ , slim-mode
 
 (use-package slim-mode
-  :mode ("\\.slim\\'" . slim-mode)
-
-  :config (progn
-            (setq css-indent-offset 2)))
+  :mode ("\\.slim\\'" . slim-mode))
 
 ;;;_ , smex
 
