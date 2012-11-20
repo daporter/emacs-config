@@ -630,6 +630,12 @@ the point to it."
 
 (use-package coffee-mode)
 
+;;;_ , css-mode
+
+(use-package css-mode
+  :config (progn
+            (setq css-indent-offset 2)))
+
 ;;;_ , eproject
 
 (use-package eproject
