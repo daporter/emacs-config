@@ -713,7 +713,15 @@ the point to it."
 
 ;;;_ , haml-mode
 
-(use-package haml-mode)
+(use-package haml-mode
+  :init (progn
+          (defun my-split-line-with-continuation ()
+            (interactive)
+            (let ((spaces (make-string (- fill-column (current-column)) ? )))
+              (insert spaces "|" "\n"))
+            (indent-for-tab-command))
+
+          (bind-key "C-c \\" 'my-split-line-with-continuation)))
 
 ;;;_ , haskell-mode
 
