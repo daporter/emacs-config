@@ -88,12 +88,9 @@
 [submodule "site-lisp/haskell-mode"]
         path = site-lisp/haskell-mode
         url = https://github.com/haskell/haskell-mode
-[submodule "site-lisp/js2-mode"]
-        path = site-lisp/js2-mode
-        url = https://github.com/mooz/js2-mode
 [submodule "site-lisp/helm"]
         path = site-lisp/helm
         url = https://github.com/emacs-helm/helm.git
 [submodule "site-lisp/solarized-emacs"]
-	path = site-lisp/solarized-emacs
-	url = https://github.com/bbatsov/solarized-emacs.git
+        path = site-lisp/solarized-emacs
+        url = https://github.com/bbatsov/solarized-emacs.git
