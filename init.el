@@ -194,7 +194,6 @@
 
 ;;;_  . C-x ?
 
-(bind-key "C-x B" 'ido-switch-buffer-other-window)
 (bind-key "C-x F" 'set-fill-column)
 (bind-key "C-x t" 'toggle-truncate-lines)
 
@@ -653,11 +652,7 @@ the point to it."
           (use-package eproject-ruby-on-rails)
           (use-package eproject-tags))
 
-  :config (progn
-            (setq eproject-completing-read-function
-                  'eproject--ido-completing-read)
-
-            (bind-key "C-x f" 'eproject-find-file)))
+  :config (bind-key "C-x f" 'eproject-find-file))
 
 ;;;_ , expand-region
 
@@ -735,32 +730,21 @@ the point to it."
   :config (progn
             (use-package inf-haskell)))
 
-;;;_ , ido
+;;;_ , helm
 
-(use-package ido
-  :init (progn
-          (ido-mode t))
+(use-package helm-config
+  :init (helm-mode 1)
+  :bind (("C-c h"   . helm-mini)
+         ("M-x"     . helm-M-x)
+         ("C-x C-f" . helm-find-files)))
+
+;;;_ , js2-mode
+
+(use-package js2-mode
+  :mode ("\\.js$" . js2-mode)
 
   :config (progn
-            (use-package ido-ubiquitous
-              :init (ido-ubiquitous-mode 1))
-
-            (use-package ido-springboard)
-
-            (setq ido-enable-prefix         nil
-                  ido-enable-flex-matching  t
-                  ido-create-new-buffer     'always
-                  ido-use-filename-at-point nil
-                  ido-max-prospects         10)
-            (setq ido-save-directory-list-file
-                  (concat user-data-directory "ido.last"))
-            ;; Always rescan buffer for imenu.
-            (set-default 'imenu-auto-rescan t)
-
-            (bind-key "C-w" 'ido-delete-backward-updir
-                      ido-file-completion-map)
-            (bind-key "C-x C-w" 'ido-copy-current-file-name
-                      ido-file-completion-map)))
+            (setq-default js2-basic-offset 2)))
 
 ;;;_ , jump-char
 
