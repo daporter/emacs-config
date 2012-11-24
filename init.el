@@ -949,24 +949,11 @@ See the variable `align-rules-list' for more details.")
 (use-package slim-mode
   :mode ("\\.slim\\'" . slim-mode))
 
-;;;_ , smex
+;;;_ , solarized-emacs
 
-(use-package smex
-  :bind (("M-x"         . smex)
-         ("M-X"         . smex-major-mode-commands)
-         ("C-c C-c M-x" . execute-extended-command))
-
-  :config (progn
-            (smex-initialize)
-            (setq smex-save-file (concat user-data-directory "smex-items"))))
-
-;;;_ , solarized-theme
-
-(use-package solarized-light-theme
-  :disabled t)
-
-(use-package solarized-dark-theme
-  :init (load-theme 'solarized-dark t))
+(use-package solarized
+  :init (progn
+          (load-theme 'solarized-dark t)))
 
 ;;;_ , undo-tree
 
