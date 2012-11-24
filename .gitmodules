@@ -94,3 +94,6 @@
 [submodule "site-lisp/solarized-emacs"]
         path = site-lisp/solarized-emacs
         url = https://github.com/bbatsov/solarized-emacs.git
+[submodule "site-lisp/js2-mode"]
+	path = site-lisp/js2-mode
+	url = https://github.com/mooz/js2-mode
