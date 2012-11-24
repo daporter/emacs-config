@@ -879,6 +879,34 @@ the point to it."
             (use-package ruby-tools)
             (use-package ruby-mode-expansions)
 
+            (use-package ruby-test-mode
+              :init (hook-into-modes 'ruby-test-mode '(ruby-mode-hook))
+
+              :config (progn
+                        ;; Overriding this method.
+                        (defun ruby-test-run (&optional all)
+                          "Run the current buffer's file as specification or
+              unit test.  With prefix, run all tests"
+                          (interactive "P")
+                          (progn
+                            (save-buffer)
+                            (let ((filename (ruby-test-find-file)))
+                              (if filename
+                                  (progn
+                                    (setq default-directory
+                                          (or (ruby-test-rails-root filename)
+                                              (ruby-test-ruby-root filename)))
+                                    (if current-prefix-arg
+                                        (compilation-start "script/test" t)
+                                      (compilation-start
+                                       (format "script/test %s" filename) t)))
+                                (message ruby-test-not-found-message)))))
+                        (bind-key "C-c C-h" 'ruby-test-run ruby-test-mode-map)
+                        (bind-key "C-c C-s"
+                                  'ruby-test-toggle-implementation-and-specification
+                                  ruby-test-mode-map)
+                        (bind-key "C-c C-t" 'next-error ruby-test-mode-map)))
+
             (defun my-ruby-smart-return ()
               (interactive)
               (when (memq (char-after) '(?\| ?\" ?\'))

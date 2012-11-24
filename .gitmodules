@@ -97,3 +97,6 @@
 [submodule "site-lisp/js2-mode"]
 	path = site-lisp/js2-mode
 	url = https://github.com/mooz/js2-mode
+[submodule "site-lisp/ruby-test-mode"]
+	path = site-lisp/ruby-test-mode
+	url = https://github.com/r0man/ruby-test-mode.git
