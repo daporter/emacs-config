@@ -1,99 +1,96 @@
 [submodule "site-lisp/use-package"]
-    path = site-lisp/use-package
-    url = https://github.com/jwiegley/use-package.git
+        path = site-lisp/use-package
+        url = https://github.com/jwiegley/use-package.git
 [submodule "site-lisp/zenburn-theme"]
-    path = site-lisp/zenburn-theme
-    url = https://github.com/emacsmirror/zenburn-theme.git
+        path = site-lisp/zenburn-theme
+        url = https://github.com/emacsmirror/zenburn-theme.git
 [submodule "site-lisp/magit"]
-    path = site-lisp/magit
-    url = https://github.com/magit/magit
+        path = site-lisp/magit
+        url = https://github.com/magit/magit
 [submodule "site-lisp/yasnippet"]
-    path = site-lisp/yasnippet
-    url = https://github.com/jwiegley/yasnippet
+        path = site-lisp/yasnippet
+        url = https://github.com/jwiegley/yasnippet
 [submodule "site-lisp/scss-mode"]
-    path = site-lisp/scss-mode
-    url = https://github.com/antonj/scss-mode
+        path = site-lisp/scss-mode
+        url = https://github.com/antonj/scss-mode
 [submodule "site-lisp/inf-ruby"]
-    path = site-lisp/inf-ruby
-    url = https://github.com/nonsequitur/inf-ruby
+        path = site-lisp/inf-ruby
+        url = https://github.com/nonsequitur/inf-ruby
 [submodule "site-lisp/yari"]
-    path = site-lisp/yari
-    url = https://github.com/hron/yari.el
+        path = site-lisp/yari
+        url = https://github.com/hron/yari.el
 [submodule "site-lisp/paredit"]
-    path = site-lisp/paredit
-    url = https://github.com/emacsmirror/paredit
+        path = site-lisp/paredit
+        url = https://github.com/emacsmirror/paredit
 [submodule "site-lisp/springboard"]
-    path = site-lisp/springboard
-    url = https://github.com/jwiegley/springboard
+        path = site-lisp/springboard
+        url = https://github.com/jwiegley/springboard
 [submodule "site-lisp/ace-jump-mode"]
-    path = site-lisp/ace-jump-mode
-    url = https://github.com/winterTTr/ace-jump-mode
+        path = site-lisp/ace-jump-mode
+        url = https://github.com/winterTTr/ace-jump-mode
 [submodule "site-lisp/slim-mode"]
-    path = site-lisp/slim-mode
-    url = https://github.com/minad/emacs-slim
+        path = site-lisp/slim-mode
+        url = https://github.com/minad/emacs-slim
 [submodule "site-lisp/jump-char"]
-    path = site-lisp/jump-char
-    url = https://github.com/lewang/jump-char
+        path = site-lisp/jump-char
+        url = https://github.com/lewang/jump-char
 [submodule "site-lisp/expand-region"]
-    path = site-lisp/expand-region
-    url = https://github.com/magnars/expand-region.el
+        path = site-lisp/expand-region
+        url = https://github.com/magnars/expand-region.el
 [submodule "site-lisp/auto-complete"]
-    path = site-lisp/auto-complete
-    url = https://github.com/m2ym/auto-complete
+        path = site-lisp/auto-complete
+        url = https://github.com/m2ym/auto-complete
 [submodule "site-lisp/popup"]
-    path = site-lisp/popup
-    url = https://github.com/m2ym/popup-el
+        path = site-lisp/popup
+        url = https://github.com/m2ym/popup-el
 [submodule "site-lisp/fuzzy"]
-    path = site-lisp/fuzzy
-    url = https://github.com/auto-complete/fuzzy-el
+        path = site-lisp/fuzzy
+        url = https://github.com/auto-complete/fuzzy-el
 [submodule "site-lisp/perspective"]
-    path = site-lisp/perspective
-    url = https://github.com/magnars/perspective-el
+        path = site-lisp/perspective
+        url = https://github.com/magnars/perspective-el
 [submodule "site-lisp/find-file-in-project"]
-    path = site-lisp/find-file-in-project
-    url = https://github.com/technomancy/find-file-in-project
+        path = site-lisp/find-file-in-project
+        url = https://github.com/technomancy/find-file-in-project
 [submodule "site-lisp/eproject"]
-    path = site-lisp/eproject
-    url = https://github.com/jrockway/eproject
+        path = site-lisp/eproject
+        url = https://github.com/jrockway/eproject
 [submodule "site-lisp/undo-tree"]
-    path = site-lisp/undo-tree
-    url = http://www.dr-qubit.org/git/undo-tree.git
+        path = site-lisp/undo-tree
+        url = http://www.dr-qubit.org/git/undo-tree.git
 [submodule "site-lisp/autopair"]
-    path = site-lisp/autopair
-    url = https://github.com/capitaomorte/autopair
+        path = site-lisp/autopair
+        url = https://github.com/capitaomorte/autopair
 [submodule "site-lisp/auctex"]
-    path = site-lisp/auctex
-    url = git://github.com/jwiegley/auctex.git
+        path = site-lisp/auctex
+        url = git://github.com/jwiegley/auctex.git
 [submodule "site-lisp/ruby-tools"]
-    path = site-lisp/ruby-tools
-    url = git://github.com/rejeep/ruby-tools.git
+        path = site-lisp/ruby-tools
+        url = git://github.com/rejeep/ruby-tools.git
 [submodule "site-lisp/haml-mode"]
-    path = site-lisp/haml-mode
-    url = https://github.com/nex3/haml-mode.git
+        path = site-lisp/haml-mode
+        url = https://github.com/nex3/haml-mode.git
 [submodule "site-lisp/markdown-mode"]
-    path = site-lisp/markdown-mode
-    url = git://jblevins.org/git/markdown-mode.git
+        path = site-lisp/markdown-mode
+        url = git://jblevins.org/git/markdown-mode.git
 [submodule "site-lisp/yaml-mode"]
-    path = site-lisp/yaml-mode
-    url = https://github.com/yoshiki/yaml-mode.git
+        path = site-lisp/yaml-mode
+        url = https://github.com/yoshiki/yaml-mode.git
 [submodule "site-lisp/exec-path-from-shell"]
-    path = site-lisp/exec-path-from-shell
-    url = https://github.com/purcell/exec-path-from-shell.git
+        path = site-lisp/exec-path-from-shell
+        url = https://github.com/purcell/exec-path-from-shell.git
 [submodule "site-lisp/multiple-cursors"]
-    path = site-lisp/multiple-cursors
-    url = https://github.com/magnars/multiple-cursors.el.git
+        path = site-lisp/multiple-cursors
+        url = https://github.com/magnars/multiple-cursors.el.git
 [submodule "site-lisp/coffee-mode"]
-    path = site-lisp/coffee-mode
-    url = https://github.com/defunkt/coffee-mode.git
+        path = site-lisp/coffee-mode
+        url = https://github.com/defunkt/coffee-mode.git
 [submodule "site-lisp/haskell-mode"]
-    path = site-lisp/haskell-mode
-    url = https://github.com/haskell/haskell-mode
+        path = site-lisp/haskell-mode
+        url = https://github.com/haskell/haskell-mode
 [submodule "site-lisp/js2-mode"]
-    path = site-lisp/js2-mode
-    url = https://github.com/mooz/js2-mode
-[submodule "site-lisp/helm"]
-    path = site-lisp/helm
-    url = https://github.com/emacs-helm/helm.git
+        path = site-lisp/js2-mode
+        url = https://github.com/mooz/js2-mode
 [submodule "site-lisp/solarized-emacs"]
-    path = site-lisp/solarized-emacs
-    url = https://github.com/bbatsov/solarized-emacs.git
+        path = site-lisp/solarized-emacs
+        url = https://github.com/bbatsov/solarized-emacs.git
