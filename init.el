@@ -32,9 +32,7 @@
 ;;;_ , exec-path-from-shell
 
 (use-package exec-path-from-shell
-  :config (progn
-            (exec-path-from-shell-initialize)
-            (exec-path-from-shell-copy-env "LEDGER_FILE")))
+  :config (exec-path-from-shell-initialize))
 
 ;; rbenv
 
@@ -761,21 +759,18 @@ the point to it."
   :init (progn
           (use-package ledger)
 
-          (add-to-list 'auto-mode-alist
-                       (cons (file-name-nondirectory (getenv "LEDGER_FILE"))
-                             'ledger-mode))
-
           (defun my-goto-ledger ()
             "Goto my ledger file."
             (interactive)
-            (find-file (getenv "LEDGER_FILE"))
+            (find-file (exec-path-from-shell-copy-env "LEDGER_FILE"))
             (ledger-find-slot (current-time)))
 
           (bind-key "C-c l" 'my-goto-ledger)
 
           (defun my-ledger-start-entry (&optional arg)
             (interactive "p")
-            (find-file-other-window (getenv "LEDGER_FILE"))
+            (find-file-other-window
+             (exec-path-from-shell-copy-env "LEDGER_FILE"))
             (goto-char (point-max))
             (skip-syntax-backward " ")
             (if (looking-at "\n\n")
