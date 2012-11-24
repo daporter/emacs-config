@@ -722,9 +722,9 @@ the point to it."
 
 (use-package haskell-mode
   :commands haskell-mode
+  :mode ("\\.l?hs$" . haskell-mode)
 
   :init (progn
-          (add-to-list 'auto-mode-alist '("\\.l?hs$" . haskell-mode))
           (add-hook 'haskell-mode-hook 'turn-on-haskell-indentation))
 
   :config (progn
