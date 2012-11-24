@@ -37,9 +37,6 @@
 [submodule "site-lisp/expand-region"]
     path = site-lisp/expand-region
     url = https://github.com/magnars/expand-region.el
-[submodule "site-lisp/ido-ubiquitous"]
-    path = site-lisp/ido-ubiquitous
-    url = https://github.com/DarwinAwardWinner/ido-ubiquitous.git
 [submodule "site-lisp/auto-complete"]
     path = site-lisp/auto-complete
     url = https://github.com/m2ym/auto-complete
