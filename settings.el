@@ -43,4 +43,9 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(persp-selected-face ((t (:inherit mode-line-buffer-id)))))
+ '(dired-header ((t (:background "#839496" :foreground "#002b36"))))
+ '(helm-selection ((t (:background "#073642" :underline "#839496"))))
+ '(helm-source-header ((t (:background "#002b36" :foreground "#839496" :inverse-video t :slant italic))))
+ '(linum ((t (:foreground "#586e75"))))
+ '(persp-selected-face ((t (:inherit mode-line-buffer-id))))
+ '(region ((t (:background "#586e75" :foreground "#002b36")))))
