@@ -443,6 +443,15 @@ the point to it."
       (unfill-paragraph 1)
       (forward-paragraph))))
 
+;;;_  . C-c w ?
+
+(defun my-stack-window ()
+  "Split window such that the current window is `pushed onto the stack'"
+  (interactive)
+  (split-window-vertically -10))
+
+(bind-key "C-c w s" 'my-stack-window)
+
 ;;;_ , ctl-period-map
 
 ;;;_  . C-. ?
