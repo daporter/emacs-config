@@ -999,8 +999,16 @@ See the variable `align-rules-list' for more details.")
 ;;;_ , solarized-emacs
 
 (use-package solarized
+  :disabled t)
+
+;;;_ , tomorrow-theme
+
+(use-package tomorrow-night-theme
+  :load-path "site-lisp/tomorrow-theme/GNU Emacs/"
   :init (progn
-          (load-theme 'solarized-dark t)))
+          (add-to-list 'custom-theme-load-path
+                       "~/.emacs.d/site-lisp/tomorrow-theme/GNU Emacs/")
+          (load-theme 'tomorrow-night t)))
 
 ;;;_ , undo-tree
 
