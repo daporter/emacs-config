@@ -828,8 +828,7 @@ the point to it."
   :config (progn
             (setenv "GIT_PAGER" "")
 
-            (setq magit-repo-dirs
-                  (list user-emacs-directory "~/Documents/Projects"))
+            (setq magit-repo-dirs '("~/proj"))
 
             (add-hook 'magit-log-edit-mode-hook
                       #'(lambda ()
