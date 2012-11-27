@@ -741,9 +741,24 @@ the point to it."
 
 (use-package helm-config
   :init (helm-mode 1)
-  :bind (("C-c h"   . helm-mini)
-         ("M-x"     . helm-M-x)
-         ("C-x C-f" . helm-find-files)))
+  :bind (("M-x"     . helm-M-x)
+         ("C-x C-f" . helm-find-files))
+
+  :config (progn
+            (setq helm-idle-delay 0.1)
+            (setq helm-input-idle-delay 0.1)
+
+            (defun my-helm ()
+              (interactive)
+              (helm-other-buffer '(helm-c-source-buffers-list
+                                   helm-c-source-recentf
+                                   helm-c-source-files-in-current-dir
+                                   helm-c-source-git-files
+                                   helm-c-source-buffer-not-found)
+                                 "*my-helm*"))
+            (bind-key "C-c h" 'my-helm)
+
+            (use-package helm-git)))
 
 ;;;_ , js2-mode
 
