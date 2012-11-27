@@ -100,3 +100,6 @@
 [submodule "site-lisp/ruby-test-mode"]
 	path = site-lisp/ruby-test-mode
 	url = https://github.com/r0man/ruby-test-mode.git
+[submodule "site-lisp/helm-git"]
+	path = site-lisp/helm-git
+	url = https://github.com/maio/helm-git.git
