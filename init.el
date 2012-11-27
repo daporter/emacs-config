@@ -657,9 +657,9 @@ the point to it."
 
           (use-package eproject-ruby)
           (use-package eproject-ruby-on-rails)
-          (use-package eproject-tags))
-
-  :config (bind-key "C-x f" 'eproject-find-file))
+          (use-package eproject-tags)
+          (use-package helm-eproject
+            :bind ("C-c f" . helm-eproject))))
 
 ;;;_ , expand-region
 
