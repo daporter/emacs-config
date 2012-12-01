@@ -377,7 +377,6 @@ the point to it."
 (bind-key "C-c O" 'my-newline-previous)
 
 (bind-key "C-c q" 'fill-region)
-(bind-key "C-c r" 'replace-regexp)
 (bind-key "C-c s" 'replace-string)
 (bind-key "C-c u" 'rename-uniquely)
 (bind-key "C-c v" 'ffap)
@@ -978,7 +977,15 @@ See the variable `align-rules-list' for more details.")
                 (add-to-list 'align-rules-list it)))
 
             (add-hook 'ruby-mode-hook 'my-ruby-mode-hook)
-            (add-hook 'ruby-mode-hook 'my-ruby-align-setup)))
+            (add-hook 'ruby-mode-hook 'my-ruby-align-setup)
+
+            (defun my-promote-to-let ()
+              (interactive)
+              (beginning-of-line)
+              (when (re-search-forward "\\(\\w+\\) = \\(.*\\)$"
+                                       (line-end-position) t)
+                (replace-match "let(:\\1) { \\2 }" t)))
+            (bind-key "C-c r l" 'my-promote-to-let ruby-mode-map)))
 
 ;;;_ , scss-mode
 
