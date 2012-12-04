@@ -106,3 +106,6 @@
 [submodule "site-lisp/tomorrow-theme"]
 	path = site-lisp/tomorrow-theme
 	url = https://github.com/chriskempson/tomorrow-theme.git
+[submodule "site-lisp/full-ack"]
+	path = site-lisp/full-ack
+	url = https://github.com/nschum/full-ack.git
