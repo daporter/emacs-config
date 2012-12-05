@@ -996,7 +996,8 @@ See the variable `align-rules-list' for more details.")
 ;;;_ , scss-mode
 
 (use-package scss-mode
-  :mode ("\\.scss\\'" . scss-mode))
+  :mode ("\\.scss\\'" . scss-mode)
+  :init (setq scss-compile-at-save nil))
 
 ;;;_ , server
 
