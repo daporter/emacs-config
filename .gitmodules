@@ -109,3 +109,6 @@
 [submodule "site-lisp/full-ack"]
 	path = site-lisp/full-ack
 	url = https://github.com/nschum/full-ack.git
+[submodule "site-lisp/ruby-end"]
+	path = site-lisp/ruby-end
+	url = https://github.com/rejeep/ruby-end.git
