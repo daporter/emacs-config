@@ -112,3 +112,6 @@
 [submodule "site-lisp/ruby-end"]
 	path = site-lisp/ruby-end
 	url = https://github.com/rejeep/ruby-end.git
+[submodule "site-lisp/color-theme-sanityinc-tomorrow"]
+	path = site-lisp/color-theme-sanityinc-tomorrow
+	url = https://github.com/purcell/color-theme-sanityinc-tomorrow.git

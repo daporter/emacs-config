@@ -635,6 +635,11 @@ the point to it."
 
 (use-package coffee-mode)
 
+;;;_ , color-theme-sanityinc-tomorrow
+
+(use-package color-theme-sanityinc-tomorrow
+  :load-path "site-lisp/color-theme-sanityinc-tomorrow")
+
 ;;;_ , css-mode
 
 (use-package css-mode
