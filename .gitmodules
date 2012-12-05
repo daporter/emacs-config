@@ -95,23 +95,20 @@
         path = site-lisp/solarized-emacs
         url = https://github.com/bbatsov/solarized-emacs.git
 [submodule "site-lisp/js2-mode"]
-	path = site-lisp/js2-mode
-	url = https://github.com/mooz/js2-mode
+        path = site-lisp/js2-mode
+        url = https://github.com/mooz/js2-mode
 [submodule "site-lisp/ruby-test-mode"]
-	path = site-lisp/ruby-test-mode
-	url = https://github.com/r0man/ruby-test-mode.git
+        path = site-lisp/ruby-test-mode
+        url = https://github.com/r0man/ruby-test-mode.git
 [submodule "site-lisp/helm-git"]
-	path = site-lisp/helm-git
-	url = https://github.com/maio/helm-git.git
-[submodule "site-lisp/tomorrow-theme"]
-	path = site-lisp/tomorrow-theme
-	url = https://github.com/chriskempson/tomorrow-theme.git
+        path = site-lisp/helm-git
+        url = https://github.com/maio/helm-git.git
 [submodule "site-lisp/full-ack"]
-	path = site-lisp/full-ack
-	url = https://github.com/nschum/full-ack.git
+        path = site-lisp/full-ack
+        url = https://github.com/nschum/full-ack.git
 [submodule "site-lisp/ruby-end"]
-	path = site-lisp/ruby-end
-	url = https://github.com/rejeep/ruby-end.git
+        path = site-lisp/ruby-end
+        url = https://github.com/rejeep/ruby-end.git
 [submodule "site-lisp/color-theme-sanityinc-tomorrow"]
-	path = site-lisp/color-theme-sanityinc-tomorrow
-	url = https://github.com/purcell/color-theme-sanityinc-tomorrow.git
+        path = site-lisp/color-theme-sanityinc-tomorrow
+        url = https://github.com/purcell/color-theme-sanityinc-tomorrow.git
