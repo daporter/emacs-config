@@ -12,7 +12,8 @@
  '(bind-key-segregation-regexp "\\`\\(\\(C-[chx.] \\|M-[gso] \\)\\([CM]-\\)?\\|.+-\\)")
  '(bookmark-default-file "~/.emacs.d/data/bookmarks")
  '(column-number-mode t)
- '(custom-safe-themes (quote ("8aebf25556399b58091e533e455dd50a6a9cba958cc4ebb0aab175863c25b9a4" "1e7e097ec8cb1f8c3a912d7e1e0331caeed49fef6cff220be63bd2a6ba4cc365" default)))
+ '(custom-enabled-themes (quote (sanityinc-tomorrow-night)))
+ '(custom-safe-themes (quote ("06f0b439b62164c6f8f84fdda32b62fb50b6d00e8b01c2208e55543a6337433a" default)))
  '(diff-mode-hook (quote (diff-delete-empty-files diff-make-unified smerge-mode)))
  '(el-get-auto-update-cached-recipes nil t)
  '(el-get-generate-autoloads nil t)
@@ -43,9 +44,6 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(dired-header ((t (:background "#839496" :foreground "#002b36"))))
- '(helm-selection ((t (:background "#073642" :underline "#839496"))))
- '(helm-source-header ((t (:background "#002b36" :foreground "#839496" :inverse-video t :slant italic))))
- '(linum ((t (:foreground "#586e75"))))
- '(persp-selected-face ((t (:inherit mode-line-buffer-id))))
- '(region ((t (:background "#586e75" :foreground "#002b36")))))
+ '(helm-header ((t (:background "#1d1f21" :foreground "#969896" :box nil :underline nil))))
+ '(helm-selection ((t (:inherit region))))
+ '(helm-source-header ((t (:inherit (hl-line font-lock-doc-string-face))))))
