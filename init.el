@@ -633,7 +633,9 @@ the point to it."
 
 ;;;_ , coffee-mode
 
-(use-package coffee-mode)
+(use-package coffee-mode
+  :mode ("\\.coffee\\'" . coffee-mode)
+  :config (setq coffee-tab-width 2))
 
 ;;;_ , color-theme-sanityinc-tomorrow
 
