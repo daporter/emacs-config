@@ -649,6 +649,7 @@ the point to it."
 ;;;_ , eproject
 
 (use-package eproject
+  :disabled t
   :load-path ("site-lisp/eproject/lang/" "site-lisp/eproject/contrib")
 
   :init (progn
@@ -767,7 +768,8 @@ the point to it."
                                "*my-helm*"))
           (bind-key "C-c h" 'my-helm)
 
-          (use-package helm-git)))
+          (use-package helm-git
+            :bind ("C-c f" . helm-git-find-files))))
 
 ;;;_ , js2-mode
 
