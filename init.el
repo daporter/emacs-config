@@ -16,6 +16,10 @@
 (setq auto-save-list-file-prefix
       (concat user-emacs-directory "backups/auto-save-list/.saves-"))
 
+;; Keep all auto-save files in the temp directory.
+(setq auto-save-file-name-transforms
+      `((".*" ,temporary-file-directory t)))
+
 ;; Use GNU Coreutils version of `ls', which is called `gls' when installed via
 ;; Homebrew.
 (setq insert-directory-program "gls")
