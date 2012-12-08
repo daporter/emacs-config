@@ -542,7 +542,7 @@ the point to it."
 ;;;_ , ace-jump-mode
 
 (use-package ace-jump-mode
-  :bind ("C-. C-s" . ace-jump-mode))
+  :bind ("C-c j" . ace-jump-mode))
 
 ;;;_ , AUCTeX
 
