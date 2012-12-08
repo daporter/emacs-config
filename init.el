@@ -942,11 +942,11 @@ the point to it."
                                       (compilation-start
                                        (format "script/test %s" filename) t)))
                                 (message ruby-test-not-found-message)))))
-                        (bind-key "C-c C-h" 'ruby-test-run ruby-test-mode-map)
-                        (bind-key "C-c C-s"
+                        (bind-key "C-c r r" 'ruby-test-run ruby-test-mode-map)
+                        (bind-key "C-c r s"
                                   'ruby-test-toggle-implementation-and-specification
                                   ruby-test-mode-map)
-                        (bind-key "C-c C-t" 'next-error ruby-test-mode-map)))
+                        (bind-key "C-c r t" 'next-error ruby-test-mode-map)))
 
             (defun my-ruby-smart-return ()
               (interactive)
