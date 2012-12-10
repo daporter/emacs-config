@@ -112,3 +112,6 @@
 [submodule "site-lisp/color-theme-sanityinc-tomorrow"]
         path = site-lisp/color-theme-sanityinc-tomorrow
         url = https://github.com/purcell/color-theme-sanityinc-tomorrow.git
+[submodule "site-lisp/mmm-mode"]
+	path = site-lisp/mmm-mode
+	url = https://github.com/purcell/mmm-mode.git

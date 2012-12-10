@@ -856,10 +856,34 @@ the point to it."
             (require 'rebase-mode)))
 
 ;;;_ , markdown-mode
+
 (use-package markdown-mode
   :mode (("\\.md\\'" . markdown-mode)))
 
+;;;_ , mmm-mode
+
+(use-package mmm-auto
+  :init (progn
+          (setq mmm-global-mode 'maybe)
+
+          (dolist (mode (list 'html-mode 'html-erb-mode 'nxml-mode))
+            (mmm-add-mode-ext-class mode "\\.r?html\\(\\.erb\\)?\\'" 'html-js)
+            (mmm-add-mode-ext-class mode "\\.r?html\\(\\.erb\\)?\\'" 'html-css)
+            (mmm-add-mode-ext-class mode "\\.erb\\'" 'erb))
+
+          (add-to-list 'auto-mode-alist
+                       '("\\.r?html\\(\\.erb\\)?\\'" . html-erb-mode))
+          (add-to-list 'auto-mode-alist '("\\.jst\\.ejs\\'"  . html-erb-mode))
+          (mmm-add-mode-ext-class 'yaml-mode "\\.yaml$" 'erb)
+
+          (dolist (mode (list 'js-mode 'js2-mode 'js3-mode))
+            (mmm-add-mode-ext-class mode "\\.js\\.erb$" 'erb)))
+
+  :config (use-package mmm-erb))
+
+
 ;;;_ , multiple-cursors
+
 (use-package multiple-cursors
   :bind (("C-S-c C-S-c" . mc/edit-lines)
          ("C-S-c C-e"   . mc/edit-ends-of-lines)
