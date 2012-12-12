@@ -115,3 +115,6 @@
 [submodule "site-lisp/mmm-mode"]
 	path = site-lisp/mmm-mode
 	url = https://github.com/purcell/mmm-mode.git
+[submodule "site-lisp/graphviz-dot-mode"]
+	path = site-lisp/graphviz-dot-mode
+	url = https://github.com/ppareit/graphviz-dot-mode.git

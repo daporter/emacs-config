@@ -729,6 +729,10 @@ the point to it."
 (use-package full-ack
   :commands (ack-same ack ack-find-same-file ack-find-file))
 
+;;;_ , graphviz-dot-mode
+
+(use-package graphviz-dot-mode)
+
 ;;;_ , haml-mode
 
 (use-package haml-mode
