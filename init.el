@@ -952,25 +952,23 @@ the point to it."
               :init (hook-into-modes 'ruby-test-mode '(ruby-mode-hook))
 
               :config (progn
-                        ;; Overriding this method.
-                        (defun ruby-test-run (&optional all)
-                          "Run the current buffer's file as specification or
-              unit test.  With prefix, run all tests"
-                          (interactive "P")
-                          (progn
-                            (save-buffer)
-                            (let ((filename (ruby-test-find-file)))
-                              (if filename
-                                  (progn
-                                    (setq default-directory
-                                          (or (ruby-test-rails-root filename)
-                                              (ruby-test-ruby-root filename)))
-                                    (if current-prefix-arg
-                                        (compilation-start "script/test" t)
-                                      (compilation-start
-                                       (format "script/test %s" filename) t)))
-                                (message ruby-test-not-found-message)))))
+                        (setq ruby-test-default-library "spec")
+
+                        (defadvice ruby-test-run
+                          (before save-buffer activate)
+                          "Save buffer before running test."
+                          (save-buffer))
+                        (ad-activate 'ruby-test-run)
+
+                        (defadvice ruby-test-run-at-point
+                          (before save-buffer activate)
+                          "Save buffer before running test."
+                          (save-buffer))
+                        (ad-activate 'ruby-test-run-at-point)
+
                         (bind-key "C-c r r" 'ruby-test-run ruby-test-mode-map)
+                        (bind-key "C-c r ." 'ruby-test-run-at-point
+                                  ruby-test-mode-map)
                         (bind-key "C-c r s"
                                   'ruby-test-toggle-implementation-and-specification
                                   ruby-test-mode-map)
