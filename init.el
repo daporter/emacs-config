@@ -654,6 +654,18 @@ the point to it."
 
 ;;;_ , eproject
 
+(use-package powerline
+  :init (progn
+          (setq powerline-color1 "#373b41")
+          (setq powerline-color2 "#282a2e")
+
+          (set-face-attribute 'mode-line nil
+                              :foreground "#1d1f21"
+                              :background "#b5bd68"
+                              :box nil)
+          (set-face-attribute 'mode-line-inactive nil
+                              :box nil)))
+
 (use-package eproject
   :disabled t
   :load-path ("site-lisp/eproject/lang/" "site-lisp/eproject/contrib")
