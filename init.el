@@ -38,15 +38,6 @@
 (use-package exec-path-from-shell
   :config (exec-path-from-shell-initialize))
 
-;; rbenv
-
-(setq    exec-path (cons   "/usr/local/opt/rbenv/bin"      exec-path))
-(setenv  "PATH"    (concat "/usr/local/opt/rbenv/bin:"     (getenv "PATH")))
-(setq    exec-path (cons   "/usr/local/opt/rbenv/shims"    exec-path))
-(setenv  "PATH"    (concat "/usr/local/opt/rbenv/shims:"   (getenv "PATH")))
-(setq    exec-path (cons   "/usr/local/opt/rbenv/libexec"  exec-path))
-(setenv  "PATH"    (concat "/usr/local/opt/rbenv/libexec:" (getenv "PATH")))
-
 ;; "y or n" instead of "yes or no"
 (fset 'yes-or-no-p 'y-or-n-p)
 
@@ -652,7 +643,7 @@ the point to it."
   :config (progn
             (setq css-indent-offset 2)))
 
-;;;_ , eproject
+;;;_ , powerline
 
 (use-package powerline
   :init (progn
@@ -665,6 +656,8 @@ the point to it."
                               :box nil)
           (set-face-attribute 'mode-line-inactive nil
                               :box nil)))
+
+;;;_ , eproject
 
 (use-package eproject
   :disabled t
