@@ -118,3 +118,6 @@
 [submodule "site-lisp/emacs-powerline"]
         path = site-lisp/emacs-powerline
         url = https://github.com/jonathanchu/emacs-powerline.git
+[submodule "site-lisp/emacs-slim"]
+	path = site-lisp/emacs-slim
+	url = https://github.com/slim-template/emacs-slim.git
