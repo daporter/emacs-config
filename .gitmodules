@@ -28,9 +28,6 @@
 [submodule "site-lisp/ace-jump-mode"]
         path = site-lisp/ace-jump-mode
         url = https://github.com/winterTTr/ace-jump-mode
-[submodule "site-lisp/slim-mode"]
-        path = site-lisp/slim-mode
-        url = https://github.com/minad/emacs-slim
 [submodule "site-lisp/jump-char"]
         path = site-lisp/jump-char
         url = https://github.com/lewang/jump-char
@@ -113,11 +110,11 @@
         path = site-lisp/color-theme-sanityinc-tomorrow
         url = https://github.com/purcell/color-theme-sanityinc-tomorrow.git
 [submodule "site-lisp/mmm-mode"]
-	path = site-lisp/mmm-mode
-	url = https://github.com/purcell/mmm-mode.git
+        path = site-lisp/mmm-mode
+        url = https://github.com/purcell/mmm-mode.git
 [submodule "site-lisp/graphviz-dot-mode"]
-	path = site-lisp/graphviz-dot-mode
-	url = https://github.com/ppareit/graphviz-dot-mode.git
+        path = site-lisp/graphviz-dot-mode
+        url = https://github.com/ppareit/graphviz-dot-mode.git
 [submodule "site-lisp/emacs-powerline"]
-	path = site-lisp/emacs-powerline
-	url = https://github.com/jonathanchu/emacs-powerline.git
+        path = site-lisp/emacs-powerline
+        url = https://github.com/jonathanchu/emacs-powerline.git
