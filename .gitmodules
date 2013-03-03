@@ -121,3 +121,6 @@
 [submodule "site-lisp/emacs-slim"]
 	path = site-lisp/emacs-slim
 	url = https://github.com/slim-template/emacs-slim.git
+[submodule "site-lisp/git-modes"]
+	path = site-lisp/git-modes
+	url = https://github.com/lunaryorn/git-modes

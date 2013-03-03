@@ -738,6 +738,12 @@ the point to it."
 (use-package full-ack
   :commands (ack-same ack ack-find-same-file ack-find-file))
 
+;;;_ , git-modes
+
+(use-package git-commit-mode)
+(use-package gitconfig-mode)
+(use-package gitignore-mode)
+
 ;;;_ , graphviz-dot-mode
 
 (use-package graphviz-dot-mode)
@@ -862,7 +868,6 @@ the point to it."
 
             (add-hook 'magit-log-edit-mode-hook
                       #'(lambda ()
-                          (set-fill-column 72)
                           (flyspell-mode)))
 
             (require 'magit-topgit)
