@@ -7,6 +7,8 @@
 
 (load (expand-file-name "load-path" user-emacs-directory))
 
+(server-start)
+
 (require 'use-package)
 (eval-when-compile
   (setq use-package-verbose (null byte-compile-current-file)))
