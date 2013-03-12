@@ -364,7 +364,7 @@ one line."
   (interactive)
   (beginning-of-line)
   (newline)
-  (previous-line)
+  (forward-line -1)
   (indent-according-to-mode))
 
 (defun my-newline-next ()
