@@ -1080,6 +1080,11 @@ See the variable `align-rules-list' for more details.")
 (use-package uniquify
   :config (setq uniquify-buffer-name-style 'forward))
 
+;;;_ , web-mode
+
+(use-package web-mode
+  :init (add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode)))
+
 ;;;_ , whitespace
 
 (use-package whitespace
