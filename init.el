@@ -43,10 +43,6 @@
 ;; "y or n" instead of "yes or no"
 (fset 'yes-or-no-p 'y-or-n-p)
 
-;; Always split the window horizontally (side-by-side).
-(setq split-height-threshold nil)
-(setq split-width-threshold  0)
-
 ;;;_ , Enable disabled commands
 
 (put 'downcase-region  'disabled nil)   ; Let downcasing work
