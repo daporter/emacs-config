@@ -778,6 +778,7 @@ the point to it."
 
           (setq helm-idle-delay 0.1)
           (setq helm-input-idle-delay 0.1)
+          (setq helm-buffers-favorite-modes '(ruby-mode text-mode))
 
           (bind-key "M-x" 'helm-M-x)
           (bind-key "C-x C-f" 'helm-find-files)
