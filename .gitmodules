@@ -19,9 +19,6 @@
 [submodule "site-lisp/yari"]
         path = site-lisp/yari
         url = https://github.com/hron/yari.el
-[submodule "site-lisp/paredit"]
-        path = site-lisp/paredit
-        url = https://github.com/emacsmirror/paredit
 [submodule "site-lisp/springboard"]
         path = site-lisp/springboard
         url = https://github.com/jwiegley/springboard
@@ -119,11 +116,11 @@
         path = site-lisp/emacs-powerline
         url = https://github.com/jonathanchu/emacs-powerline.git
 [submodule "site-lisp/emacs-slim"]
-	path = site-lisp/emacs-slim
-	url = https://github.com/slim-template/emacs-slim.git
+        path = site-lisp/emacs-slim
+        url = https://github.com/slim-template/emacs-slim.git
 [submodule "site-lisp/git-modes"]
-	path = site-lisp/git-modes
-	url = https://github.com/lunaryorn/git-modes
+        path = site-lisp/git-modes
+        url = https://github.com/lunaryorn/git-modes
 [submodule "site-lisp/web-mode"]
-	path = site-lisp/web-mode
-	url = https://github.com/fxbois/web-mode.git
+        path = site-lisp/web-mode
+        url = https://github.com/fxbois/web-mode.git
