@@ -1041,9 +1041,9 @@ See the variable `align-rules-list' for more details.")
             (defun my-promote-to-let ()
               (interactive)
               (beginning-of-line)
-              (when (re-search-forward "\\(\\w+\\) = \\(.*\\)$"
+              (when (re-search-forward "\\(\\(\\w+\\|_\\)+\\) = \\(.*\\)$"
                                        (line-end-position) t)
-                (replace-match "let(:\\1) { \\2 }" t)))
+                (replace-match "let(:\\1) { \\3 }" t)))
             (bind-key "C-c r l" 'my-promote-to-let ruby-mode-map)))
 
 ;;;_ , scss-mode
