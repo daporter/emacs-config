@@ -950,6 +950,7 @@ the point to it."
 
 (use-package ruby-mode
   :mode (("\\.rb\\'"     . ruby-mode)
+         ("\\.rake\\'"   . ruby-mode)
          ("Guardfile\\'" . ruby-mode)
          ("Gemfile\\'"   . ruby-mode))
 
