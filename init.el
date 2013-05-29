@@ -298,6 +298,21 @@
 
 (bind-key "C-c d" 'insert-date)
 
+;; From http://emacsredux.com/blog/2013/04/03/delete-file-and-buffer/
+(defun my-delete-file-and-buffer ()
+  "Kill the current buffer and deletes the file it is visiting."
+  (interactive)
+  (let ((filename (buffer-file-name)))
+    (when filename
+      (if (vc-backend filename)
+          (vc-delete-file filename)
+        (progn
+          (delete-file filename)
+          (message "Deleted file %s" filename)
+          (kill-buffer))))))
+
+(bind-key "C-c D" 'my-delete-file-and-buffer)
+
 (bind-key "C-c e E" 'elint-current-buffer)
 
 (defun do-eval-buffer ()
