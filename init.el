@@ -389,6 +389,23 @@ the point to it."
 (bind-key "C-c O" 'my-newline-previous)
 
 (bind-key "C-c q" 'fill-region)
+
+;; From http://emacsredux.com/blog/2013/05/04/rename-file-and-buffer/
+(defun my-rename-file-and-buffer ()
+  "Rename the current buffer and file it is visiting."
+  (interactive)
+  (let ((filename (buffer-file-name)))
+    (if (not (and filename (file-exists-p filename)))
+        (message "Buffer is not visiting a file!")
+      (let ((new-name (read-file-name "New name: " filename)))
+        (cond
+         ((vc-backend filename) (vc-rename-file filename new-name))
+         (t
+          (rename-file filename new-name t)
+          (set-visited-file-name new-name t t)))))))
+
+(bind-key "C-c R" 'my-rename-file-and-buffer)
+
 (bind-key "C-c s" 'replace-string)
 (bind-key "C-c u" 'rename-uniquely)
 (bind-key "C-c v" 'ffap)
