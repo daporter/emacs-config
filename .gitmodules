@@ -127,3 +127,18 @@
 [submodule "site-lisp/paredit"]
 	path = site-lisp/paredit
 	url = https://github.com/emacsmirror/paredit
+[submodule "site-lisp/flycheck"]
+	path = site-lisp/flycheck
+	url = https://github.com/flycheck/flycheck.git
+[submodule "site-lisp/s"]
+	path = site-lisp/s
+	url = https://github.com/magnars/s.el
+[submodule "site-lisp/dash"]
+	path = site-lisp/dash
+	url = https://github.com/magnars/dash.el.git
+[submodule "site-lisp/f"]
+	path = site-lisp/f
+	url = https://github.com/rejeep/f.el
+[submodule "site-lisp/pkg-info"]
+	path = site-lisp/pkg-info
+	url = https://github.com/lunaryorn/pkg-info.el.git

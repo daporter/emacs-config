@@ -677,6 +677,10 @@ the point to it."
   :config (progn
             (setq css-indent-offset 2)))
 
+;;;_ , dash
+
+(use-package dash)
+
 ;;;_ , powerline
 
 (use-package powerline
@@ -715,6 +719,10 @@ the point to it."
 
 (use-package expand-region
   :bind ("C-=" . er/expand-region))
+
+;;;_ , f
+
+(use-package f)
 
 ;;;_ , find-file-in-project
 
@@ -757,6 +765,9 @@ the point to it."
                   ispell-dictionary "british"
                   ispell-extra-args nil
                   ispell-silently-savep t)))
+
+(use-package flycheck
+  :init (add-hook 'after-init-hook #'global-flycheck-mode))
 
 (use-package flyspell
   :bind (("C-c i b" . flyspell-buffer)
@@ -946,6 +957,10 @@ the point to it."
   :config (progn
             (setq mc/list-file (concat user-data-directory "mc-lists.el"))))
 
+;;;_ , pkg-info
+
+(use-package pkg-info)
+
 ;;;_ , paredit
 
 (use-package paredit
@@ -1078,6 +1093,10 @@ See the variable `align-rules-list' for more details.")
                                        (line-end-position) t)
                 (replace-match "let(:\\1) { \\3 }" t)))
             (bind-key "C-c r l" 'my-promote-to-let ruby-mode-map)))
+
+;;;_ , s
+
+(use-package s)
 
 ;;;_ , scss-mode
 
