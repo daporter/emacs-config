@@ -913,8 +913,7 @@ the point to it."
                       #'(lambda ()
                           (flyspell-mode)))
 
-            (require 'magit-topgit)
-            (require 'rebase-mode)))
+            (require 'magit-topgit)))
 
 ;;;_ , markdown-mode
 
