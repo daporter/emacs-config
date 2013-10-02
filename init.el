@@ -777,7 +777,9 @@ the point to it."
 ;;;_ , full-ack
 
 (use-package full-ack
-  :commands (ack-same ack ack-find-same-file ack-find-file))
+  :commands (ack-same ack ack-find-same-file ack-find-file)
+  :config (progn
+            (setq ack-prompt-for-directory t)))
 
 ;;;_ , git-modes
 
