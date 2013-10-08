@@ -578,6 +578,10 @@ the point to it."
           (defalias 'ack-find-file 'ack-and-a-half-find-file)
           (defalias 'ack-find-file-same 'ack-and-a-half-find-file-same)))
 
+;;;_ , ag
+
+(use-package ag)
+
 ;;;_ , AUCTeX
 
 (use-package tex-site
@@ -1025,6 +1029,10 @@ the point to it."
 
           (add-hook 'dired-mode-hook 'recentf-add-dired-directory)))
 
+;;;_ , rspec-mode
+
+(use-package rspec-mode)
+
 ;;;_ , ruby-mode
 
 (use-package ruby-mode
@@ -1042,32 +1050,6 @@ the point to it."
             (use-package ruby-tools)
             (use-package ruby-end)
             (use-package ruby-mode-expansions)
-
-            (use-package ruby-test-mode
-              :init (hook-into-modes 'ruby-test-mode '(ruby-mode-hook))
-
-              :config (progn
-                        (setq ruby-test-default-library "spec")
-
-                        (defadvice ruby-test-run
-                          (before save-buffer activate)
-                          "Save buffer before running test."
-                          (save-buffer))
-                        (ad-activate 'ruby-test-run)
-
-                        (defadvice ruby-test-run-at-point
-                          (before save-buffer activate)
-                          "Save buffer before running test."
-                          (save-buffer))
-                        (ad-activate 'ruby-test-run-at-point)
-
-                        (bind-key "C-c r r" 'ruby-test-run ruby-test-mode-map)
-                        (bind-key "C-c r ." 'ruby-test-run-at-point
-                                  ruby-test-mode-map)
-                        (bind-key "C-c r s"
-                                  'ruby-test-toggle-implementation-and-specification
-                                  ruby-test-mode-map)
-                        (bind-key "C-c r t" 'next-error ruby-test-mode-map)))
 
             (defun my-ruby-smart-return ()
               (interactive)

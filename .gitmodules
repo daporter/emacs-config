@@ -154,3 +154,9 @@
 [submodule "site-lisp/chruby.el"]
 	path = site-lisp/chruby.el
 	url = https://github.com/plexus/chruby.el.git
+[submodule "site-lisp/ag.el"]
+	path = site-lisp/ag.el
+	url = https://github.com/Wilfred/ag.el.git
+[submodule "site-lisp/rspec-mode"]
+	path = site-lisp/rspec-mode
+	url = https://github.com/pezra/rspec-mode.git
