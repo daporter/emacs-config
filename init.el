@@ -1029,10 +1029,6 @@ the point to it."
 
           (add-hook 'dired-mode-hook 'recentf-add-dired-directory)))
 
-;;;_ , rspec-mode
-
-(use-package rspec-mode)
-
 ;;;_ , ruby-mode
 
 (use-package ruby-mode
@@ -1050,6 +1046,9 @@ the point to it."
             (use-package ruby-tools)
             (use-package ruby-end)
             (use-package ruby-mode-expansions)
+            (use-package rspec-mode)
+            (use-package ruby-refactor)
+
 
             (defun my-ruby-smart-return ()
               (interactive)

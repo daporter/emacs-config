@@ -160,3 +160,6 @@
 [submodule "site-lisp/rspec-mode"]
 	path = site-lisp/rspec-mode
 	url = https://github.com/pezra/rspec-mode.git
+[submodule "site-lisp/ruby-refactor"]
+	path = site-lisp/ruby-refactor
+	url = https://github.com/ajvargo/ruby-refactor.git
