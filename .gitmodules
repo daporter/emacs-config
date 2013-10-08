@@ -142,3 +142,12 @@
 [submodule "site-lisp/pkg-info"]
 	path = site-lisp/pkg-info
 	url = https://github.com/lunaryorn/pkg-info.el.git
+[submodule "site-lisp/projectile"]
+	path = site-lisp/projectile
+	url = https://github.com/bbatsov/projectile.git
+[submodule "site-lisp/flx"]
+	path = site-lisp/flx
+	url = https://github.com/lewang/flx
+[submodule "site-lisp/ack-and-a-half"]
+	path = site-lisp/ack-and-a-half
+	url = https://github.com/jhelwig/ack-and-a-half

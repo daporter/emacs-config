@@ -569,6 +569,15 @@ the point to it."
 (use-package ace-jump-mode
   :bind ("C-c j" . ace-jump-mode))
 
+;;;_ , ack-and-a-half
+
+(use-package ack-and-a-half
+  :init (progn
+          (defalias 'ack 'ack-and-a-half)
+          (defalias 'ack-same 'ack-and-a-half-same)
+          (defalias 'ack-find-file 'ack-and-a-half-find-file)
+          (defalias 'ack-find-file-same 'ack-and-a-half-find-file-same)))
+
 ;;;_ , AUCTeX
 
 (use-package tex-site
@@ -733,6 +742,13 @@ the point to it."
   :config (progn
             ;; Use eproject to find the project root.
             (setq ffip-project-root-function 'eproject-root)))
+
+;;;_ , flx-ido
+
+(use-package flx-ido
+  :init (progn
+          (flx-ido-mode 1)
+          (setq ido-use-faces nil)))
 
 ;;;_ , flyspell
 
@@ -974,6 +990,16 @@ the point to it."
 
 (use-package perspective
   :init (progn (persp-mode t)))
+
+;;;_ , projectile
+
+(use-package projectile
+  :diminish projectile-mode
+  :init     (projectile-global-mode)
+  :config   (progn
+              (use-package projectile-helm)
+              (setq projectile-known-projects-file
+                    (concat user-data-directory "projectile-bookmarks.eld"))))
 
 ;;;_ , recentf
 
