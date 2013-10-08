@@ -151,3 +151,6 @@
 [submodule "site-lisp/ack-and-a-half"]
 	path = site-lisp/ack-and-a-half
 	url = https://github.com/jhelwig/ack-and-a-half
+[submodule "site-lisp/chruby.el"]
+	path = site-lisp/chruby.el
+	url = https://github.com/plexus/chruby.el.git

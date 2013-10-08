@@ -669,6 +669,11 @@ the point to it."
          ("C-S-<left>"  . buf-move-left)
          ("C-S-<right>" . buf-move-right)))
 
+;;;_ , chruby
+
+(use-package chruby
+  :init (chruby "ruby-1.9.3"))
+
 ;;;_ , coffee-mode
 
 (use-package coffee-mode
