@@ -1050,7 +1050,9 @@ the point to it."
               :config (progn
                         (setq rspec-use-rake-when-possible nil)
                         (setq rspec-use-bundler-when-possible nil)))
-            (use-package ruby-refactor)
+            (use-package ruby-refactor
+              :init (progn
+                      (hook-into-modes 'ruby-refactor-mode '(ruby-mode-hook))))
 
 
             (defun my-ruby-smart-return ()
@@ -1101,15 +1103,7 @@ See the variable `align-rules-list' for more details.")
                 (add-to-list 'align-rules-list it)))
 
             (add-hook 'ruby-mode-hook 'my-ruby-mode-hook)
-            (add-hook 'ruby-mode-hook 'my-ruby-align-setup)
-
-            (defun my-promote-to-let ()
-              (interactive)
-              (beginning-of-line)
-              (when (re-search-forward "\\(\\(\\w+\\|_\\)+\\) = \\(.*\\)$"
-                                       (line-end-position) t)
-                (replace-match "let(:\\1) { \\3 }" t)))
-            (bind-key "C-c r l" 'my-promote-to-let ruby-mode-map)))
+            (add-hook 'ruby-mode-hook 'my-ruby-align-setup)))
 
 ;;;_ , s
 
