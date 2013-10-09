@@ -1036,7 +1036,8 @@ the point to it."
          ("\\.rake\\'"   . ruby-mode)
          ("Guardfile\\'" . ruby-mode)
          ("Gemfile\\'"   . ruby-mode)
-         ("Rakefile\\'"  . ruby-mode))
+         ("Rakefile\\'"  . ruby-mode)
+         ("Capfile\\'"   . ruby-mode))
 
   :interpreter ("ruby" . ruby-mode)
 
