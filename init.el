@@ -1046,7 +1046,10 @@ the point to it."
             (use-package ruby-tools)
             (use-package ruby-end)
             (use-package ruby-mode-expansions)
-            (use-package rspec-mode)
+            (use-package rspec-mode
+              :config (progn
+                        (setq rspec-use-rake-when-possible nil)
+                        (setq rspec-use-bundler-when-possible nil)))
             (use-package ruby-refactor)
 
 
