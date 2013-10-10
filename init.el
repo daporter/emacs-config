@@ -1016,7 +1016,6 @@ the point to it."
             (use-package yari)
             (use-package inf-ruby)
             (use-package ruby-tools)
-            (use-package ruby-end)
             (use-package ruby-mode-expansions)
             (use-package rspec-mode
               :config (progn
