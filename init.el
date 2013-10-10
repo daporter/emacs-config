@@ -713,26 +713,6 @@ the point to it."
           (set-face-attribute 'mode-line-inactive nil
                               :box nil)))
 
-;;;_ , eproject
-
-(use-package eproject
-  :disabled t
-  :load-path ("site-lisp/eproject/lang/" "site-lisp/eproject/contrib")
-
-  :init (progn
-          (use-package eproject-extras
-            :init (progn
-                    (bind-key "C-x p k" 'eproject-kill-project-buffers)
-                    (bind-key "C-x p v" 'eproject-revisit-project)
-                    (bind-key "C-x p b" 'eproject-ibuffer)
-                    (bind-key "C-x p o" 'eproject-open-all-project-files)))
-
-          (use-package eproject-ruby)
-          (use-package eproject-ruby-on-rails)
-          (use-package eproject-tags)
-          (use-package helm-eproject
-            :bind ("C-c f" . helm-eproject))))
-
 ;;;_ , expand-region
 
 (use-package expand-region

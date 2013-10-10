@@ -46,9 +46,6 @@
 [submodule "site-lisp/find-file-in-project"]
         path = site-lisp/find-file-in-project
         url = https://github.com/technomancy/find-file-in-project
-[submodule "site-lisp/eproject"]
-        path = site-lisp/eproject
-        url = https://github.com/jrockway/eproject
 [submodule "site-lisp/undo-tree"]
         path = site-lisp/undo-tree
         url = http://www.dr-qubit.org/git/undo-tree.git
@@ -125,41 +122,41 @@
         path = site-lisp/web-mode
         url = https://github.com/fxbois/web-mode.git
 [submodule "site-lisp/paredit"]
-	path = site-lisp/paredit
-	url = https://github.com/emacsmirror/paredit
+        path = site-lisp/paredit
+        url = https://github.com/emacsmirror/paredit
 [submodule "site-lisp/flycheck"]
-	path = site-lisp/flycheck
-	url = https://github.com/flycheck/flycheck.git
+        path = site-lisp/flycheck
+        url = https://github.com/flycheck/flycheck.git
 [submodule "site-lisp/s"]
-	path = site-lisp/s
-	url = https://github.com/magnars/s.el
+        path = site-lisp/s
+        url = https://github.com/magnars/s.el
 [submodule "site-lisp/dash"]
-	path = site-lisp/dash
-	url = https://github.com/magnars/dash.el.git
+        path = site-lisp/dash
+        url = https://github.com/magnars/dash.el.git
 [submodule "site-lisp/f"]
-	path = site-lisp/f
-	url = https://github.com/rejeep/f.el
+        path = site-lisp/f
+        url = https://github.com/rejeep/f.el
 [submodule "site-lisp/pkg-info"]
-	path = site-lisp/pkg-info
-	url = https://github.com/lunaryorn/pkg-info.el.git
+        path = site-lisp/pkg-info
+        url = https://github.com/lunaryorn/pkg-info.el.git
 [submodule "site-lisp/projectile"]
-	path = site-lisp/projectile
-	url = https://github.com/bbatsov/projectile.git
+        path = site-lisp/projectile
+        url = https://github.com/bbatsov/projectile.git
 [submodule "site-lisp/flx"]
-	path = site-lisp/flx
-	url = https://github.com/lewang/flx
+        path = site-lisp/flx
+        url = https://github.com/lewang/flx
 [submodule "site-lisp/ack-and-a-half"]
-	path = site-lisp/ack-and-a-half
-	url = https://github.com/jhelwig/ack-and-a-half
+        path = site-lisp/ack-and-a-half
+        url = https://github.com/jhelwig/ack-and-a-half
 [submodule "site-lisp/chruby.el"]
-	path = site-lisp/chruby.el
-	url = https://github.com/plexus/chruby.el.git
+        path = site-lisp/chruby.el
+        url = https://github.com/plexus/chruby.el.git
 [submodule "site-lisp/ag.el"]
-	path = site-lisp/ag.el
-	url = https://github.com/Wilfred/ag.el.git
+        path = site-lisp/ag.el
+        url = https://github.com/Wilfred/ag.el.git
 [submodule "site-lisp/rspec-mode"]
-	path = site-lisp/rspec-mode
-	url = https://github.com/pezra/rspec-mode.git
+        path = site-lisp/rspec-mode
+        url = https://github.com/pezra/rspec-mode.git
 [submodule "site-lisp/ruby-refactor"]
-	path = site-lisp/ruby-refactor
-	url = https://github.com/ajvargo/ruby-refactor.git
+        path = site-lisp/ruby-refactor
+        url = https://github.com/ajvargo/ruby-refactor.git
