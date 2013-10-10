@@ -1013,22 +1013,18 @@ the point to it."
   :interpreter ("ruby" . ruby-mode)
 
   :config (progn
-            (use-package yari)
             (use-package inf-ruby)
-            (use-package ruby-tools)
-            (use-package ruby-mode-expansions)
             (use-package rspec-mode
               :config (progn
                         (setq rspec-use-rake-when-possible nil)
                         (setq rspec-use-bundler-when-possible nil)))
+            (use-package ruby-mode-expansions)
             (use-package ruby-refactor
               :init (progn
                       (hook-into-modes 'ruby-refactor-mode '(ruby-mode-hook))))
-            (use-package smartparens-ruby
-              :init (progn
-                      (sp-with-modes '(ruby-mode)
-                        (sp-local-pair "|" "|"))))
-
+            (use-package ruby-tools)
+            (use-package smartparens-ruby)
+            (use-package yari)
 
             (defun my-ruby-smart-return ()
               (interactive)
@@ -1048,7 +1044,6 @@ the point to it."
                                  ac-source-words-in-same-mode-buffers))
 
               (smartparens-mode 1)
-
               (setq fci-rule-column 80)
               (fci-mode 1))
 
