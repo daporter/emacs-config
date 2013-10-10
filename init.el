@@ -722,16 +722,6 @@ the point to it."
 
 (use-package f)
 
-;;;_ , find-file-in-project
-
-(use-package find-file-in-project
-  :disabled t
-  :bind ("C-x f" . find-file-in-project)
-
-  :config (progn
-            ;; Use eproject to find the project root.
-            (setq ffip-project-root-function 'eproject-root)))
-
 ;;;_ , flx-ido
 
 (use-package flx-ido
