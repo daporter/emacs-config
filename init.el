@@ -1006,7 +1006,7 @@ the point to it."
   :diminish projectile-mode
   :init     (projectile-global-mode)
   :config   (progn
-              (use-package projectile-helm)
+              (use-package helm-projectile)
               (setq projectile-known-projects-file
                     (concat user-data-directory "projectile-bookmarks.eld"))))
 
