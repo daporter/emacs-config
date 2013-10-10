@@ -761,8 +761,16 @@ the point to it."
                   ispell-extra-args nil
                   ispell-silently-savep t)))
 
+;;;_ , fill-column-indicator
+
+(use-package fill-column-indicator)
+
+;;;_ , flycheck
+
 (use-package flycheck
   :init (add-hook 'after-init-hook #'global-flycheck-mode))
+
+;;;_ , flyspell
 
 (use-package flyspell
   :bind (("C-c i b" . flyspell-buffer)
@@ -1034,7 +1042,10 @@ the point to it."
                                  ac-source-abbrev
                                  ac-source-imenu
                                  ac-source-dictionary
-                                 ac-source-words-in-same-mode-buffers)))
+                                 ac-source-words-in-same-mode-buffers))
+
+              (setq fci-rule-column 80)
+              (fci-mode 1))
 
             (defun my-ruby-align-setup()
               (require 'align)

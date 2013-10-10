@@ -154,3 +154,6 @@
 [submodule "site-lisp/ruby-refactor"]
         path = site-lisp/ruby-refactor
         url = https://github.com/ajvargo/ruby-refactor.git
+[submodule "site-lisp/fill-column-indicator"]
+	path = site-lisp/fill-column-indicator
+	url = https://github.com/alpaker/Fill-Column-Indicator.git
