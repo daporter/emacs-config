@@ -769,13 +769,6 @@ the point to it."
          ("C-c i f" . flyspell-mode))
   :config (define-key flyspell-mode-map [(control ?.)] nil))
 
-;;;_ , full-ack
-
-(use-package full-ack
-  :commands (ack-same ack ack-find-same-file ack-find-file)
-  :config (progn
-            (setq ack-prompt-for-directory t)))
-
 ;;;_ , git-modes
 
 (use-package git-commit-mode)
