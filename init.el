@@ -1025,6 +1025,10 @@ the point to it."
             (use-package ruby-refactor
               :init (progn
                       (hook-into-modes 'ruby-refactor-mode '(ruby-mode-hook))))
+            (use-package smartparens-ruby
+              :init (progn
+                      (sp-with-modes '(ruby-mode)
+                        (sp-local-pair "|" "|"))))
 
 
             (defun my-ruby-smart-return ()
@@ -1043,6 +1047,8 @@ the point to it."
                                  ac-source-imenu
                                  ac-source-dictionary
                                  ac-source-words-in-same-mode-buffers))
+
+              (smartparens-mode 1)
 
               (setq fci-rule-column 80)
               (fci-mode 1))
@@ -1099,6 +1105,10 @@ See the variable `align-rules-list' for more details.")
 
 (use-package slim-mode
   :mode ("\\.slim\\'" . slim-mode))
+
+;;;_ , smartparens
+
+(use-package smartparens-config)
 
 ;;;_ , solarized-emacs
 
