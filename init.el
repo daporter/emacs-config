@@ -77,6 +77,9 @@
 
 ;;;_ , global-map
 
+(setq mac-command-modifier 'meta)
+(setq mac-option-modifier 'super)
+
 (global-unset-key (kbd "s-q"))       ; prevent s-q from quitting emacs
 
 ;;;_  . C-?
