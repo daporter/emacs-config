@@ -46,9 +46,6 @@
 [submodule "site-lisp/undo-tree"]
         path = site-lisp/undo-tree
         url = http://www.dr-qubit.org/git/undo-tree.git
-[submodule "site-lisp/autopair"]
-        path = site-lisp/autopair
-        url = https://github.com/capitaomorte/autopair
 [submodule "site-lisp/auctex"]
         path = site-lisp/auctex
         url = git://github.com/jwiegley/auctex.git
