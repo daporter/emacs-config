@@ -1046,7 +1046,6 @@ the point to it."
                                  ac-source-dictionary
                                  ac-source-words-in-same-mode-buffers))
 
-              (smartparens-mode 1)
               (setq fci-rule-column 80)
               (fci-mode 1))
 
@@ -1105,7 +1104,10 @@ See the variable `align-rules-list' for more details.")
 
 ;;;_ , smartparens
 
-(use-package smartparens-config)
+(use-package smartparens-config
+  :init (progn
+          (smartparens-global-mode 1)
+          (sp-use-smartparens-bindings)))
 
 ;;;_ , solarized-emacs
 
