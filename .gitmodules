@@ -40,9 +40,6 @@
 [submodule "site-lisp/fuzzy"]
         path = site-lisp/fuzzy
         url = https://github.com/auto-complete/fuzzy-el
-[submodule "site-lisp/perspective"]
-        path = site-lisp/perspective
-        url = https://github.com/magnars/perspective-el
 [submodule "site-lisp/undo-tree"]
         path = site-lisp/undo-tree
         url = http://www.dr-qubit.org/git/undo-tree.git

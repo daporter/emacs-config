@@ -958,11 +958,6 @@ the point to it."
 
   :init (hook-into-modes 'paredit-mode '(emacs-lisp-mode-hook)))
 
-;;;_ , perspective
-
-(use-package perspective
-  :init (progn (persp-mode t)))
-
 ;;;_ , projectile
 
 (use-package projectile
