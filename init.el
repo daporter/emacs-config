@@ -754,7 +754,8 @@ the point to it."
 
 ;;;_ , fill-column-indicator
 
-(use-package fill-column-indicator)
+(use-package fill-column-indicator
+  :init (hook-into-modes 'turn-on-fci-mode '(prog-mode-hook)))
 
 ;;;_ , flycheck
 
