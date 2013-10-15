@@ -1129,6 +1129,7 @@ See the variable `align-rules-list' for more details.")
                              c-mode-common-hook
                              ruby-mode-hook
                              haml-mode-hook))
+          (setq whitespace-style (delete 'lines whitespace-style))
 
           (defun normalize-file ()
             (interactive)
