@@ -1176,7 +1176,9 @@ See the variable `align-rules-list' for more details.")
 (use-package smartparens-config
   :init (progn
           (smartparens-global-mode 1)
-          (sp-use-smartparens-bindings)))
+          (sp-use-smartparens-bindings)
+          (bind-key "C-<backspace>" 'sp-backward-unwrap-sexp sp-keymap)
+          (bind-key "M-<backspace>" 'backward-kill-word sp-keymap)))
 
 ;;;_ , solarized-emacs
 
@@ -1214,7 +1216,6 @@ See the variable `align-rules-list' for more details.")
                              c-mode-common-hook
                              ruby-mode-hook
                              haml-mode-hook))
-          (setq whitespace-style (delete 'lines whitespace-style))
 
           (defun normalize-file ()
             (interactive)
@@ -1262,7 +1263,8 @@ See the variable `align-rules-list' for more details.")
 
   :config (progn
             (remove-hook 'find-file-hooks 'whitespace-buffer)
-            (remove-hook 'kill-buffer-hook 'whitespace-buffer)))
+            (remove-hook 'kill-buffer-hook 'whitespace-buffer)
+            (setq whitespace-style (delete 'lines whitespace-style))))
 
 ;;;_ , winner
 
