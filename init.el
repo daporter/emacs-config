@@ -565,6 +565,91 @@ the point to it."
 (bind-key "C-h e v" 'find-variable)
 (bind-key "C-h e V" 'apropos-value)
 
+(defun phunculist/regex-replace
+  (str regex replacement &optional fixedcase literal)
+  "Replace a regular expression in the passed string, if it occurs."
+  (or (when (string-match regex str)
+        (replace-match replacement fixedcase literal str))
+      str))
+
+(defun phunculist/string-trim (str)
+  "Trim whitespace from both ends of the passed string."
+  (phunculist/regex-replace (phunculist/regex-replace str "[ \t]+\\'" "" t t)
+                            "\\`[ \t]+" "" t t))
+
+(defun phunculist/camelize (str)
+  "Forces a string into CamelCase."
+  (mapconcat (lambda (s)
+               (if (string-match "[aeiouy]" s)
+                   (capitalize s)
+                 (upcase s)))
+             (split-string str "[^A-Za-z0-9]")
+             ""))
+
+(defun phunculist/find-subpath-in-path (subpath path)
+  "Walks up the passed path hunting for subpath at each level."
+  (let ((match (concat (file-name-as-directory path) subpath)))
+    (if (file-exists-p match)
+        match
+      (unless (string= path "/")
+        (phunculist/find-subpath-in-path
+         subpath
+         (file-name-directory (substring path 0 -1)))))))
+
+(defun phunculist/find-in-path (subpath)
+  "Walks up the current path hunting for subpath at each level."
+  (phunculist/find-subpath-in-path
+   subpath
+   (expand-file-name (if (buffer-file-name)
+                         (file-name-directory (buffer-file-name))
+                       default-directory))))
+
+(defun phunculist/read-rails-database-config (path)
+  "Loads the database config as:  adapter database username [password]."
+  (split-string
+   (shell-command-to-string
+    (concat "ruby -ryaml -rerb -e 'puts YAML.load(ERB.new(ARGF.read).result)[%q{"
+            (or (getenv "RAILS_ENV") "development")
+            "}].values_at(*%w[adapter database username password])"
+            ".compact.join(%q{ })' "
+            path))))
+
+(require 'cl-macs)
+(require 'sql)
+
+(defun phunculist/rails-console ()
+  "Invoke inf-ruby with Rails environment loaded."
+  (interactive)
+  (let ((config (phunculist/find-in-path "config/environment.rb")))
+    (if config
+        (let ((binstub (concat (file-name-directory
+                                (substring (file-name-directory config) 0 -1))
+                               "bin/rails")))
+          (if (file-exists-p binstub)
+              (run-ruby (concat binstub " console") "rails")
+            (run-ruby "bundle exec rails console" "rails"))))))
+
+(defun phunculist/rails-dbconsole ()
+  "Open a SQL shell using the settings from config/database.yml."
+  (interactive)
+  (let ((config (phunculist/find-in-path "config/database.yml")))
+    (if config
+        (let* ((env     (phunculist/read-rails-database-config config))
+               (adapter (car env))
+               (db      (cond ((string-match "\\`mysql"   adapter)
+                               "mysql")
+                              ((string-match "\\`sqlite"  adapter)
+                               "sqlite")
+                              ((string=      "postgresql" adapter)
+                               "postgres"))))
+          (let ((sql-fun      (intern (concat "sql-" db)))
+                (sql-database (cadr   env))
+                (sql-user     (or (caddr  env) user-login-name))
+                (sql-password (cadddr env)))
+            (cl-letf (((symbol-function 'sql-get-login)  ; silence confirmation
+                       #'(lambda (&rest what) t)))
+              (funcall sql-fun)))))))
+
 ;;;_. Packages
 
 ;;;_ , ace-jump-mode
