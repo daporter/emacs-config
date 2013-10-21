@@ -133,11 +133,11 @@
 [submodule "site-lisp/ack-and-a-half"]
         path = site-lisp/ack-and-a-half
         url = https://github.com/jhelwig/ack-and-a-half
-[submodule "site-lisp/chruby.el"]
-        path = site-lisp/chruby.el
+[submodule "site-lisp/chruby"]
+        path = site-lisp/chruby
         url = https://github.com/plexus/chruby.el.git
-[submodule "site-lisp/ag.el"]
-        path = site-lisp/ag.el
+[submodule "site-lisp/ag"]
+        path = site-lisp/ag
         url = https://github.com/Wilfred/ag.el.git
 [submodule "site-lisp/rspec-mode"]
         path = site-lisp/rspec-mode
@@ -151,3 +151,6 @@
 [submodule "site-lisp/smartparens"]
         path = site-lisp/smartparens
         url = https://github.com/Fuco1/smartparens.git
+[submodule "site-lisp/epl"]
+	path = site-lisp/epl
+	url = https://github.com/cask/epl.git
