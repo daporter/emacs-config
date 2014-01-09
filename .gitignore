@@ -2,7 +2,7 @@
 *~
 /autoloads.el
 /cus-dirs.el
-/loaddefs.el
+/loaddefs.elc
 compile.log
 /phunculist/data/
 ede-projects.el

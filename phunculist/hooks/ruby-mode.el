@@ -5,6 +5,10 @@
 
 (local-set-key (kbd "C-c v w") 'fci-mode)
 
+(flycheck-mode 1)
+(rubocop-mode 1)
+(robe-mode 1)
+
 ;; show junk whitespace
 (whitespace-mode)
 

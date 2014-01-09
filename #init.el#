@@ -155,7 +155,7 @@
 ;; (eval-when-compile
 ;;   (setq use-package-verbose (null byte-compile-current-file)))
 
-(set-face-attribute 'default nil :font "Inconsolata" :height 140)
+;; (set-face-attribute 'default nil :font "Inconsolata" :height 140)
 
 (setq auto-save-list-file-prefix
       (concat user-emacs-directory "backups/auto-save-list/.saves-"))
@@ -1226,8 +1226,6 @@ Including indent-buffer, which should not be called automatically on save."
 (use-package hardcore-mode
   :init (global-hardcore-mode 1))
 
-(use-package eldoc
-  :init (hook-into-modes 'turn-on-eldoc-mode '(prog-mode-hook)))
 
 ;; ;;;_ , recentf
 
@@ -1353,7 +1351,7 @@ See the variable `align-rules-list' for more details.")
   :init (progn
           (smartparens-global-mode 1)
           (show-smartparens-global-mode 1)
-          (hook-into-modes 'smartparens-strict-mode
+          (hook-into-modes smartparens-strict-mode
                            '(lisp-mode-hook
                              emacs-lisp-mode-hook
                              lisp-interaction-mode)))
@@ -1361,39 +1359,39 @@ See the variable `align-rules-list' for more details.")
             ;; Smartparens bindings
             (let ((map smartparens-mode-map))
               ;; Movement and navigation
-              (bind-key "C-M-f"       'sp-forward-sexp                 map)
-              (bind-key "C-M-b"       'sp-backward-sexp                map)
-              (bind-key "C-M-u"       'sp-backward-up-sexp             map)
-              (bind-key "C-M-d"       'sp-down-sexp                    map)
-              (bind-key "C-M-p"       'sp-backward-down-sexp           map)
-              (bind-key "C-M-n"       'sp-up-sexp                      map)
+              (bind-key "C-M-f" 'sp-forward-sexp map)
+              (bind-key "C-M-b" 'sp-backward-sexp map)
+              (bind-key "C-M-u" 'sp-backward-up-sexp map)
+              (bind-key "C-M-d" 'sp-down-sexp map)
+              (bind-key "C-M-p" 'sp-backward-down-sexp map)
+              (bind-key "C-M-n" 'sp-up-sexp map)
               ;; Deleting and killing
-              (bind-key "C-M-k"       'sp-kill-sexp                    map)
-              (bind-key "C-M-w"       'sp-copy-sexp                    map)
+              (bind-key map kbd #'sp-kill-sexp map)
+              (bind-key map (kbd "C-M-w") #'sp-copy-sexp map)
               ;; Depth changing
-              (bind-key "M-s"         'sp-splice-sexp                  map)
-              (bind-key "M-<up>"      'sp-splice-sexp-killing-backward map)
-              (bind-key "M-<down>"    'sp-splice-sexp-killing-forward  map)
-              (bind-key "M-r"         'sp-splice-sexp-killing-around   map)
-              (bind-key "M-?"         'sp-convolute-sexp               map)
+              (bind-key map (kbd "M-s") #'sp-splice-sexp map)
+              (bind-key map (kbd "M-<up>") #'sp-splice-sexp-killing-backward map)
+              (bind-key map (kbd "M-<down>") #'sp-splice-sexp-killing-forward map)
+              (bind-key map (kbd "M-r") #'sp-splice-sexp-killing-around map)
+              (bind-key map (kbd "M-?") #'sp-convolute-sexp map)
               ;; Barfage & Slurpage
-              (bind-key "C-)"         'sp-forward-slurp-sexp           map)
-              (bind-key "C-<right>"   'sp-forward-slurp-sexp           map)
-              (bind-key "C-}"         'sp-forward-barf-sexp            map)
-              (bind-key "C-<left>"    'sp-forward-barf-sexp            map)
-              (bind-key "C-("         'sp-backward-slurp-sexp          map)
-              (bind-key "C-M-<left>"  'sp-backward-slurp-sexp          map)
-              (bind-key "C-{"         'sp-backward-barf-sexp           map)
-              (bind-key "C-M-<right>" 'sp-backward-barf-sexp           map)
+              (bind-key map (kbd "C-)")  #'sp-forward-slurp-sexp map)
+              (bind-key map (kbd "C-<right>") #'sp-forward-slurp-sexp map)
+              (bind-key map (kbd "C-}")  #'sp-forward-barf-sexp map)
+              (bind-key map (kbd "C-<left>") #'sp-forward-barf-sexp map)
+              (bind-key map (kbd "C-(")  #'sp-backward-slurp-sexp map)
+              (bind-key map (kbd "C-M-<left>") #'sp-backward-slurp-sexp map)
+              (bind-key map (kbd "C-{")  #'sp-backward-barf-sexp map)
+              (bind-key map (kbd "C-M-<right>") #'sp-backward-barf-sexp map)
               ;; Miscellaneous commands
-              (bind-key "M-S"         'sp-split-sexp                   map)
-              (bind-key "M-J"         'sp-join-sexp                    map)
-              (bind-key "C-M-t"       'sp-transpose-sexp               map))
+              (bind-key map (kbd "M-S") #'sp-split-sexp map)
+              (bind-key map (kbd "M-J") #'sp-join-sexp map)
+              (bind-key map (kbd "C-M-t") #'sp-transpose-sexp map))
 
             ;; Some additional bindings for strict mode
             (let ((map smartparens-strict-mode-map))
-              (bind-key "M-q" 'sp-indent-defun map)
-              (bind-key "C-j" 'sp-newline      map))))
+              (bind-key map (kbd "M-q") #'sp-indent-defun map)
+              (bind-key map (kbd "C-j") #'sp-newline map))))
 
 ;; ;;;_ , solarized-emacs
 
@@ -1518,9 +1516,6 @@ See the variable `align-rules-list' for more details.")
             ;; Use only my own snippets, not the bundled ones.
             (yas-load-directory yas-snippet-dirs)))
 
-(use-package keyfreq
-  :init (keyfreq-mode 1))
-
 ;; ;;;_ , zenburn-theme
 
 ;; (use-package zenburn-theme
@@ -1545,20 +1540,6 @@ See the variable `align-rules-list' for more details.")
 
 (bind-key "M-h" 'backward-kill-word)
 
-;; Make "RET" do whatever "M-j" does.
-(defun phunculist/rebind-return ()
-  (local-set-key (kbd "RET") (key-binding (kbd "M-j"))))
-
-(hook-into-modes 'phunculist/rebind-return '(prog-mode-hook))
-
-;; Colorise ansi escape codes in compilation buffers.
-(require 'ansi-color)
-(defun colorize-compilation-buffer ()
-  (read-only-mode -1)
-  (ansi-color-apply-on-region (point-min) (point-max))
-  (read-only-mode 1))
-(add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
-
 
 ;; ;;;_. Settings
 
@@ -1576,8 +1557,7 @@ See the variable `align-rules-list' for more details.")
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(helm-selection ((t (:inherit lazy-highlight))))
- '(helm-source-header ((t (:inherit (info-title-3 secondary-selection))))))
+ )
 ;; ;; Local Variables:
 ;; ;;   mode: emacs-lisp
 ;; ;;   mode: allout

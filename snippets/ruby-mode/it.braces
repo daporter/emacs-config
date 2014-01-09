@@ -1,4 +1,0 @@
-# name: it { should ... }
-# key: it
-# --
-it { should ${1:description} }

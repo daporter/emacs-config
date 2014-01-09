@@ -1,4 +1,0 @@
-# name: before { ... }
-# key: bf
-# --
-before { $0 }

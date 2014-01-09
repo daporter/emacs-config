@@ -1,8 +1,13 @@
-(setq mac-command-modifier 'meta)
-(setq mac-option-modifier 'super)
+;; I've swapped my command and option keys in OS X.
+(setq mac-command-modifier 'super)
+(setq mac-option-modifier 'meta)
 
-; Prevent s-q from quitting emacs.
+                                        ; Prevent s-q from quitting emacs.
 (global-unset-key (kbd "s-q"))
+
+;; Setup environment variables from the user's shell.
+(require 'exec-path-from-shell)
+(exec-path-from-shell-initialize)
 
 (require 'window-number)
 (window-number-mode 1)
@@ -11,10 +16,36 @@
 (require 'undo-tree)
 (global-undo-tree-mode 1)
 
+(require 'hardcore-mode)
+(global-hardcore-mode)
+
+(require 'keyfreq)
+(keyfreq-mode 1)
+(keyfreq-autosave-mode 1)
+
+(require 'smartparens-config)
+(smartparens-global-mode 1)
+(show-smartparens-global-mode 1)
+
 (require 'multiple-cursors)
 (require 'expand-region)
+(require 'delsel)
+(require 'smart-forward)
+(require 'change-inner)
+
+(require 'achievements-mode)
+(achievements-mode 1)
+
+(require 'projectile)
+(projectile-global-mode 1)
+
+(require 'saveplace)
 
 (add-hook 'before-save-hook 'phunculist/cleanup-buffer-safe)
+
+;; Use shell-like backspace C-h, rebind help to F1.
+(define-key key-translation-map [?\C-h] [?\C-?])
+(global-set-key (kbd "<f1>") 'help-command)
 
 ;; frame and window management
 (global-set-key (kbd "C-c f c") 'make-frame-command)
@@ -39,6 +70,8 @@
 ;; Command shortcuts.
 (global-set-key (kbd "M-/") 'hippie-expand)
 
+(global-set-key (kbd "C-c j") 'ace-jump-mode)
+
 (global-set-key (kbd "C-c l")   'phunculist/newline-below)
 (global-set-key (kbd "C-c L")   'phunculist/newline-above)
 (global-set-key (kbd "C-c RET") 'phunculist/newline-between)
@@ -50,14 +83,17 @@
 (global-set-key (kbd "C-c o e") 're-builder)
 
 (global-set-key (kbd "C-c e") 'er/expand-region)
-
-(global-set-key (kbd "C-c s") 'idomenu)
+(global-set-key (kbd "M-i") 'change-inner)
+(global-set-key (kbd "M-o") 'change-outer)
 
 (global-set-key (kbd "C-c a") 'ack-same)
 (global-set-key (kbd "C-c A") 'ack)
 
 (global-set-key (kbd "C-c H") 'phunculist/htmlify-buffer)
 (global-set-key (kbd "C-c h") 'phunculist/htmlify-buffer-light)
+
+(global-set-key (kbd "C-c f r") 'phunculist/rename-file-and-buffer)
+(global-set-key (kbd "C-c f d") 'phunculist/delete-file-and-buffer)
 
 (global-set-key (kbd "C-c g g") 'magit-status)
 (global-set-key (kbd "C-c g b") 'vc-annotate)

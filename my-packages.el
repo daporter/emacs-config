@@ -8,6 +8,13 @@
                 ("melpa"     . "http://melpa.milkbox.net/packages/")))
   (add-to-list 'package-archives repo))
 
+(defun phunculist/flatten (x)
+  "Flatten a list."
+  (cond ((null x) nil)
+        ((listp x) (append (phunculist/flatten (car x))
+                           (phunculist/flatten (cdr x))))
+        (t (list x))))
+
 (defun phunculist/package-refresh-and-install (name)
   "Ensure we have a fresh package list, then install."
   (package-refresh-contents)
@@ -75,6 +82,7 @@
    dired-details
    exec-path-from-shell
    expand-region
+   feature-mode
    fill-column-indicator
    flx
    flx-ido
@@ -89,6 +97,8 @@
    haml-mode
    hardcore-mode
    haskell-mode
+   helm
+   helm-projectile
    highlight-escape-sequences
    ido-at-point
    ido-ubiquitous
@@ -97,6 +107,7 @@
    js2-mode
    jump-char
    keyfreq
+   ledger-mode
    magit
    markdown-mode
    mmm-mode
@@ -112,6 +123,7 @@
    rubocop
    ruby-compilation
    ruby-refactor
+   ruby-tools
    scss-mode
    shell-command
    slim-mode
@@ -130,5 +142,3 @@
    yari
    yasnippet
    zoom-frm))
-
-(provide 'my/packages)

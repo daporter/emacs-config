@@ -1,6 +1,0 @@
-# name: before do ... end
-# key: bef
-# --
-before do
-  $0
-end

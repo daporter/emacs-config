@@ -1,6 +1,0 @@
-#contributor: David Porter <david.a.porter@gmail.com>
-#name : create_table ..., ... do |t| ... end
-# --
-create_table :${1:name}, :${2:options} do |t|
-  $0
-end

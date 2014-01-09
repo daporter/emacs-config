@@ -1,0 +1,1 @@
+("~/proj/emacs.d/" "~/work/ticketscout/ticketscout/" "/usr/local/" "~/src/jeg2-dotfiles/" "~/work/cmag-collections/cmag-collections/" "~/work/willow-pattern/willow-pattern/" "~/work/moad-explore/moad-explore/" "~/Dropbox/ledger/" "~/dropbox/ledger/" "~/proj/dotfiles/")

@@ -3,7 +3,7 @@
   (byte-recompile-directory (expand-file-name "phunculist"
                                               user-emacs-directory)
                             0)
-  ;; don't compile init.el because it's too late to freshen it on load
+  ;; Don't compile init.el because it's too late to freshen it on load.
   ;; loaddefs.el cannot be compiled
   )
 

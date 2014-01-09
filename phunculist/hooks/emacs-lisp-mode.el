@@ -1,4 +1,3 @@
-;; show wrap guide
 (require 'fill-column-indicator)
 (setq fci-rule-column phunculist-wrap-limit)
 (fci-mode)
