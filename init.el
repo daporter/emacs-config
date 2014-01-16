@@ -1223,6 +1223,8 @@ Including indent-buffer, which should not be called automatically on save."
               (setq projectile-known-projects-file
                     (concat user-data-directory "projectile-bookmarks.eld"))))
 
+(use-package puppet-mode)
+
 (use-package hardcore-mode
   :init (global-hardcore-mode 1))
 
