@@ -1158,7 +1158,8 @@ Including indent-buffer, which should not be called automatically on save."
   :config (progn
             (setenv "GIT_PAGER" "")
 
-            (setq magit-repo-dirs '("~/proj"))))
+            (setq magit-repo-dirs '("~/proj"))
+            (setq magit-emacsclient-executable "/usr/local/bin/emacsclient")))
 
 ;; ;;;_ , markdown-mode
 
