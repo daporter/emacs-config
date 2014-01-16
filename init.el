@@ -1402,6 +1402,36 @@ See the variable `align-rules-list' for more details.")
 ;; (use-package solarized
 ;;   :disabled t)
 
+(use-package tramp
+  :config (progn
+            ;; Show host name
+            ;; http://www.gnu.org/software/emacs/manual/html_node/tramp/Frequently-Asked-Questions.html
+            (defconst my-mode-line-buffer-identification
+              (list
+               '(:eval
+                 (let ((host-name
+                        (or (file-remote-p default-directory 'host)
+                            (system-name))))
+                   (if (string-match "^[^0-9][^.]*\\(\\..*\\)" host-name)
+                       (substring host-name 0 (match-beginning 1))
+                     host-name)))
+               ": %12b"))
+
+            (setq-default mode-line-buffer-identification
+                          my-mode-line-buffer-identification)
+
+            (add-hook 'dired-mode-hook
+                      '(lambda ()
+                         (setq mode-line-buffer-identification
+                               my-mode-line-buffer-identification)))
+
+            (add-to-list 'tramp-default-method-alist
+                         '("10\\.0\\." nil "ssh"))
+            (add-to-list 'tramp-default-proxies-alist
+                         '("10\\.0\\." "root" "/ssh:dap900@cloudlogin2.nci.org.au:"))
+
+            (add-to-list ')))
+
 ;; ;;;_ , undo-tree
 
 (use-package undo-tree
