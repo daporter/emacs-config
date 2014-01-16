@@ -1533,7 +1533,7 @@ See the variable `align-rules-list' for more details.")
 
 ;; ;;;_ , YAML mode
 
-;; (use-package yaml-mode)
+(use-package yaml-mode)
 
 ;; ;;;_ , yasnippet
 
