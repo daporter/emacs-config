@@ -101,8 +101,8 @@
 ;; (when is-mac (require 'mac))
 
 ;; ;; Emacs server
-;; (require 'server)
-;; (unless (server-running-p) (server-start))
+(require 'server)
+(unless (server-running-p) (server-start))
 
 ;; ;; Run at full power please
 ;; (put 'downcase-region 'disabled nil)
