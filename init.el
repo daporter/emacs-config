@@ -973,6 +973,10 @@ Including indent-buffer, which should not be called automatically on save."
   (package-install 'dash-at-point))
 (use-package dash-at-point)
 
+(unless (package-installed-p 'puppet-mode)
+  (package-install 'puppet-mode))
+(use-package puppet-mode)
+
 (unless (package-installed-p 'window-number)
   (package-install 'window-number))
 (use-package window-number
