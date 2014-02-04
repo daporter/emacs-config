@@ -10,16 +10,19 @@
 (unless noninteractive
   (message "Loading %s..." load-file-name))
 
-(load (expand-file-name "load-path" user-emacs-directory))
-
 (defun phunculist/load-init-file (path &optional noerror)
   "This loads a file from inside the the .emacs.d directory"
   (let ((file (file-name-sans-extension
                (expand-file-name path user-emacs-directory))))
     (load file noerror)))
 
-(phunculist/load-init-file "my-packages.el")
+(require 'package)
+(package-initialize)
+(add-to-list 'package-archives
+             '("melpa" . "http://melpa.milkbox.net/packages/") t)
 
+(unless (package-installed-p 'use-package)
+  (package-install 'use-package))
 (require 'use-package)
 (eval-when-compile
   (setq use-package-verbose (null byte-compile-current-file)))
@@ -156,6 +159,9 @@
 ;;   (setq use-package-verbose (null byte-compile-current-file)))
 
 (set-face-attribute 'default nil :font "Inconsolata" :height 140)
+
+(setq backup-directory-alist
+      (list (cons "." (concat user-emacs-directory "backups"))))
 
 (setq auto-save-list-file-prefix
       (concat user-emacs-directory "backups/auto-save-list/.saves-"))
@@ -803,14 +809,64 @@ Including indent-buffer, which should not be called automatically on save."
 
 ;; ;;;_. Packages
 
+(unless (package-installed-p 'auto-complete)
+  (package-install 'auto-complete))
+(use-package auto-complete-config
+  :config (progn
+            (ac-config-default)
+            (ac-set-trigger-key "TAB")))
 
+(unless (package-installed-p 'color-theme-sanityinc-tomorrow)
+  (package-install 'color-theme-sanityinc-tomorrow))
+(use-package color-theme-sanityinc-tomorrow
+  :config (load-theme 'sanityinc-tomorrow-night t))
+
+(unless (package-installed-p 'fill-column-indicator)
+  (package-install 'fill-column-indicator))
+(use-package fill-column-indicator)
+
+(unless (package-installed-p 'exec-path-from-shell)
+  (package-install 'exec-path-from-shell))
 (use-package exec-path-from-shell
   :config (exec-path-from-shell-initialize))
 
+(unless (package-installed-p 'ace-jump-mode)
+  (package-install 'ace-jump-mode))
 (use-package ace-jump-mode
   :bind ("C-c j" . ace-jump-mode))
 
+(unless (package-installed-p 'ag)
+  (package-install 'ag))
 (use-package ag)
+
+(unless (package-installed-p 'projectile)
+  (package-install 'projectile))
+(use-package projectile)
+
+(unless (package-installed-p 'helm)
+  (package-install 'helm))
+(use-package helm-config
+  :config (progn
+            (bind-key "C-c h" 'helm-mini)
+            (helm-mode 1)))
+
+(unless (package-installed-p 'helm-projectile)
+  (package-install 'helm-projectile))
+(use-package helm-projectile
+  :config (use-package projectile))
+
+(unless (package-installed-p 'magit)
+  (package-install 'magit))
+(use-package magit
+  :config (bind-key "C-x g" 'magit-status))
+
+(unless (package-installed-p 'multiple-cursors)
+  (package-install 'multiple-cursors))
+(use-package multiple-cursors)
+
+(unless (package-installed-p 'smartparens)
+  (package-install 'smartparens))
+(use-package smartparens)
 
 ;; ;;;_ , AUCTeX
 
@@ -825,616 +881,12 @@ Including indent-buffer, which should not be called automatically on save."
 ;;                                           '("%q" make-skim-url)))
 ;;                            '(LaTeX-mode-hook))
 
-;;           (use-package reftex
-;;             :init (hook-into-modes 'turn-on-reftex '(LaTeX-mode-hook))))
-
-;;   :config (progn
-;;             (use-package preview-latex)
-
-;;             ;; Make AUCTeX aware of style files and multi-file documents.
-;;             (setq TeX-auto-save t)
-;;             (setq TeX-parse-self t)
-;;             (setq-default TeX-master nil)
-
-;;             (defun make-skim-url ()
-;;               (concat
-;;                (TeX-current-line)
-;;                " \""
-;;                (expand-file-name (funcall file (TeX-output-extension) t)
-;;                                  (file-name-directory (TeX-master-file)))
-;;                "\" \""
-;;                (buffer-file-name)
-;;                "\""))
-
-;;             (setq TeX-source-correlate-method 'synctex)
-;;             (setq TeX-view-program-list
-;;                   '(("Skim"
-;;                      "/Applications/Skim.app/Contents/SharedSupport/displayline %q")))
-;;             (setq TeX-view-program-selection '((output-pdf "Skim")))))
-
-;;;_ , auto-complete
-
-(use-package auto-complete-config
-  :diminish auto-complete-mode
-
-  :config (progn
-            (use-package popup)
-            (use-package fuzzy)
-
-            (setq ac-use-menu-map          t
-                  ac-user-dictionary-files (concat user-data-directory "dict"))
-
-            (ac-config-default)
-            (ac-set-trigger-key "TAB")))
-
-;; ;;;_ , autorevert
-
-;; (use-package autorevert
-;;   :commands auto-revert-mode
-;;   :diminish auto-revert-mode
-
-;;   :init (add-hook 'find-file-hook
-;;                   #'(lambda ()
-;;                       (auto-revert-mode 1))))
-
-;; ;;;_ , bookmark
-
-;; (use-package bookmark
-;;   :config (setq bookmark-default-file
-;;                 (concat user-data-directory "bookmarks")))
-
-;; ;;;_ , buffer-move
-
-;; (use-package buffer-move
-;;   :bind (("C-S-<up>"    . buf-move-up)
-;;          ("C-S-<down>"  . buf-move-down)
-;;          ("C-S-<left>"  . buf-move-left)
-;;          ("C-S-<right>" . buf-move-right)))
-
-;; ;;;_ , chruby
-
-(use-package chruby
-  :init (chruby "2.0.0-p247"))
-
-;; ;;;_ , coffee-mode
-
-;; (use-package coffee-mode
-;;   :mode ("\\.coffee\\'" . coffee-mode)
-;;   :config (setq coffee-tab-width 2))
-
-;; ;;;_ , color-theme-sanityinc-tomorrow
-
-(use-package color-theme-sanityinc-tomorrow
-  :init (load-theme 'sanityinc-tomorrow-night t))
-
-;; ;;;_ , css-mode
-
-;; (use-package css-mode
-;;   :config (progn
-;;             (setq css-indent-offset 2)))
-
-;; ;;;_ , dash
-
-;; (use-package dash)
-
-;; ;;;_ , powerline
-
-;; (use-package powerline
-;;   :init (progn
-;;           (setq powerline-color1 "#373b41")
-;;           (setq powerline-color2 "#282a2e")
-
-;;           (set-face-attribute 'mode-line nil
-;;                               :foreground "#1d1f21"
-;;                               :background "#b5bd68"
-;;                               :box nil)
-;;           (set-face-attribute 'mode-line-inactive nil
-;;                               :box nil)))
-
-;; ;;;_ , expand-region
-
-(use-package expand-region
-  :bind ("C-'" . er/expand-region))
-
-;; ;;;_ , f
-
-;; (use-package f)
-
-;; ;;;_ , flx-ido
-
-;; (use-package flx-ido
-;;   :init (progn
-;;           (flx-ido-mode 1)
-;;           (setq ido-use-faces nil)))
-
-;; ;;;_ , flyspell
-
-(use-package ispell
-  :bind (("C-c i c" . ispell-comments-and-strings)
-         ("C-c i d" . ispell-change-dictionary)
-         ("C-c i k" . ispell-kill-ispell)
-         ("C-c i m" . ispell-message)
-         ("C-c i r" . ispell-region))
-
-  :init (setq ispell-dictionary-base-alist
-              '((nil                    ; default
-                 "[A-Za-z]" "[^A-Za-z]" "[']" t
-                 ("-d" "/Library/Spelling/en_GB" "-i" "utf-8") nil utf-8)
-                ("british"              ; British English
-                 "[A-Za-z]" "[^A-Za-z]" "[']" t
-                 ("-d" "/Library/Spelling/en_GB" "-i" "utf-8") nil utf-8)
-                ("australian"           ; Australian English
-                 "[A-Za-z]" "[^A-Za-z]" "[']" t
-                 ("-d" "/Library/Spelling/en_AU" "-i" "utf-8") nil utf-8)
-                ("american"             ; American English
-                 "[A-Za-z]" "[^A-Za-z]" "[']" t
-                 ("-d" "/Library/Spelling/en_US" "-i" "utf-8") nil utf-8)
-                ("dutch"                ; Dutch
-                 "[A-Za-z]" "[^A-Za-z]" "[']" t
-                 ("-d" "/Library/Spelling/nl_NL" "-i" "utf-8") nil utf-8)))
-
-  :config (progn
-            (setq ispell-program-name "hunspell"
-                  ispell-dictionary "british"
-                  ispell-extra-args nil
-                  ispell-silently-savep t)))
-
-;; ;;;_ , fill-column-indicator
-
-;; (use-package fill-column-indicator
-;;   :init (hook-into-modes 'turn-on-fci-mode '(prog-mode-hook)))
-
-;; ;;;_ , flycheck
-
-(use-package flycheck
-  :init (add-hook 'after-init-hook #'global-flycheck-mode))
-
-;; ;;;_ , flyspell
-
-(use-package flyspell
-  :bind (("C-c i b" . flyspell-buffer)
-         ("C-c i f" . flyspell-mode))
-  :config (define-key flyspell-mode-map [(control ?.)] nil))
-
-;; ;;;_ , git-modes
-
-;; (use-package git-commit-mode)
-(use-package gitconfig-mode)
-(use-package gitignore-mode)
-
-;; ;;;_ , graphviz-dot-mode
-
-;; (use-package graphviz-dot-mode)
-
-;; ;;;_ , haml-mode
-
-;; (use-package haml-mode
-;;   :init (progn
-;;           (defun my-split-line-with-continuation ()
-;;             (interactive)
-;;             (let ((spaces (make-string (- fill-column (current-column)) ? )))
-;;               (insert spaces "|" "\n"))
-;;             (indent-for-tab-command))
-
-;;           (bind-key "C-c \\" 'my-split-line-with-continuation)))
-
-;; ;;;_ , haskell-mode
-
-;; (use-package haskell-mode
-;;   :commands haskell-mode
-;;   :mode ("\\.l?hs$" . haskell-mode)
-
-;;   :init (progn
-;;           (add-hook 'haskell-mode-hook 'turn-on-haskell-indentation))
-
-;;   :config (progn
-;;             (use-package inf-haskell)))
-
-;; ;;;_ , helm
-
-(use-package helm-config
-  :init (progn
-          (helm-mode 1)
-
-          (setq helm-idle-delay 0.1)
-          (setq helm-input-idle-delay 0.1)
-          (setq helm-buffers-favorite-modes '(ruby-mode text-mode))
-
-          (bind-key "M-x"     'helm-M-x)
-          (bind-key "C-x C-f" 'helm-find-files)
-          (bind-key "C-x b"   'helm-buffers-list)
-
-          (defun my-helm ()
-            (interactive)
-            (helm-other-buffer '(helm-c-source-buffers-list
-                                 helm-c-source-recentf
-                                 helm-c-source-files-in-current-dir
-                                 helm-c-source-buffer-not-found)
-                               "*my-helm*"))
-          (bind-key "C-c h" 'my-helm)))
-
-;; ;;;_ , js2-mode
-
-;; (use-package js2-mode
-;;   :mode ("\\.js$" . js2-mode)
-
-;;   :config (progn
-;;             (setq-default js2-basic-offset 2)))
-
-;; ;;;_ , jump-char
-
-;; (use-package jump-char
-;;   :bind (("M-m" . jump-char-forward)
-;;          ("M-M" . jump-char-backward)))
-
-;; ;;;_ , Ledger
-
-(use-package ledger-mode
-  :init (progn
-          (defun my-goto-ledger ()
-            "Goto my ledger file."
-            (interactive)
-            (find-file (exec-path-from-shell-copy-env "LEDGER_FILE"))
-            (ledger-find-slot (current-time)))
-
-          (bind-key "C-c l" 'my-goto-ledger)
-
-          (defun my-ledger-start-entry (&optional arg)
-            (interactive "p")
-            (find-file-other-window
-             (exec-path-from-shell-copy-env "LEDGER_FILE"))
-            (goto-char (point-max))
-            (skip-syntax-backward " ")
-            (if (looking-at "\n\n")
-                (goto-char (point-max))
-              (delete-region (point) (point-max))
-              (insert ?\n)
-              (insert ?\n))
-            (insert (format-time-string "%Y/%m/%d ")))
-
-          (bind-key "C-c L" 'my-ledger-start-entry)))
-
-;; (use-package ldg-new
-;;   :load-path "/Library/Caches/Homebrew/ledger--git/lisp"
-;;   :commands  ledger-mode
-
-;;   :init (progn
-;;           (use-package ledger)
-
-;;           (defun my-goto-ledger ()
-;;             "Goto my ledger file."
-;;             (interactive)
-;;             (find-file (exec-path-from-shell-copy-env "LEDGER_FILE"))
-;;             (ledger-find-slot (current-time)))
-
-;;           (bind-key "C-c l" 'my-goto-ledger)
-
-;;           (defun my-ledger-start-entry (&optional arg)
-;;             (interactive "p")
-;;             (find-file-other-window
-;;              (exec-path-from-shell-copy-env "LEDGER_FILE"))
-;;             (goto-char (point-max))
-;;             (skip-syntax-backward " ")
-;;             (if (looking-at "\n\n")
-;;                 (goto-char (point-max))
-;;               (delete-region (point) (point-max))
-;;               (insert ?\n)
-;;               (insert ?\n))
-;;             (insert (format-time-string "%Y/%m/%d ")))
-
-;;           (bind-key "C-c L" 'my-ledger-start-entry)))
-
-;; ;;;_ , linum
-
-(use-package linum
-  :commands linum-mode
-  :config (progn
-            ;; Add spaces and proper formatting to linum-mode. It uses
-            ;; more room than necessary, but that's not a problem
-            ;; since it's only in use when going to lines.
-            (setq linum-format
-                  (lambda (line)
-                    (propertize
-                     (format (concat " %"
-                                     (number-to-string
-                                      (length (number-to-string
-                                               (line-number-at-pos (point-max)))))
-                                     "d ")
-                             line)
-                     'face 'linum)))))
-
-;; ;;;_ , lorem-ipsum
-
-;; (use-package lorem-ipsum
-;;   :commands (Lorem-ipsum-insert-paragraphs
-;;              Lorem-ipsum-insert-sentences
-;;              Lorem-ipsum-insert-list))
-
-;; ;;;_ , magit
-
-(use-package magit
-  :bind ("C-x g" . magit-status)
-
-  :config (progn
-            (setenv "GIT_PAGER" "")
-
-            (setq magit-repo-dirs '("~/proj"))
-            (setq magit-emacsclient-executable "/usr/local/bin/emacsclient")))
-
-;; ;;;_ , markdown-mode
-
-;; (use-package markdown-mode
-;;   :mode (("\\.md\\'" . markdown-mode)))
-
-;; ;;;_ , mmm-mode
-
-;; (use-package mmm-auto
-;;   :init (progn
-;;           (setq mmm-global-mode 'maybe)
-
-;;           (dolist (mode (list 'html-mode 'html-erb-mode 'nxml-mode))
-;;             (mmm-add-mode-ext-class mode "\\.r?html\\(\\.erb\\)?\\'" 'html-js)
-;;             (mmm-add-mode-ext-class mode "\\.r?html\\(\\.erb\\)?\\'" 'html-css)
-;;             (mmm-add-mode-ext-class mode "\\.erb\\'" 'erb))
-
-;;           (add-to-list 'auto-mode-alist
-;;                        '("\\.r?html\\(\\.erb\\)?\\'" . html-erb-mode))
-;;           (add-to-list 'auto-mode-alist '("\\.jst\\.ejs\\'"  . html-erb-mode))
-;;           (mmm-add-mode-ext-class 'yaml-mode "\\.yaml$" 'erb)
-
-;;           (dolist (mode (list 'js-mode 'js2-mode 'js3-mode))
-;;             (mmm-add-mode-ext-class mode "\\.js\\.erb$" 'erb)))
-
-;;   :config (use-package mmm-erb))
-
-
-;; ;;;_ , multiple-cursors
-
-(use-package multiple-cursors
-  :bind (("C-S-c C-S-c" . mc/edit-lines)
-         ("C-S-c C-e"   . mc/edit-ends-of-lines)
-         ("C-S-c C-a"   . mc/edit-beginnings-of-lines)
-         ("S-s-SPC"     . set-rectangular-region-anchor)
-         ("C->"         . mc/mark-next-like-this)
-         ("C-<"         . mc/mark-previous-like-this)
-         ("C-c C-<"     . mc/mark-all-like-this)))
-
-;;   :config (progn
-;;             (setq mc/list-file (concat user-data-directory "mc-lists.el"))))
-
-;; ;;;_ , pkg-info
-
-;; (use-package pkg-info)
-
-;; ;;;_ , paredit
-
-;; (use-package paredit
-;;   :commands paredit-mode
-;;   :diminish paredit-mode
-
-;;   :init (hook-into-modes 'paredit-mode '(emacs-lisp-mode-hook)))
-
-;; ;;;_ , projectile
-
-(use-package projectile
-  :diminish projectile-mode
-  :init     (projectile-global-mode 1)
-  :config   (progn
-              (use-package helm-projectile)
-              (setq projectile-known-projects-file
-                    (concat user-data-directory "projectile-bookmarks.eld"))))
-
-(use-package puppet-mode)
-
-(use-package hardcore-mode
-  :init (global-hardcore-mode 1))
-
-(use-package eldoc
-  :init (hook-into-modes 'turn-on-eldoc-mode '(prog-mode-hook)))
-
-;; ;;;_ , recentf
-
-;; (use-package recentf
-;;   :if (not noninteractive)
-;;   :init (progn
-;;           (recentf-mode 1)
-
-;;           (defun recentf-add-dired-directory ()
-;;             (if (and dired-directory
-;;                      (file-directory-p dired-directory)
-;;                      (not (string= "/" dired-directory)))
-;;                 (let ((last-idx (1- (length dired-directory))))
-;;                   (recentf-add-file
-;;                    (if (= ?/ (aref dired-directory last-idx))
-;;                        (substring dired-directory 0 last-idx)
-;;                      dired-directory)))))
-
-;;           (add-hook 'dired-mode-hook 'recentf-add-dired-directory)))
-
-;; ;;;_ , ruby-mode
-
-(use-package ruby-mode
-  :mode (("\\.rb\\'"     . ruby-mode)
-         ("\\.rake\\'"   . ruby-mode)
-         ("Guardfile\\'" . ruby-mode)
-         ("Gemfile\\'"   . ruby-mode)
-         ("Rakefile\\'"  . ruby-mode)
-         ("Capfile\\'"   . ruby-mode))
-
-  :interpreter ("ruby" . ruby-mode)
-
-  :config (progn
-            (use-package inf-ruby)
-            (use-package rspec-mode
-              :config (progn
-                        (setq rspec-use-rake-when-possible nil)
-                        (setq rspec-use-bundler-when-possible nil)))
-            (use-package ruby-mode-expansions)
-            (use-package ruby-refactor
-              :init (progn
-                      (hook-into-modes 'ruby-refactor-mode '(ruby-mode-hook))))
-            (use-package ruby-tools)
-            (use-package yari)
-            (use-package fill-column-indicator)
-
-            (defun my-ruby-smart-return ()
-              (interactive)
-              (when (memq (char-after) '(?\| ?\" ?\'))
-                (forward-char))
-              (call-interactively 'newline-and-indent))
-
-            (defun my-ruby-mode-hook ()
-              (bind-key "<return>" 'my-ruby-smart-return ruby-mode-map))
-
-            ;; This gets called automatically by auto-complete.
-            (defun ac-ruby-mode-setup ()
-              (setq ac-sources '(ac-source-yasnippet
-                                 ac-source-abbrev
-                                 ac-source-imenu
-                                 ac-source-dictionary
-                                 ac-source-words-in-same-mode-buffers))
-
-              (setq fci-rule-column 80)
-              (fci-mode 1))
-
-            (defun my-ruby-align-setup()
-              (require 'align)
-
-              (defconst align-ruby-modes '(ruby-mode)
-                "align-perl-modes is a variable defined in `align.el'.")
-
-              (defconst ruby-align-rules-list
-                '((ruby-comma-delimiter
-                   (regexp . ",\\(\\s-*\\)[^/ \t\n]")
-                   (modes  . align-ruby-modes)
-                   (repeat . t))
-                  (ruby-string-after-func
-                   (regexp . "^\\s-*[a-zA-Z0-9.:?_]+\\(\\s-+\\)['\"]\\w+['\"]")
-                   (modes  . align-ruby-modes)
-                   (repeat . t))
-                  (ruby-symbol-after-func
-                   (regexp . "^\\s-*[a-zA-Z0-9.:?_]+\\(\\s-+\\):\\w+")
-                   (modes  . align-ruby-modes)))
-                "Alignment rules specific to the ruby mode.
-See the variable `align-rules-list' for more details.")
-
-              (dolist (it '(align-perl-modes
-                            align-dq-string-modes
-                            align-sq-string-modes
-                            align-open-comment-modes))
-                (add-to-list it 'ruby-mode))
-
-              (dolist (it ruby-align-rules-list)
-                (add-to-list 'align-rules-list it)))
-
-            (add-hook 'ruby-mode-hook 'my-ruby-mode-hook)
-            (add-hook 'ruby-mode-hook 'my-ruby-align-setup)))
-
-;; ;;;_ , s
-
-;; (use-package s)
-
-;; ;;;_ , scss-mode
-
-;; (use-package scss-mode
-;;   :mode ("\\.scss\\'" . scss-mode)
-;;   :init (setq scss-compile-at-save nil))
-
-;; ;;;_ , server
-
-;; (use-package server
-;;   :init (unless (server-running-p) (server-start)))
-
-;; ;;;_ , slim-mode
-
-;; (use-package slim-mode
-;;   :mode ("\\.slim\\'" . slim-mode))
-
-;; ;;;_ , smartparens
-
-(use-package smartparens-config
-  :init (progn
-          (smartparens-global-mode 1)
-          (show-smartparens-global-mode 1)
-          (hook-into-modes 'smartparens-strict-mode
-                           '(lisp-mode-hook
-                             emacs-lisp-mode-hook
-                             lisp-interaction-mode)))
-  :config (progn
-            ;; Smartparens bindings
-            (let ((map smartparens-mode-map))
-              ;; Movement and navigation
-              (bind-key "C-M-f"       'sp-forward-sexp                 map)
-              (bind-key "C-M-b"       'sp-backward-sexp                map)
-              (bind-key "C-M-u"       'sp-backward-up-sexp             map)
-              (bind-key "C-M-d"       'sp-down-sexp                    map)
-              (bind-key "C-M-p"       'sp-backward-down-sexp           map)
-              (bind-key "C-M-n"       'sp-up-sexp                      map)
-              ;; Deleting and killing
-              (bind-key "C-M-k"       'sp-kill-sexp                    map)
-              (bind-key "C-M-w"       'sp-copy-sexp                    map)
-              ;; Depth changing
-              (bind-key "M-s"         'sp-splice-sexp                  map)
-              (bind-key "M-<up>"      'sp-splice-sexp-killing-backward map)
-              (bind-key "M-<down>"    'sp-splice-sexp-killing-forward  map)
-              (bind-key "M-r"         'sp-splice-sexp-killing-around   map)
-              (bind-key "M-?"         'sp-convolute-sexp               map)
-              ;; Barfage & Slurpage
-              (bind-key "C-)"         'sp-forward-slurp-sexp           map)
-              (bind-key "C-<right>"   'sp-forward-slurp-sexp           map)
-              (bind-key "C-}"         'sp-forward-barf-sexp            map)
-              (bind-key "C-<left>"    'sp-forward-barf-sexp            map)
-              (bind-key "C-("         'sp-backward-slurp-sexp          map)
-              (bind-key "C-M-<left>"  'sp-backward-slurp-sexp          map)
-              (bind-key "C-{"         'sp-backward-barf-sexp           map)
-              (bind-key "C-M-<right>" 'sp-backward-barf-sexp           map)
-              ;; Miscellaneous commands
-              (bind-key "M-S"         'sp-split-sexp                   map)
-              (bind-key "M-J"         'sp-join-sexp                    map)
-              (bind-key "C-M-t"       'sp-transpose-sexp               map))
-
-            ;; Some additional bindings for strict mode
-            (let ((map smartparens-strict-mode-map))
-              (bind-key "M-q" 'sp-indent-defun map)
-              (bind-key "C-j" 'sp-newline      map))))
-
-;; ;;;_ , solarized-emacs
-
-;; (use-package solarized
-;;   :disabled t)
-
-(use-package tramp
-  :config (progn
-            ;; Show host name
-            ;; http://www.gnu.org/software/emacs/manual/html_node/tramp/Frequently-Asked-Questions.html
-            (defconst my-mode-line-buffer-identification
-              (list
-               '(:eval
-                 (let ((host-name
-                        (or (file-remote-p default-directory 'host)
-                            (system-name))))
-                   (if (string-match "^[^0-9][^.]*\\(\\..*\\)" host-name)
-                       (substring host-name 0 (match-beginning 1))
-                     host-name)))
-               ": %12b"))
-
-            (setq-default mode-line-buffer-identification
-                          my-mode-line-buffer-identification)
-
-            (add-hook 'dired-mode-hook
-                      '(lambda ()
-                         (setq mode-line-buffer-identification
-                               my-mode-line-buffer-identification)))
-
-            (add-to-list 'tramp-default-method-alist
-                         '("10\\.0\\." nil "ssh"))
-            (add-to-list 'tramp-default-proxies-alist
-                         '("10\\.0\\." "root" "/ssh:dap900@cloudlogin2.nci.org.au:"))
-
-            (add-to-list ')))
+;;           (use-package))
 
 ;; ;;;_ , undo-tree
 
+(unless (package-installed-p 'undo-tree)
+  (package-install 'undo-tree))
 (use-package undo-tree
   :diminish undo-tree-mode
   :init (global-undo-tree-mode 1))
@@ -1451,6 +903,8 @@ See the variable `align-rules-list' for more details.")
 
 ;; ;;;_ , whitespace
 
+(unless (package-installed-p 'whitespace)
+  (package-install 'whitespace))
 (use-package whitespace
   :diminish (global-whitespace-mode
              whitespace-mode
@@ -1515,13 +969,19 @@ See the variable `align-rules-list' for more details.")
             (setq whitespace-style '(empty face tabs trailing))))
 
 
+(unless (package-installed-p 'dash-at-point)
+  (package-install 'dash-at-point))
 (use-package dash-at-point)
 
+(unless (package-installed-p 'window-number)
+  (package-install 'window-number))
 (use-package window-number
   :init (progn
           (window-number-mode 1)
           (window-number-meta-mode 1)))
 
+(unless (package-installed-p 'winner)
+  (package-install 'winner))
 (use-package winner
   :if (not noninteractive)
   :diminish winner-mode
@@ -1533,16 +993,20 @@ See the variable `align-rules-list' for more details.")
 
 ;; ;;;_ , YAML mode
 
+(unless (package-installed-p 'yaml-mode)
+  (package-install 'yaml-mode))
 (use-package yaml-mode)
 
 ;; ;;;_ , yasnippet
 
+(unless (package-installed-p 'yasnippet)
+  (package-install 'yasnippet))
 (use-package yasnippet
   :mode     ("/\\.emacs\\.d/snippets/" . snippet-mode)
   :commands (yas/minor-mode yas/expand)
   :diminish yas/minor-mode
 
-  :init (yas-global-mode 1)
+  ;; :init (yas-global-mode 1)
 
   :config (progn
             (setq yas-snippet-dirs     (concat user-emacs-directory "snippets")
@@ -1551,6 +1015,8 @@ See the variable `align-rules-list' for more details.")
             ;; Use only my own snippets, not the bundled ones.
             (yas-load-directory yas-snippet-dirs)))
 
+(unless (package-installed-p 'keyfreq)
+  (package-install 'keyfreq))
 (use-package keyfreq
   :init (keyfreq-mode 1))
 
