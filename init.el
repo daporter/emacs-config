@@ -858,7 +858,8 @@ Including indent-buffer, which should not be called automatically on save."
 (unless (package-installed-p 'magit)
   (package-install 'magit))
 (use-package magit
-  :config (bind-key "C-x g" 'magit-status))
+  :config (bind-key "C-x g" 'magit-status)
+  :init (setq magit-emacsclient-executable "/usr/local/bin/emacsclient"))
 
 (unless (package-installed-p 'multiple-cursors)
   (package-install 'multiple-cursors))
