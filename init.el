@@ -20,6 +20,7 @@
 (package-initialize)
 (add-to-list 'package-archives
              '("melpa" . "http://melpa.milkbox.net/packages/") t)
+(package-refresh-contents)
 
 (unless (package-installed-p 'use-package)
   (package-install 'use-package))
