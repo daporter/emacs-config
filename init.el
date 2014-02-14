@@ -849,6 +849,7 @@ Including indent-buffer, which should not be called automatically on save."
 (use-package helm-config
   :config (progn
             (bind-key "C-c h" 'helm-mini)
+            (bind-key "M-x" 'helm-M-x)
             (helm-mode 1)))
 
 (unless (package-installed-p 'helm-projectile)
