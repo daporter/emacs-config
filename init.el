@@ -981,9 +981,18 @@ Including indent-buffer, which should not be called automatically on save."
   (package-install 'dash-at-point))
 (use-package dash-at-point)
 
+(unless (package-installed-p 'chruby)
+  (package-install 'chruby))
+(use-package chruby
+  :init (chruby "ruby-2.1"))
+
 (unless (package-installed-p 'puppet-mode)
   (package-install 'puppet-mode))
-(use-package puppet-mode)
+(use-package puppet-mode
+  :config (progn
+            (unless (package-installed-p 'flymake-puppet)
+              (package-install 'flymake-puppet))
+            (use-package flymake-puppet)))
 
 (unless (package-installed-p 'window-number)
   (package-install 'window-number))
