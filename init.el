@@ -842,7 +842,8 @@ Including indent-buffer, which should not be called automatically on save."
 
 (unless (package-installed-p 'projectile)
   (package-install 'projectile))
-(use-package projectile)
+(use-package projectile
+  :config (projectile-global-mode 1))
 
 (unless (package-installed-p 'helm)
   (package-install 'helm))
