@@ -861,7 +861,12 @@ Including indent-buffer, which should not be called automatically on save."
   (package-install 'magit))
 (use-package magit
   :config (bind-key "C-x g" 'magit-status)
-  :init (setq magit-emacsclient-executable "/usr/local/bin/emacsclient"))
+  :init (progn
+          (unless (package-installed-p 'magit-commit-training-wheels)
+            (package-install 'magit-commit-training-wheels))
+          (use-package magit-commit-training-wheels
+            :init (ad-activate 'magit-log-edit-commit))
+          (setq magit-emacsclient-executable "/usr/local/bin/emacsclient")))
 
 (unless (package-installed-p 'multiple-cursors)
   (package-install 'multiple-cursors))
