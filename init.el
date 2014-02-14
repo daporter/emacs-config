@@ -1046,6 +1046,13 @@ Including indent-buffer, which should not be called automatically on save."
 ;; (use-package zenburn-theme
 ;;   :disabled t)
 
+(unless (package-installed-p 'ledger-mode)
+  (package-install 'ledger-mode))
+(use-package ledger-mode
+  :config (progn
+            (unless (package-installed-p 'flycheck-ledger)
+              (package-install 'flycheck-ledger))
+            (use-package flycheck-ledger)))
 
 ;; Misc functions.
 
