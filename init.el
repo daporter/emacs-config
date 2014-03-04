@@ -1088,6 +1088,8 @@ Including indent-buffer, which should not be called automatically on save."
   (read-only-mode 1))
 (add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
 
+;; Use ediff in single-frame mode.
+(setq ediff-window-setup-function 'ediff-setup-windows-plain)
 
 ;; ;;;_. Settings
 
