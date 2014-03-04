@@ -994,7 +994,7 @@ Including indent-buffer, which should not be called automatically on save."
             (unless (package-installed-p 'flymake-puppet)
               (package-install 'flymake-puppet))
             (use-package flymake-puppet
-              :init (hook-into-modes 'flymake-puppet-load '(puppet-mode-hook))))
+              :init (hook-into-modes 'flymake-puppet-load '(puppet-mode-hook)))))
 
 (unless (package-installed-p 'window-number)
   (package-install 'window-number))
