@@ -28,10 +28,6 @@
 (eval-when-compile
   (setq use-package-verbose (null byte-compile-current-file)))
 
-;; Configure Tramp for use with NCI cloud VMs.
-(add-to-list 'tramp-default-proxies-alist
-             '("130\\.56\\." nil "/ssh:dap900@cloudlogin.nci.org.au:"))
-
 ;; (defun phunculist/load-init-file (path &optional noerror)
 ;;   "This loads a file from inside the the .emacs.d directory"
 ;;   (let ((file (file-name-sans-extension
@@ -998,6 +994,12 @@ Including indent-buffer, which should not be called automatically on save."
               (package-install 'flymake-puppet))
             (use-package flymake-puppet
               :init (hook-into-modes 'flymake-puppet-load '(puppet-mode-hook)))))
+
+(use-package tramp
+  :config (progn
+            ;; Configure Tramp for use with NCI cloud VMs.
+            (add-to-list 'tramp-default-proxies-alist
+                         '("130\\.56\\." nil "/ssh:dap900@cloudlogin.nci.org.au:"))))
 
 (unless (package-installed-p 'window-number)
   (package-install 'window-number))
