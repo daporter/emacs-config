@@ -988,7 +988,7 @@ Including indent-buffer, which should not be called automatically on save."
 (unless (package-installed-p 'chruby)
   (package-install 'chruby))
 (use-package chruby
-  :init (chruby "ruby-2.1"))
+  :init (chruby "ruby-2.1.2"))
 
 (unless (package-installed-p 'puppet-mode)
   (package-install 'puppet-mode))
