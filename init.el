@@ -1068,6 +1068,18 @@ Including indent-buffer, which should not be called automatically on save."
             (setq notmuch-hello-thousands-separator ",")
             (setq notmuch-search-oldest-first nil)
 
+            (setq notmuch-tag-formats
+                  ;; Set to red from sanityinc-tomorrow-night.
+                  '(("unread" (propertize
+                               tag 'face '(:foreground "#cc6666")))
+                    ("flagged" (notmuch-tag-format-image-data
+                                tag (notmuch-tag-star-icon)))))
+
+            (setq notmuch-search-line-faces
+                  '(("unread" :weight bold)
+                    ;; Set to green from sanityinc-tomorrow-night.
+                    ("flagged" :foreground "#b5bd68")))
+
             (defun notmuch-mark-deleted ()
               "Mark this email as deleted."
               (interactive)
