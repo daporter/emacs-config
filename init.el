@@ -1066,6 +1066,7 @@ Including indent-buffer, which should not be called automatically on save."
 (use-package notmuch
   :config (progn
             (setq notmuch-hello-thousands-separator ",")
+            (setq notmuch-search-oldest-first nil)
 
             (defun notmuch-mark-deleted ()
               "Mark this email as deleted."
@@ -1074,7 +1075,17 @@ Including indent-buffer, which should not be called automatically on save."
                 (notmuch-show-add-tag (list "+deleted"))
                 (notmuch-show-next-thread)))
 
-            (define-key notmuch-show-mode-map (kbd "d") 'notmuch-mark-deleted)))
+            (define-key
+              notmuch-hello-mode-map  (kbd "g")   'notmuch-refresh-this-buffer)
+            (define-key
+              notmuch-search-mode-map (kbd "g")   'notmuch-refresh-this-buffer)
+            (define-key
+              notmuch-show-mode-map   (kbd "RET") 'goto-address-at-point)
+            (define-key
+              notmuch-show-mode-map   (kbd "d")   'notmuch-mark-deleted)
+            (define-key
+              notmuch-show-mode-map   (kbd "TAB") 'notmuch-show-toggle-message)))
+
 
 ;; Misc functions.
 
