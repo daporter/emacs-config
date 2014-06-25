@@ -10,6 +10,8 @@
 (unless noninteractive
   (message "Loading %s..." load-file-name))
 
+(setq user-data-directory (concat (expand-file-name user-emacs-directory) "data/"))
+
 (defun phunculist/load-init-file (path &optional noerror)
   "This loads a file from inside the the .emacs.d directory"
   (let ((file (file-name-sans-extension
