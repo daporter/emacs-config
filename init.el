@@ -57,10 +57,6 @@
 
 
 
-;; ;; god-mode
-;; ;; (require 'god-mode)
-;; ;; (global-set-key (kbd "<escape>") 'god-local-mode)
-
 ;; ;; Load stuff on demand
 ;; (autoload 'flycheck-mode "setup-flycheck" nil t)
 ;; (autoload 'auto-complete-mode "auto-complete" nil t)
@@ -1064,6 +1060,21 @@ Including indent-buffer, which should not be called automatically on save."
             (unless (package-installed-p 'flycheck-ledger)
               (package-install 'flycheck-ledger))
             (use-package flycheck-ledger)))
+
+(unless (package-installed-p 'notmuch)
+  (package-install 'notmuch))
+(use-package notmuch
+  :config (progn
+            (setq notmuch-hello-thousands-separator ",")
+
+            (defun notmuch-mark-deleted ()
+              "Mark this email as deleted."
+              (interactive)
+              (when (y-or-n-p "Are you sure you want to this message?")
+                (notmuch-show-add-tag (list "+deleted"))
+                (notmuch-show-next-thread)))
+
+            (define-key notmuch-show-mode-map (kbd "d") 'notmuch-mark-deleted)))
 
 ;; Misc functions.
 
