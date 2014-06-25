@@ -1098,6 +1098,16 @@ Including indent-buffer, which should not be called automatically on save."
             (define-key
               notmuch-show-mode-map   (kbd "TAB") 'notmuch-show-toggle-message)))
 
+;; Mail.
+
+(setq mail-user-agent 'message-user-agent)
+
+(setq user-mail-address "david.a.porter@gmail.com"
+      user-full-name    "David Porter")
+
+(setq smtpmail-stream-type 'ssl
+      smtpmail-smtp-server "smtp.gmail.com"
+      smtpmail-smtp-service 465)
 
 ;; Misc functions.
 
