@@ -812,7 +812,8 @@ Including indent-buffer, which should not be called automatically on save."
 (use-package auto-complete-config
   :config (progn
             (ac-config-default)
-            (ac-set-trigger-key "TAB")))
+            (ac-set-trigger-key "TAB")
+            (setq ac-comphist-file (concat user-data-directory "ac-comphist.dat")))
 
 (unless (package-installed-p 'color-theme-sanityinc-tomorrow)
   (package-install 'color-theme-sanityinc-tomorrow))
