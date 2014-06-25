@@ -10,7 +10,8 @@
 (unless noninteractive
   (message "Loading %s..." load-file-name))
 
-(setq user-data-directory (concat (expand-file-name user-emacs-directory) "data/"))
+(setq user-data-directory
+      (concat (expand-file-name user-emacs-directory) "data/"))
 
 (defun phunculist/load-init-file (path &optional noerror)
   "This loads a file from inside the the .emacs.d directory"
@@ -813,7 +814,8 @@ Including indent-buffer, which should not be called automatically on save."
   :config (progn
             (ac-config-default)
             (ac-set-trigger-key "TAB")
-            (setq ac-comphist-file (concat user-data-directory "ac-comphist.dat")))
+            (setq ac-comphist-file
+                  (concat user-data-directory "ac-comphist.dat"))))
 
 (unless (package-installed-p 'color-theme-sanityinc-tomorrow)
   (package-install 'color-theme-sanityinc-tomorrow))
