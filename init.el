@@ -1085,6 +1085,11 @@ Including indent-buffer, which should not be called automatically on save."
                     ;; Set to green from sanityinc-tomorrow-night.
                     ("flagged" :foreground "#b5bd68")))
 
+            (setq notmuch-fcc-dirs
+                  '(("david.a.porter@gmail.com" . "gmail/sent")
+                    ("david.porter@anu.edu.au" . "anu/sent")
+                    (".*" . "gmail/sent")))
+
             (defun notmuch-mark-deleted ()
               "Mark this email as deleted."
               (interactive)
