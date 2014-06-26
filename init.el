@@ -844,6 +844,9 @@ Including indent-buffer, which should not be called automatically on save."
   (package-install 'projectile))
 (use-package projectile
   :config (progn
+            (setq projectile-cache-file
+                  (concat user-data-directory "projectile.cache"))
+
             (unless (package-installed-p 'flx-ido)
               (package-install 'flx-ido))
             (use-package flx-ido)
