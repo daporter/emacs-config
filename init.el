@@ -170,6 +170,7 @@
       `((".*" ,temporary-file-directory t)))
 
 (setq recentf-save-file (concat user-data-directory "recentf"))
+(setq url-cache-directory (concat user-data-directory "url/cache"))
 
 ;; Use GNU Coreutils version of `ls', which is called `gls' when installed via
 ;; Homebrew.
