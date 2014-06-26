@@ -1110,14 +1110,16 @@ Including indent-buffer, which should not be called automatically on save."
 
 ;; Mail.
 
-(setq mail-user-agent 'message-user-agent)
+(setq mail-user-agent 'message-user-agent
+      message-send-mail-function 'message-send-mail-with-sendmail
+      sendmail-program "/usr/local/bin/msmtp"
+      ;; This is needed to allow msmtp to do its magic:
+      message-sendmail-f-is-evil t
+      ;; Need to tell msmtp which account we're using.
+      message-sendmail-extra-arguments '("--read-envelope-from"))
 
 (setq user-mail-address "david.a.porter@gmail.com"
       user-full-name    "David Porter")
-
-(setq smtpmail-stream-type 'ssl
-      smtpmail-smtp-server "smtp.gmail.com"
-      smtpmail-smtp-service 465)
 
 ;; Misc functions.
 
