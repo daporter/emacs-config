@@ -169,6 +169,8 @@
 (setq auto-save-file-name-transforms
       `((".*" ,temporary-file-directory t)))
 
+(setq recentf-save-file (concat user-data-directory "recentf"))
+
 ;; Use GNU Coreutils version of `ls', which is called `gls' when installed via
 ;; Homebrew.
 (setq insert-directory-program "gls")
