@@ -1112,7 +1112,46 @@ Including indent-buffer, which should not be called automatically on save."
             (define-key
               notmuch-show-mode-map   (kbd "d")   'notmuch-mark-deleted)
             (define-key
-              notmuch-show-mode-map   (kbd "TAB") 'notmuch-show-toggle-message)))
+              notmuch-show-mode-map   (kbd "TAB") 'notmuch-show-toggle-message)
+
+            (use-package notmuch-address
+              :config (progn
+                        (setq notmuch-address-command "notmuch-contacts")
+                        (notmuch-address-message-insinuate)
+
+                        ;; Make notmuch-address pass candidate address
+                        ;; to helm in a more useable way.
+                        ;;
+                        ;; This overrides a fuction in the notmuch
+                        ;; package, so it'll probably break when some
+                        ;; future version is released.
+                        (defun notmuch-address-expand-name ()
+                          (let* ((end (point))
+                                 (beg (save-excursion
+                                        (re-search-backward "\\(\\`\\|[\n:,]\\)[ \t]*")
+                                        (goto-char (match-end 0))
+                                        (point)))
+                                 (orig (buffer-substring-no-properties beg end))
+                                 (completion-ignore-case t)
+                                 (options (notmuch-address-options orig))
+                                 (num-options (length options))
+                                 (chosen (cond
+                                          ((eq num-options 0)
+                                           nil)
+                                          ((eq num-options 1)
+                                           (car options))
+                                          (t
+                                           (funcall notmuch-address-selection-function
+                                                    (format "Address (%s matches): " num-options)
+                                                    ;; (cdr options) (car options))))))
+                                                    options nil)))))
+                            (if chosen
+                                (progn
+                                  (push chosen notmuch-address-history)
+                                  (delete-region beg end)
+                                  (insert chosen))
+                              (message "No matches.")
+                              (ding))))))))
 
 ;; Mail.
 
