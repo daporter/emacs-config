@@ -1113,6 +1113,8 @@ Including indent-buffer, which should not be called automatically on save."
               notmuch-show-mode-map   (kbd "d")   'notmuch-mark-deleted)
             (define-key
               notmuch-show-mode-map   (kbd "TAB") 'notmuch-show-toggle-message)
+            (define-key
+              notmuch-show-mode-map   (kbd "C-c n") 'notmuch-show-next-button)
 
             (use-package notmuch-address
               :config (progn
