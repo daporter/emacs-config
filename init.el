@@ -1075,6 +1075,7 @@ Including indent-buffer, which should not be called automatically on save."
 (unless (package-installed-p 'notmuch)
   (package-install 'notmuch))
 (use-package notmuch
+  :bind ("C-c m" . notmuch)
   :config (progn
             (setq notmuch-hello-thousands-separator ",")
             (setq notmuch-search-oldest-first nil)
