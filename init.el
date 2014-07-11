@@ -1099,11 +1099,18 @@ Including indent-buffer, which should not be called automatically on save."
                     ("david.porter@anu.edu.au"  . "anu/sent")
                     (".*" . "gmail/sent")))
 
-            (defun notmuch-mark-deleted ()
+            (defun notmuch-search-mark-deleted ()
               "Mark this email as deleted."
               (interactive)
-              (when (y-or-n-p "Are you sure you want to this message?")
-                (notmuch-show-add-tag (list "+deleted"))
+              (when (y-or-n-p "Are you sure you want to delete this message?")
+                (notmuch-search-tag '("-inbox" "-archive" "-unread" "+trash"))
+                (notmuch-search-next-thread)))
+
+            (defun notmuch-show-mark-deleted ()
+              "Mark this email as deleted."
+              (interactive)
+              (when (y-or-n-p "Are you sure you want to delete this message?")
+                (notmuch-show-tag '("-inbox" "-archive" "-unread" "+trash"))
                 (notmuch-show-next-thread)))
 
             (define-key
@@ -1111,9 +1118,11 @@ Including indent-buffer, which should not be called automatically on save."
             (define-key
               notmuch-search-mode-map (kbd "g")   'notmuch-refresh-this-buffer)
             (define-key
-              notmuch-show-mode-map   (kbd "RET") 'goto-address-at-point)
+              notmuch-search-mode-map (kbd "d")   'notmuch-search-mark-deleted)
             (define-key
-              notmuch-show-mode-map   (kbd "d")   'notmuch-mark-deleted)
+              notmuch-show-mode-map   (kbd "d")   'notmuch-show-mark-deleted)
+            (define-key
+              notmuch-show-mode-map   (kbd "RET") 'goto-address-at-point)
             (define-key
               notmuch-show-mode-map   (kbd "TAB") 'notmuch-show-toggle-message)
             (define-key
