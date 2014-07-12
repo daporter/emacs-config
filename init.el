@@ -855,18 +855,24 @@ Including indent-buffer, which should not be called automatically on save."
             (use-package flx-ido)
             (projectile-global-mode 1)))
 
-(unless (package-installed-p 'helm)
-  (package-install 'helm))
-(use-package helm-config
+(use-package ido
   :config (progn
-            (bind-key "C-c h" 'helm-mini)
-            (bind-key "M-x" 'helm-M-x)
-            (helm-mode 1)))
+            (ido-mode 1)
+            (ido-everywhere 1)
 
-(unless (package-installed-p 'helm-projectile)
-  (package-install 'helm-projectile))
-(use-package helm-projectile
-  :config (use-package projectile))
+            ;; Disable ido faces to see flx highlights.
+            (setq ido-enable-flex-matching t)
+            (setq ido-use-faces            nil)
+
+            (unless (package-installed-p 'ido-vertical-mode)
+              (package-install 'ido-vertical-mode))
+            (use-package ido-vertical-mode
+              :config (ido-vertical-mode 1))
+
+            (unless (package-installed-p 'flx-ido)
+              (package-install 'flx-ido))
+            (use-package flx-ido
+              :config (flx-ido-mode 1))))
 
 (unless (package-installed-p 'magit)
   (package-install 'magit))
@@ -1233,8 +1239,6 @@ Including indent-buffer, which should not be called automatically on save."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(helm-selection ((t (:inherit lazy-highlight))))
- '(helm-source-header ((t (:inherit (info-title-3 secondary-selection)))))
  '(link ((t (:foreground "#81a2be" :underline t))))
  '(link-visited ((t (:inherit link :foreground "#cc6666"))))
  '(message-header-xheader ((t (:foreground "#969896"))))
