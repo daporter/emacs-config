@@ -1239,7 +1239,8 @@ Including indent-buffer, which should not be called automatically on save."
  '(link-visited ((t (:inherit link :foreground "#cc6666"))))
  '(message-header-xheader ((t (:foreground "#969896"))))
  '(notmuch-message-summary-face ((t (:weight bold))))
- '(notmuch-tag-face ((t (:foreground "#8abeb7")))))
+ '(notmuch-tag-face ((t (:foreground "#8abeb7"))))
+ '(window-number-face ((t (:foreground "#f0c674"))) t))
 ;; ;; Local Variables:
 ;; ;;   mode: emacs-lisp
 ;; ;;   mode: allout
