@@ -874,6 +874,16 @@ Including indent-buffer, which should not be called automatically on save."
             (use-package flx-ido
               :config (flx-ido-mode 1))))
 
+(unless (package-installed-p 'smex)
+  (package-install 'smex))
+(use-package smex
+  :config (progn
+            (smex-initialize)
+            (global-set-key (kbd "M-x") 'smex)
+            (global-set-key (kbd "M-X") 'smex-major-mode-commands)
+            ;; This is your old M-x.
+            (global-set-key (kbd "C-c C-c M-x") 'execute-extended-command)))
+
 (unless (package-installed-p 'magit)
   (package-install 'magit))
 (use-package magit
