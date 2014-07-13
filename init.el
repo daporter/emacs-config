@@ -818,7 +818,29 @@ Including indent-buffer, which should not be called automatically on save."
             (ac-config-default)
             (ac-set-trigger-key "TAB")
             (setq ac-comphist-file
-                  (concat user-data-directory "ac-comphist.dat"))))
+                  (concat user-data-directory "ac-comphist.dat"))
+
+            ;; Advice for whitespace-mode conflict.
+            ;; Copied from https://github.com/bbatsov/prelude/issues/19
+            (defvar my-prev-whitespace-mode nil)
+            (make-variable-buffer-local 'my-prev-whitespace-mode)
+
+            (defadvice popup-draw (before my-turn-off-whitespace)
+              "Turn off whitespace mode before showing autocomplete box"
+              (make-local-variable 'my-prev-whitespace-mode)
+              (if whitespace-mode
+                  (progn
+                    (setq my-prev-whitespace-mode t)
+                    (whitespace-mode -1))
+                (setq my-prev-whitespace-mode nil)))
+
+            (defadvice popup-delete (after my-restore-whitespace)
+              "Restore previous whitespace mode when deleting autocomplete box"
+              (if my-prev-whitespace-mode
+                  (whitespace-mode 1)))
+
+            (ad-activate 'popup-draw)
+            (ad-activate 'popup-delete)))
 
 (unless (package-installed-p 'color-theme-sanityinc-tomorrow)
   (package-install 'color-theme-sanityinc-tomorrow))
