@@ -1129,6 +1129,7 @@ Including indent-buffer, which should not be called automatically on save."
   :config (progn
             (setq notmuch-hello-thousands-separator ",")
             (setq notmuch-search-oldest-first nil)
+            (setq notmuch-wash-wrap-lines-length 80)
 
             (setq notmuch-tag-formats
                   ;; Set to red from sanityinc-tomorrow-night.
