@@ -1044,6 +1044,10 @@ Including indent-buffer, which should not be called automatically on save."
             (use-package flymake-puppet
               :init (hook-into-modes 'flymake-puppet-load '(puppet-mode-hook)))))
 
+(unless (package-installed-p 'flymake-cursor)
+  (package-install 'flymake-cursor))
+(use-package flymake-cursor)
+
 (use-package tramp
   :config (progn
             ;; Configure Tramp for use with NCI cloud VMs.
