@@ -1048,6 +1048,14 @@ Including indent-buffer, which should not be called automatically on save."
   (package-install 'flymake-cursor))
 (use-package flymake-cursor)
 
+(unless (package-installed-p 'markdown-mode)
+  (package-install 'markdown-mode))
+(use-package markdown-mode
+  :config (progn
+            (unless (package-installed-p 'markdown-mode+)
+              (package-install 'markdown-mode+))
+            (use-package markdown-mode+)))
+
 (use-package tramp
   :config (progn
             ;; Configure Tramp for use with NCI cloud VMs.
