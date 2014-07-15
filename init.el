@@ -1160,11 +1160,11 @@ Including indent-buffer, which should not be called automatically on save."
 
             (add-to-list 'notmuch-saved-searches
                          '(:name "anu-unread"
-                                 :query "tag:anu tag:unread"
+                                 :query "tag:anu and tag:unread"
                                  :sort-order 'oldest-first))
             (add-to-list 'notmuch-saved-searches
                          '(:name "gmail-unread"
-                                 :query "tag:gmail tag:unread"
+                                 :query "tag:gmail and tag:unread"
                                  :sort-order 'oldest-first))
 
             (defun notmuch-search-mark-deleted ()
