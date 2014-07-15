@@ -503,6 +503,9 @@
 
 ;; (bind-key "C-c k" 'keep-lines)
 
+(add-hook 'text-mode-hook 'turn-on-flyspell)
+(add-hook 'prog-mode-hook 'flyspell-prog-mode)
+
 (defun untabify-buffer ()
   (interactive)
   (untabify (point-min) (point-max)))
@@ -817,6 +820,8 @@ Including indent-buffer, which should not be called automatically on save."
   :config (progn
             (ac-config-default)
             (ac-set-trigger-key "TAB")
+            (ac-flyspell-workaround)
+
             (setq ac-comphist-file
                   (concat user-data-directory "ac-comphist.dat"))
 
@@ -1242,12 +1247,7 @@ Including indent-buffer, which should not be called automatically on save."
         (call-interactively 'goto-line))
     (linum-mode -1)))
 
-                                        ;(load (expand-file-name "key-bindings" user-emacs-directory))
-
-(define-key key-translation-map [?\C-h] [?\C-?])
-(bind-key "<f1>" 'help-command)
-
-(bind-key "M-h" 'backward-kill-word)
+;;(load (expand-file-name "key-bindings" user-emacs-directory))
 
 ;; Make "RET" do whatever "M-j" does.
 (defun phunculist/rebind-return ()
