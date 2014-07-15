@@ -1136,8 +1136,8 @@ Including indent-buffer, which should not be called automatically on save."
   :bind ("C-c m" . notmuch)
   :config (progn
             (setq notmuch-hello-thousands-separator ",")
-            (setq notmuch-search-oldest-first nil)
-            (setq notmuch-wash-wrap-lines-length 80)
+            (setq notmuch-search-oldest-first       nil)
+            (setq notmuch-wash-wrap-lines-length    80)
 
             (setq notmuch-tag-formats
                   ;; Set to red from sanityinc-tomorrow-night.
@@ -1157,6 +1157,15 @@ Including indent-buffer, which should not be called automatically on save."
                   '(("david.a.porter@gmail.com" . "gmail/sent")
                     ("david.porter@anu.edu.au"  . "anu/sent")
                     (".*" . "gmail/sent")))
+
+            (add-to-list 'notmuch-saved-searches
+                         '(:name "anu-unread"
+                                 :query "tag:anu tag:unread"
+                                 :sort-order 'oldest-first))
+            (add-to-list 'notmuch-saved-searches
+                         '(:name "gmail-unread"
+                                 :query "tag:gmail tag:unread"
+                                 :sort-order 'oldest-first))
 
             (defun notmuch-search-mark-deleted ()
               "Mark this email as deleted."
