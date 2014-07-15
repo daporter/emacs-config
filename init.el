@@ -891,6 +891,9 @@ Including indent-buffer, which should not be called automatically on save."
             (setq ido-enable-flex-matching t)
             (setq ido-use-faces            nil)
 
+            (setq ido-save-directory-list-file
+                  (concat user-data-directory "ido.last"))
+
             (unless (package-installed-p 'ido-vertical-mode)
               (package-install 'ido-vertical-mode))
             (use-package ido-vertical-mode
