@@ -902,7 +902,12 @@ Including indent-buffer, which should not be called automatically on save."
             (unless (package-installed-p 'flx-ido)
               (package-install 'flx-ido))
             (use-package flx-ido
-              :config (flx-ido-mode 1))))
+              :config (flx-ido-mode 1))
+
+            (unless (package-installed-p 'ido-ubiquitous)
+              (package-install 'ido-ubiquitous))
+            (use-package ido-ubiquitous
+              :config (ido-ubiquitous-mode 1))))
 
 (unless (package-installed-p 'smex)
   (package-install 'smex))
