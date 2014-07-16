@@ -1207,12 +1207,8 @@ Including indent-buffer, which should not be called automatically on save."
                         (setq notmuch-address-command "notmuch-contacts")
                         (notmuch-address-message-insinuate)
 
-                        ;; Make notmuch-address pass candidate address
-                        ;; to helm in a more useable way.
-                        ;;
-                        ;; This overrides a fuction in the notmuch
-                        ;; package, so it'll probably break when some
-                        ;; future version is released.
+                        ;; We need to override this function to make
+                        ;; it work nicely with `ido-completing-read'.
                         (defun notmuch-address-expand-name ()
                           (let* ((end (point))
                                  (beg (save-excursion
@@ -1229,10 +1225,17 @@ Including indent-buffer, which should not be called automatically on save."
                                           ((eq num-options 1)
                                            (car options))
                                           (t
+                                           ;; (funcall notmuch-address-selection-function
+                                           ;;       (format "Address (%s matches): " num-options)
+                                           ;;       (cdr options) (car options))))))
+                                           ;;
+                                           ;; Instead of choosing the first option, as in the
+                                           ;; default implementation, we pass the whole list of
+                                           ;; options, and use the string entered so far for the
+                                           ;; selection.
                                            (funcall notmuch-address-selection-function
                                                     (format "Address (%s matches): " num-options)
-                                                    ;; (cdr options) (car options))))))
-                                                    options nil)))))
+                                                    options orig)))))
                             (if chosen
                                 (progn
                                   (push chosen notmuch-address-history)
