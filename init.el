@@ -1158,14 +1158,15 @@ Including indent-buffer, which should not be called automatically on save."
                     ("david.porter@anu.edu.au"  . "anu/sent")
                     (".*" . "gmail/sent")))
 
-            (add-to-list 'notmuch-saved-searches
-                         '(:name "anu-unread"
-                                 :query "tag:anu and tag:unread"
-                                 :sort-order 'oldest-first))
-            (add-to-list 'notmuch-saved-searches
-                         '(:name "gmail-unread"
-                                 :query "tag:gmail and tag:unread"
-                                 :sort-order 'oldest-first))
+            (setq notmuch-saved-searches
+                  '((:name "unread" :query "tag:unread" :sort-order 'oldest-first)
+                    (:name "anu unread" :query "tag:anu AND tag:unread" :sort-order 'oldest-first)
+                    (:name "gmail unread" :query "tag:gmail AND tag:unread" :sort-order 'oldest-first)
+                    (:name "inbox" :query "tag:inbox" :sort-order 'newest-first)
+                    (:name "flagged" :query "tag:flagged" :sort-order 'newest-first)
+                    (:name "drafts" :query "tag:draft" :sort-order 'newest-first)
+                    (:name "sent" :query "tag:sent" :sort-order 'newest-first)
+                    (:name "all mail" :query "*" :sort-order 'newest-first)))
 
             (defun notmuch-search-mark-deleted ()
               "Mark this email as deleted."
