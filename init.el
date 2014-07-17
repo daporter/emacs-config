@@ -130,10 +130,10 @@ Including indent-buffer, which should not be called automatically on save."
             (ad-activate 'popup-draw)
             (ad-activate 'popup-delete)))
 
-(unless (package-installed-p 'color-theme-sanityinc-tomorrow)
-  (package-install 'color-theme-sanityinc-tomorrow))
-(use-package color-theme-sanityinc-tomorrow
-  :config (load-theme 'sanityinc-tomorrow-night t))
+(unless (package-installed-p 'solarized-theme)
+  (package-install 'solarized-theme))
+(use-package solarized-theme
+  :config (load-theme 'solarized-dark t))
 
 (unless (package-installed-p 'fill-column-indicator)
   (package-install 'fill-column-indicator))
@@ -570,33 +570,14 @@ Including indent-buffer, which should not be called automatically on save."
  ;; If there is more than one, they won't work right.
  '(custom-safe-themes
    (quote
-    ("06f0b439b62164c6f8f84fdda32b62fb50b6d00e8b01c2208e55543a6337433a" default)))
+    ("8aebf25556399b58091e533e455dd50a6a9cba958cc4ebb0aab175863c25b9a4" "06f0b439b62164c6f8f84fdda32b62fb50b6d00e8b01c2208e55543a6337433a" default)))
  '(smartparens-global-mode t))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(ac-selection-face ((t (:inherit highlight))))
- '(ac-yasnippet-candidate-face ((t (:inherit ac-candidate-face :slant italic :weight bold))))
- '(ac-yasnippet-selection-face ((t (:inherit ac-selection-face :slant italic :weight bold))))
- '(erc-prompt-face ((t (:inherit error))))
- '(idris-loaded-region-face ((t (:inherit highlight))))
- '(idris-repl-output-face ((t (:inherit font-lock-string-face))))
- '(idris-repl-result-face ((t (:inherit default))))
- '(idris-semantic-data-face ((t (:inherit font-lock-constant-face))))
- '(idris-semantic-type-face ((t (:inherit font-lock-warning-face))))
- '(info-menu-star ((t (:foreground "#de935f"))))
- '(link ((t (:foreground "#81a2be" :underline t))))
- '(link-visited ((t (:inherit link :foreground "#cc6666"))))
- '(message-header-xheader ((t (:foreground "#969896"))))
- '(notmuch-message-summary-face ((t (:weight bold))))
- '(notmuch-tag-face ((t (:foreground "#8abeb7"))))
- '(popup-face ((t (:inverse-video t))))
- '(popup-scroll-bar-foreground-face ((t (:foreground "#969896"))))
- '(popup-tip-face ((t (:background "#f0c674" :foreground "#1d1f21"))))
- '(tooltip ((t (:inherit variable-pitch :background "#f0c674" :foreground "#1d1f21"))))
- '(window-number-face ((t (:foreground "#f0c674"))) t))
+ )
 ;; ;; Local Variables:
 ;; ;;   mode: emacs-lisp
 ;; ;;   mode: allout
