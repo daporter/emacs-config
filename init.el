@@ -1,9 +1,97 @@
 ;; Phunculist's Emacs configuration.
 
-;; Turn off mouse interface early in startup to avoid momentary
-;; display.
-(if (fboundp 'tool-bar-mode)   (tool-bar-mode -1))
-(if (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
+(setq-default user-full-name    "David Porter"
+              user-mail-address "david.a.porter@gmail.com")
+
+(setq-default eval-expression-print-level nil)
+(setq-default case-fold-search nil)
+
+(setq gc-cons-threshold (* 25 1024 1024))
+
+(unless (package-installed-p 'use-package)
+  (package-install 'use-package))
+(require 'use-package)
+
+(unless (package-installed-p 'exec-path-from-shell)
+  (package-install 'exec-path-from-shell))
+(use-package exec-path-from-shell
+  :config (exec-path-from-shell-initialize))
+
+(unless (package-installed-p 'alert)
+  (package-install 'alert))
+(use-package alert
+  :config (progn
+            (setq alert-fade-time 10)
+            (setq alert-default-style 'growl)
+            (setq alert-reveal-idle-time 120)))
+
+(set-face-attribute 'default nil :font "DejaVu LGC Sans Mono" :height 130)
+
+(setq make-pointer-invisible 1)
+
+(unless (package-installed-p 'key-chord)
+  (package-install 'key-chord))
+(use-package key-chord
+  :config (key-chord-mode 1))
+
+(menu-bar-mode 0)
+
+(setq-default fill-column 80)
+
+(unless (package-installed-p 'fill-column-indicator)
+  (package-install 'fill-column-indicator))
+(use-package fill-column-indicator
+  :config (add-hook 'prog-mode-hook 'fci-mode))
+
+(blink-cursor-mode 0)
+(setq-default cursor-type 'box)
+(setq x-stretch-cursor 1)
+
+(global-font-lock-mode 1)
+
+(setq blink-matching-paren nil)
+(show-paren-mode 1)
+(setq show-paren-delay 0)
+(setq show-paren-style 'expression)
+
+(setq ring-bell-function 'ignore)
+(setq visible-bell 1)
+
+(unless (package-installed-p 'winner)
+  (package-install 'winner))
+(use-package winner
+  :if (not noninteractive)
+  :diminish winner-mode
+  :init (winner-mode 1))
+
+(unless (package-installed-p 'ace-window)
+  (package-install 'ace-window))
+(use-package ace-window
+  :init (progn
+          (setq aw-keys '(?a ?o ?e ?u ?i ?d ?h ?t ?n))
+          (key-chord-define-global "mw" 'ace-window)))
+
+(defadvice yes-or-no-p (around prevent-dialog activate)
+  "Prevent yes-or-no-p from activating a dialog"
+  (let ((use-dialog-box nil))
+    ad-do-it))
+(defadvice y-or-n-p (around prevent-dialog-yorn activate)
+  "Prevent y-or-n-p from activating a dialog"
+  (let ((use-dialog-box nil))
+    ad-do-it))
+
+(scroll-bar-mode -1)
+(tool-bar-mode -1)
+
+(setq browse-url-browser-function 'browse-url-generic)
+
+(unless (package-installed-p 'osx-browse)
+  (package-install 'osx-browse))
+(use-package osx-browse
+  :init (osx-browse-mode 1))
+
+
+
 
 (defconst emacs-start-time (current-time))
 
@@ -35,7 +123,7 @@
 (require 'server)
 (unless (server-running-p) (server-start))
 
-(set-face-attribute 'default nil :font "DejaVu LGC Sans Mono" :height 130)
+
 
 (setq backup-directory-alist
       (list (cons "." (concat user-emacs-directory "backups"))))
@@ -138,11 +226,6 @@ Including indent-buffer, which should not be called automatically on save."
 (unless (package-installed-p 'fill-column-indicator)
   (package-install 'fill-column-indicator))
 (use-package fill-column-indicator)
-
-(unless (package-installed-p 'exec-path-from-shell)
-  (package-install 'exec-path-from-shell))
-(use-package exec-path-from-shell
-  :config (exec-path-from-shell-initialize))
 
 (unless (package-installed-p 'ace-jump-mode)
   (package-install 'ace-jump-mode))
@@ -358,24 +441,6 @@ Including indent-buffer, which should not be called automatically on save."
             (add-to-list 'tramp-default-proxies-alist
                          '("130\\.56\\." nil "/ssh:dap900@cloudlogin.nci.org.au:"))))
 
-(unless (package-installed-p 'window-number)
-  (package-install 'window-number))
-(use-package window-number
-  :init (progn
-          (window-number-mode 1)
-          (window-number-meta-mode 1)))
-
-(unless (package-installed-p 'winner)
-  (package-install 'winner))
-(use-package winner
-  :if (not noninteractive)
-  :diminish winner-mode
-
-  :init (progn
-          (winner-mode 1)
-          (bind-key "M-N" 'winner-redo)
-          (bind-key "M-P" 'winner-undo)))
-
 ;; ;;;_ , YAML mode
 
 (unless (package-installed-p 'yaml-mode)
@@ -531,9 +596,6 @@ Including indent-buffer, which should not be called automatically on save."
       message-sendmail-f-is-evil t
       ;; Need to tell msmtp which account we're using.
       message-sendmail-extra-arguments '("--read-envelope-from"))
-
-(setq user-mail-address "david.a.porter@gmail.com"
-      user-full-name    "David Porter")
 
 ;; Misc functions.
 
