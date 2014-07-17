@@ -35,7 +35,7 @@
 (require 'server)
 (unless (server-running-p) (server-start))
 
-(set-face-attribute 'default nil :font "DejaVu LGC Sans Mono" :height 140)
+(set-face-attribute 'default nil :font "DejaVu LGC Sans Mono" :height 130)
 
 (setq backup-directory-alist
       (list (cons "." (concat user-emacs-directory "backups"))))
