@@ -8,6 +8,12 @@
 
 (setq gc-cons-threshold (* 25 1024 1024))
 
+(require 'package)
+(package-initialize)
+(add-to-list 'package-archives
+             '("melpa" . "http://melpa.milkbox.net/packages/") t)
+(package-refresh-contents)
+
 (unless (package-installed-p 'use-package)
   (package-install 'use-package))
 (require 'use-package)
@@ -106,12 +112,6 @@
   (let ((file (file-name-sans-extension
                (expand-file-name path user-emacs-directory))))
     (load file noerror)))
-
-(require 'package)
-(package-initialize)
-(add-to-list 'package-archives
-             '("melpa" . "http://melpa.milkbox.net/packages/") t)
-(package-refresh-contents)
 
 (unless (package-installed-p 'use-package)
   (package-install 'use-package))
