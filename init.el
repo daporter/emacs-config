@@ -154,7 +154,7 @@ might be bad."
 (use-package ace-jump-mode
   :bind ("C-0" . ace-jump-mode)
   :init (progn
-          (key-chord-define-global "ht" 'ace-jump-mode)
+          (key-chord-define-global "nh" 'ace-jump-mode)
           (ace-jump-mode-enable-mark-sync)
           (bind-key"C-x SPC" 'ace-jump-mode-pop-mark)))
 
