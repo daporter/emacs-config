@@ -8,6 +8,9 @@
 
 (setq gc-cons-threshold (* 25 1024 1024))
 
+(setq user-data-directory
+      (concat (expand-file-name user-emacs-directory) "data/"))
+
 (require 'package)
 (package-initialize)
 (add-to-list 'package-archives
@@ -75,7 +78,7 @@
 (use-package ace-window
   :init (progn
           (setq aw-keys '(?a ?o ?e ?u ?i ?d ?h ?t ?n))
-          (key-chord-define-global "mw" 'ace-window)))
+          (key-chord-define-global "bm" 'ace-window)))
 
 (defadvice yes-or-no-p (around prevent-dialog activate)
   "Prevent yes-or-no-p from activating a dialog"
@@ -96,6 +99,279 @@
 (use-package osx-browse
   :init (osx-browse-mode 1))
 
+(unless (package-installed-p 'solarized-theme)
+  (package-install 'solarized-theme))
+(use-package solarized-theme
+  :config (progn
+            (setq solarized-distinct-fringe-background 1)
+            (setq solarized-high-contrast-mode-line 1)
+            (setq solarized-use-less-bold 1)
+            (setq solarized-use-more-italic nil)
+            (setq solarized-emphasize-indicators nil)
+            (load-theme 'solarized-dark t)))
+
+(unless (package-installed-p 'pretty-mode)
+  (package-install 'pretty-mode))
+(use-package pretty-mode)
+
+(setq make-pointer-invisible 1)
+
+(desktop-save-mode 1)
+(setq desktop-restore-eager 10)
+(setq desktop-dirname user-data-directory)
+
+(use-package uniquify
+  :config (setq uniquify-buffer-name-style 'forward))
+
+(setq backup-inhibited 1)
+
+(defun dap/cleanup-buffer-safe ()
+  "Perform a bunch of safe operations on the whitespace content of a buffer.
+Does not indent buffer, because it is used for a before-save-hook, and that
+might be bad."
+  (interactive)
+  (untabify-buffer)
+  (delete-trailing-whitespace)
+  (set-buffer-file-coding-system 'utf-8))
+
+(add-hook 'before-save-hook 'cleanup-buffer-safe)
+
+(prefer-coding-system 'utf-8)
+(setq x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING))
+
+(unless (package-installed-p 'undo-tree)
+  (package-install 'undo-tree))
+(use-package undo-tree
+  :diminish undo-tree-mode
+  :init (global-undo-tree-mode 1))
+
+(setq require-final-newline t)
+
+(global-auto-revert-mode 1)
+
+(unless (package-installed-p 'ace-jump-mode)
+  (package-install 'ace-jump-mode))
+(use-package ace-jump-mode
+  :bind ("C-0" . ace-jump-mode)
+  :init (progn
+          (key-chord-define-global "ht" 'ace-jump-mode)
+          (ace-jump-mode-enable-mark-sync)
+          (bind-key"C-x SPC" 'ace-jump-mode-pop-mark)))
+
+(let ((text-buffer (get-buffer-create "*text*")))
+  (with-current-buffer text-buffer
+    (text-mode)
+    (insert "Scratch text:\n\n")
+    (beginning-of-line)))
+
+(setq isearch-lax-whitespace 1)
+(setq isearch-regexp-lax-whitespace 1)
+
+(unless (package-installed-p 'boxquote)
+  (package-install 'boxquote))
+(use-package boxquote)
+
+(setq track-eol 1)
+(setq line-move-visual nil)
+
+(size-indication-mode)
+(column-number-mode 1)
+
+(defadvice kill-line (around kill-line-remove-newline activate)
+  (let ((kill-whole-line t))
+    ad-do-it))
+
+(delete-selection-mode 1)
+
+(fset 'yes-or-no-p 'y-or-n-p)
+
+(setq resize-mini-windows 1)
+(setq max-mini-window-height 0.33)
+
+(setq enable-recursive-minibuffers t)
+(minibuffer-depth-indicate-mode 1)
+
+(defadvice global-set-key (before check-keymapping activate)
+  (let* ((key (ad-get-arg 0))
+         (new-command (ad-get-arg 1))
+         (old-command (lookup-key global-map key)))
+    (when
+        (and
+         old-command
+         (not (equal old-command new-command))
+         (not (equal old-command 'digit-argument))
+         (not (equal old-command 'negative-argument))
+         (not (equal old-command 'ns-print-buffer))
+         (not (equal old-command 'move-beginning-of-line))
+         (not (equal old-command 'execute-extended-command))
+         (not (equal new-command 'execute-extended-command))
+         (not (equal old-command 'ns-prev-frame))
+         (not (equal old-command 'ns-next-frame))
+         (not (equal old-command 'mwheel-scroll))
+         (not (equal new-command 'diff-hl-mode))
+         )
+      (warn "Just stomped the global-map binding for %S, replaced %S with %S"
+            key old-command new-command))))
+
+(setq mac-control-modifier 'control)
+(setq mac-command-modifier 'meta)
+(setq mac-option-modifier 'super)
+
+(put 'upcase-region 'disabled nil)
+(put 'downcase-region 'disabled nil)
+
+(setq echo-keystrokes 0.02)
+
+(key-chord-define-global (concat "<" "_")
+                         (lambda () (interactive) (insert "←")))
+(key-chord-define-global (concat "_" ">")
+                         (lambda () (interactive) (insert "→")))
+
+(key-chord-define-global "hu" 'goto-line)
+
+(global-set-key (kbd "C-a") 'dap/beginning-of-line-dwim)
+
+(unless (package-installed-p 'expand-region)
+  (package-install 'expand-region))
+(use-package expand-region
+  :config (bind-key "C-'" 'er/expand-region))
+
+(unless (package-installed-p 'multiple-cursors)
+  (package-install 'multiple-cursors))
+(use-package multiple-cursors
+  :config (progn
+	    (setq mc/list-file (concat user-data-directory ".mc-lists.el"))
+	    (bind-key "M-9" 'mc/edit-lines)
+	    (bind-key "M-0" 'mc/mark-next-like-this)
+	    (bind-key "M--" 'mc/mark-all-like-this)
+	    (bind-key "M-8" 'mc/mark-previous-like-this)))
+
+(unless (package-installed-p 'smex)
+  (package-install 'smex))
+(use-package smex
+  :config (progn
+            (smex-initialize)
+            (global-set-key (kbd "M-x") 'smex)
+            (global-set-key (kbd "M-X") 'smex-major-mode-commands)
+            ;; This is your old M-x.
+            (global-set-key (kbd "C-c C-c M-x") 'execute-extended-command)))
+
+(unless (package-installed-p 'auto-complete)
+  (package-install 'auto-complete))
+(use-package auto-complete-config
+  :config (progn
+            (ac-config-default)
+            (ac-set-trigger-key "TAB")
+	    (bind-key "s-<tab>" 'auto-complete)
+	    
+            (ac-flyspell-workaround)
+
+            (setq ac-comphist-file
+                  (concat user-data-directory "ac-comphist.dat"))
+
+            ;; Advice for whitespace-mode conflict.
+            ;; Copied from https://github.com/bbatsov/prelude/issues/19
+            (defvar my-prev-whitespace-mode nil)
+            (make-variable-buffer-local 'my-prev-whitespace-mode)
+
+            (defadvice popup-draw (before my-turn-off-whitespace)
+              "Turn off whitespace mode before showing autocomplete box"
+              (make-local-variable 'my-prev-whitespace-mode)
+              (if whitespace-mode
+                  (progn
+                    (setq my-prev-whitespace-mode t)
+                    (whitespace-mode -1))
+                (setq my-prev-whitespace-mode nil)))
+
+            (defadvice popup-delete (after my-restore-whitespace)
+              "Restore previous whitespace mode when deleting autocomplete box"
+              (if my-prev-whitespace-mode
+                  (whitespace-mode 1)))
+
+            (ad-activate 'popup-draw)
+            (ad-activate 'popup-delete)))
+
+(unless (package-installed-p 'yasnippet)
+  (package-install 'yasnippet))
+(use-package yasnippet
+  :mode     ("/\\.emacs\\.d/snippets/" . snippet-mode)
+  :commands (yas/minor-mode yas/expand)
+  :diminish yas/minor-mode
+
+  ;; :init (yas-global-mode 1)
+
+  :config (progn
+            (setq yas-snippet-dirs     (concat user-emacs-directory "snippets")
+                  yas-prompt-functions '(yas/ido-prompt yas/completing-prompt))
+
+            ;; Use only my own snippets, not the bundled ones.
+            (yas-load-directory yas-snippet-dirs)
+	    (bind-key "C-4" 'yas/expand)))
+
+(bind-key "C-5"        'comment-dwim)
+(bind-key "s-<return>" 'dap/smart-open-line)
+(bind-key "C-7"        'dap/insert-timestamp)
+(bind-key "M-7"        'dap/insert-datestamp)
+
+(bind-key "C-<f2>" 'emacs-index-search)
+(bind-key "S-<f2>" 'elisp-index-search)
+
+(unless (package-installed-p 'imenu-anywhere)
+  (package-install 'imenu-anywhere))
+(use-package imenu-anywhere
+  :bind ("C-<f3>". imenu-anywhere))
+
+(bind-key "s-<up>"   'enlarge-window)
+(bind-key "s-<down>" 'shrink-window)
+(bind-key "s-<right>"'enlarge-window-horizontally)
+(bind-key "s-<left>" 'shrink-window-horizontally)
+
+
+
+
+(defun dap/beginning-of-line-dwim ()
+  "Toggles between moving point to the first non-whitespace
+    character, and the start of the line. Src:
+    http://www.wilfred.me.uk/"
+  (interactive)
+  (let ((start-position (point)))
+    ;; see if going to the beginning of the line changes our position
+    (move-beginning-of-line nil)
+
+    (when (= (point) start-position)
+      ;; we're already at the beginning of the line, so go to the
+      ;; first non-whitespace character
+      (back-to-indentation))))
+
+(defun dap/smart-open-line ()
+  "Insert a new line, indent it, and move the cursor there.
+
+This behavior is different then the typical function bound to return
+which may be `open-line' or `newline-and-indent'. When you call with
+the cursor between ^ and $, the contents of the line to the right of
+it will be moved to the newly inserted line. This function will not
+do that. The current line is left alone, a new line is inserted, indented,
+and the cursor is moved there.
+
+Attribution: URL http://emacsredux.com/blog/2013/03/26/smarter-open-line/"
+  (interactive)
+  (move-end-of-line nil)
+  (newline-and-indent))
+
+(defun dap/insert-timestamp ()
+  "Produces and inserts a full ISO 8601 format timestamp."
+  (interactive)
+  (insert (format-time-string "%Y-%m-%dT%T%z")))
+
+(defun dap/insert-datestamp ()
+  "Produces and inserts a partial ISO 8601 format timestamp."
+  (interactive)
+  (insert (format-time-string "%Y-%m-%d")))
+
+
+
+
+
 
 
 
@@ -103,9 +379,6 @@
 
 (unless noninteractive
   (message "Loading %s..." load-file-name))
-
-(setq user-data-directory
-      (concat (expand-file-name user-emacs-directory) "data/"))
 
 (defun phunculist/load-init-file (path &optional noerror)
   "This loads a file from inside the the .emacs.d directory"
@@ -163,17 +436,6 @@
   (interactive)
   (indent-region (point-min) (point-max)))
 
-(defun cleanup-buffer-safe ()
-  "Perform a bunch of safe operations on the whitespace content of a buffer.
-Does not indent buffer, because it is used for a before-save-hook, and that
-might be bad."
-  (interactive)
-  (untabify-buffer)
-  (delete-trailing-whitespace)
-  (set-buffer-file-coding-system 'utf-8))
-
-(add-hook 'before-save-hook 'cleanup-buffer-safe)
-
 (defun cleanup-buffer ()
   "Perform a bunch of operations on the whitespace content of a buffer.
 Including indent-buffer, which should not be called automatically on save."
@@ -185,52 +447,9 @@ Including indent-buffer, which should not be called automatically on save."
 
 ;;;_. Packages
 
-(unless (package-installed-p 'auto-complete)
-  (package-install 'auto-complete))
-(use-package auto-complete-config
-  :config (progn
-            (ac-config-default)
-            (ac-set-trigger-key "TAB")
-            (ac-flyspell-workaround)
-
-            (setq ac-comphist-file
-                  (concat user-data-directory "ac-comphist.dat"))
-
-            ;; Advice for whitespace-mode conflict.
-            ;; Copied from https://github.com/bbatsov/prelude/issues/19
-            (defvar my-prev-whitespace-mode nil)
-            (make-variable-buffer-local 'my-prev-whitespace-mode)
-
-            (defadvice popup-draw (before my-turn-off-whitespace)
-              "Turn off whitespace mode before showing autocomplete box"
-              (make-local-variable 'my-prev-whitespace-mode)
-              (if whitespace-mode
-                  (progn
-                    (setq my-prev-whitespace-mode t)
-                    (whitespace-mode -1))
-                (setq my-prev-whitespace-mode nil)))
-
-            (defadvice popup-delete (after my-restore-whitespace)
-              "Restore previous whitespace mode when deleting autocomplete box"
-              (if my-prev-whitespace-mode
-                  (whitespace-mode 1)))
-
-            (ad-activate 'popup-draw)
-            (ad-activate 'popup-delete)))
-
-(unless (package-installed-p 'solarized-theme)
-  (package-install 'solarized-theme))
-(use-package solarized-theme
-  :config (load-theme 'solarized-dark t))
-
 (unless (package-installed-p 'fill-column-indicator)
   (package-install 'fill-column-indicator))
 (use-package fill-column-indicator)
-
-(unless (package-installed-p 'ace-jump-mode)
-  (package-install 'ace-jump-mode))
-(use-package ace-jump-mode
-  :bind ("C-c j" . ace-jump-mode))
 
 (unless (package-installed-p 'ag)
   (package-install 'ag))
@@ -275,16 +494,6 @@ Including indent-buffer, which should not be called automatically on save."
             (use-package ido-ubiquitous
               :config (ido-ubiquitous-mode 1))))
 
-(unless (package-installed-p 'smex)
-  (package-install 'smex))
-(use-package smex
-  :config (progn
-            (smex-initialize)
-            (global-set-key (kbd "M-x") 'smex)
-            (global-set-key (kbd "M-X") 'smex-major-mode-commands)
-            ;; This is your old M-x.
-            (global-set-key (kbd "C-c C-c M-x") 'execute-extended-command)))
-
 (unless (package-installed-p 'magit)
   (package-install 'magit))
 (use-package magit
@@ -295,11 +504,6 @@ Including indent-buffer, which should not be called automatically on save."
           (use-package magit-commit-training-wheels
             :init (ad-activate 'magit-log-edit-commit))
           (setq magit-emacsclient-executable "/usr/local/bin/emacsclient")))
-
-(unless (package-installed-p 'multiple-cursors)
-  (package-install 'multiple-cursors))
-(use-package multiple-cursors
-  :config (setq mc/list-file (concat user-data-directory ".mc-lists.el")))
 
 (unless (package-installed-p 'smartparens)
   (package-install 'smartparens))
@@ -322,16 +526,8 @@ Including indent-buffer, which should not be called automatically on save."
 
 ;;;_ , undo-tree
 
-(unless (package-installed-p 'undo-tree)
-  (package-install 'undo-tree))
-(use-package undo-tree
-  :diminish undo-tree-mode
-  :init (global-undo-tree-mode 1))
-
 ;;;_ , uniquify
 
-(use-package uniquify
-  :config (setq uniquify-buffer-name-style 'forward))
 
 ;;;_ , web-mode
 
@@ -450,21 +646,6 @@ Including indent-buffer, which should not be called automatically on save."
 
 ;; ;;;_ , yasnippet
 
-(unless (package-installed-p 'yasnippet)
-  (package-install 'yasnippet))
-(use-package yasnippet
-  :mode     ("/\\.emacs\\.d/snippets/" . snippet-mode)
-  :commands (yas/minor-mode yas/expand)
-  :diminish yas/minor-mode
-
-  ;; :init (yas-global-mode 1)
-
-  :config (progn
-            (setq yas-snippet-dirs     (concat user-emacs-directory "snippets")
-                  yas-prompt-functions '(yas/ido-prompt yas/completing-prompt))
-
-            ;; Use only my own snippets, not the bundled ones.
-            (yas-load-directory yas-snippet-dirs)))
 
 (unless (package-installed-p 'keyfreq)
   (package-install 'keyfreq))
@@ -641,8 +822,3 @@ Including indent-buffer, which should not be called automatically on save."
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
-;; ;; Local Variables:
-;; ;;   mode: emacs-lisp
-;; ;;   mode: allout
-;; ;;   outline-regexp: "^;;;_\\([,. ]+\\)"
-;; ;; End:
