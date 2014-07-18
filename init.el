@@ -298,7 +298,8 @@ Including indent-buffer, which should not be called automatically on save."
 
 (unless (package-installed-p 'multiple-cursors)
   (package-install 'multiple-cursors))
-(use-package multiple-cursors)
+(use-package multiple-cursors
+  :config (setq mc/list-file (concat user-data-directory ".mc-lists.el")))
 
 (unless (package-installed-p 'smartparens)
   (package-install 'smartparens))
