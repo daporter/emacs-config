@@ -10,6 +10,22 @@
 
 (setq user-data-directory
       (concat (expand-file-name user-emacs-directory) "data/"))
+(setq recentf-save-file (concat user-data-directory "recentf"))
+(setq url-cache-directory (concat user-data-directory "url/cache"))
+
+(setq backup-directory-alist
+      (list (cons "." (concat user-emacs-directory "backups"))))
+
+(setq auto-save-list-file-prefix
+      (concat user-emacs-directory "backups/auto-save-list/.saves-"))
+
+;; Keep all auto-save files in the temp directory.
+(setq auto-save-file-name-transforms
+      `((".*" ,temporary-file-directory t)))
+
+;; Use GNU Coreutils version of `ls', which is called `gls' when installed via
+;; Homebrew.
+(setq insert-directory-program "gls")
 
 (require 'package)
 (package-initialize)
@@ -42,8 +58,6 @@
   (package-install 'key-chord))
 (use-package key-chord
   :config (key-chord-mode 1))
-
-(menu-bar-mode 0)
 
 (setq-default fill-column 80)
 
@@ -130,11 +144,11 @@
 Does not indent buffer, because it is used for a before-save-hook, and that
 might be bad."
   (interactive)
-  (untabify-buffer)
+  (dap/untabify-buffer)
   (delete-trailing-whitespace)
   (set-buffer-file-coding-system 'utf-8))
 
-(add-hook 'before-save-hook 'cleanup-buffer-safe)
+(add-hook 'before-save-hook 'dap/cleanup-buffer-safe)
 
 (prefer-coding-system 'utf-8)
 (setq x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING))
@@ -240,11 +254,11 @@ might be bad."
   (package-install 'multiple-cursors))
 (use-package multiple-cursors
   :config (progn
-	    (setq mc/list-file (concat user-data-directory ".mc-lists.el"))
-	    (bind-key "M-9" 'mc/edit-lines)
-	    (bind-key "M-0" 'mc/mark-next-like-this)
-	    (bind-key "M--" 'mc/mark-all-like-this)
-	    (bind-key "M-8" 'mc/mark-previous-like-this)))
+            (setq mc/list-file (concat user-data-directory ".mc-lists.el"))
+            (bind-key "M-9" 'mc/edit-lines)
+            (bind-key "M-0" 'mc/mark-next-like-this)
+            (bind-key "M--" 'mc/mark-all-like-this)
+            (bind-key "M-8" 'mc/mark-previous-like-this)))
 
 (unless (package-installed-p 'smex)
   (package-install 'smex))
@@ -259,15 +273,18 @@ might be bad."
 (unless (package-installed-p 'auto-complete)
   (package-install 'auto-complete))
 (use-package auto-complete-config
+  :diminish auto-complete-mode
   :config (progn
-            (ac-config-default)
-            (ac-set-trigger-key "TAB")
-	    (bind-key "s-<tab>" 'auto-complete)
-	    
-            (ac-flyspell-workaround)
-
+            (setq ac-quick-help-prefer-pos-tip nil)
             (setq ac-comphist-file
                   (concat user-data-directory "ac-comphist.dat"))
+
+            (ac-config-default)
+            (setq ac-auto-start nil)
+            (ac-set-trigger-key "TAB")
+            (bind-key "s-<tab>" 'auto-complete)
+
+            (ac-flyspell-workaround)
 
             ;; Advice for whitespace-mode conflict.
             ;; Copied from https://github.com/bbatsov/prelude/issues/19
@@ -297,16 +314,14 @@ might be bad."
   :mode     ("/\\.emacs\\.d/snippets/" . snippet-mode)
   :commands (yas/minor-mode yas/expand)
   :diminish yas/minor-mode
-
-  ;; :init (yas-global-mode 1)
-
+  :init (yas-global-mode 1)
   :config (progn
             (setq yas-snippet-dirs     (concat user-emacs-directory "snippets")
                   yas-prompt-functions '(yas/ido-prompt yas/completing-prompt))
 
             ;; Use only my own snippets, not the bundled ones.
             (yas-load-directory yas-snippet-dirs)
-	    (bind-key "C-4" 'yas/expand)))
+            (bind-key "C-4" 'yas/expand)))
 
 (bind-key "C-5"        'comment-dwim)
 (bind-key "s-<return>" 'dap/smart-open-line)
@@ -325,6 +340,149 @@ might be bad."
 (bind-key "s-<down>" 'shrink-window)
 (bind-key "s-<right>"'enlarge-window-horizontally)
 (bind-key "s-<left>" 'shrink-window-horizontally)
+
+(setq-default ispell-program-name "aspell")
+
+(unless (package-installed-p 'whitespace)
+  (package-install 'whitespace))
+(use-package whitespace
+  :diminish (global-whitespace-mode
+             whitespace-mode)
+  :config (progn
+            (setq whitespace-line-column 80)
+            (setq whitespace-style '(trailing lines tab-mark))
+            (global-whitespace-mode 1)))
+
+(unless (package-installed-p 'rainbow-mode)
+  (package-install 'rainbow-mode))
+(use-package rainbow-mode
+  :diminish rainbow-mode
+  :config (rainbow-mode 1))
+
+(use-package ido
+  :config (progn
+            (ido-mode 1)
+            (ido-everywhere 1)
+
+            ;; Disable ido faces to see flx highlights.
+            (setq ido-enable-flex-matching t)
+            (setq ido-use-faces            nil)
+            (setq ido-create-new-buffer    'always)
+
+            (setq ido-save-directory-list-file
+                  (concat user-data-directory "ido.last"))
+
+            (unless (package-installed-p 'ido-vertical-mode)
+              (package-install 'ido-vertical-mode))
+            (use-package ido-vertical-mode
+              :config (ido-vertical-mode 1))
+
+            (unless (package-installed-p 'ido-hacks)
+              (package-install 'ido-hacks))
+            (use-package ido-hacks)
+
+            (unless (package-installed-p 'flx-ido)
+              (package-install 'flx-ido))
+            (use-package flx-ido
+              :config (flx-ido-mode 1))
+
+            (unless (package-installed-p 'ido-ubiquitous)
+              (package-install 'ido-ubiquitous))
+            (use-package ido-ubiquitous
+              :config (ido-ubiquitous-mode 1))))
+
+(unless (package-installed-p 'projectile)
+  (package-install 'projectile))
+(use-package projectile
+  :config (progn
+            (setq projectile-cache-file
+                  (concat user-data-directory "projectile.cache"))
+            (projectile-global-mode 1)))
+
+(unless (package-installed-p 'smartparens)
+  (package-install 'smartparens))
+(use-package smartparens-config
+  :diminish smartparens-mode
+  :config (progn
+            (show-smartparens-global-mode 1)
+            (setq sp-show-pair-from-inside nil)))
+
+(use-package tramp
+  :config (progn
+            ;; Configure Tramp for use with NCI cloud VMs.
+            (add-to-list 'tramp-default-proxies-alist
+                         '("130\\.56\\."
+                           nil
+                           "/ssh:dap900@cloudlogin.nci.org.au:"))))
+
+(setq dired-listing-switches  "-alh")
+(setq dired-recursive-deletes 1)
+
+(unless (package-installed-p 'dired-details+)
+  (package-install 'dired-details+))
+(use-package dired-details+
+  :config (setq-default dired-details-hidden-string ""))
+
+(unless (package-installed-p 'diff-hl)
+  (package-install 'diff-hl))
+(use-package diff-hl)
+
+(defun dap/dired-mode-hook ()
+  "Personal dired customizations."
+  (diff-hl-dired-mode 1)
+  (use-package dired-x))
+
+(add-hook 'dired-mode-hook 'dap/dired-mode-hook)
+
+(use-package find-dired
+  :config (setq find-ls-option '("-print0 | xargs -0 ls -ld" . "-ld")))
+
+(use-package wdired
+  :config (progn
+            (setq wdired-allow-to-change-permissions t)
+            (setq wdired-allow-to-redirect-links     t)
+            (setq wdired-use-interactive-rename      t)
+            (setq wdired-confirm-overwrite           t)
+            (setq wdired-use-dired-vertical-movement 'sometimes)))
+
+(let ((savehist-file-store (concat user-data-directory "savehist")))
+  (when (not (file-exists-p savehist-file-store))
+    (warn
+     (concat "Can't seem to find a savehist store file where it was expected "
+             "at: " savehist-file-store " . Savehist should continue "
+             "to function normally; but your history may be lost.")))
+  (setq savehist-file savehist-file-store))
+(savehist-mode 1)
+(setq savehist-save-minibuffer-history 1)
+(setq savehist-additional-variables
+      '(kill-ring
+        search-ring
+        regexp-search-ring))
+
+(unless (package-installed-p 'hideshow-org)
+  (package-install 'hideshow-org))
+(use-package hideshow-org)
+(setq hs-hide-comments-when-hiding-all 1)
+(setq hs-isearch-open 1)
+
+(defun dap/display-code-line-counts (ov)
+  "Displaying overlay content in echo area or tooltip"
+  (when (eq 'code (overlay-get ov 'hs))
+    (overlay-put ov 'help-echo
+                 (buffer-substring (overlay-start ov)
+                                   (overlay-end ov)))))
+
+(setq hs-set-up-overlay 'dap/display-code-line-counts)
+
+(defadvice goto-line (after expand-after-goto-line activate compile)
+  "How do I get it to expand upon a goto-line? hideshow-expand affected block when using goto-line in a collapsed buffer."
+  (save-excursion
+    (hs-show-block)))
+
+(unless (package-installed-p 'flycheck)
+  (package-install 'flycheck))
+(use-package flycheck
+  :init (global-flycheck-mode 1))
 
 
 
@@ -368,131 +526,94 @@ Attribution: URL http://emacsredux.com/blog/2013/03/26/smarter-open-line/"
   (interactive)
   (insert (format-time-string "%Y-%m-%d")))
 
-
-
-
-
-
-
-
-(defconst emacs-start-time (current-time))
-
-(unless noninteractive
-  (message "Loading %s..." load-file-name))
-
-(defun phunculist/load-init-file (path &optional noerror)
-  "This loads a file from inside the the .emacs.d directory"
-  (let ((file (file-name-sans-extension
-               (expand-file-name path user-emacs-directory))))
-    (load file noerror)))
-
-(unless (package-installed-p 'use-package)
-  (package-install 'use-package))
-(require 'use-package)
-(eval-when-compile
-  (setq use-package-verbose (null byte-compile-current-file)))
-
-;; Emacs server
-(require 'server)
-(unless (server-running-p) (server-start))
-
-
-
-(setq backup-directory-alist
-      (list (cons "." (concat user-emacs-directory "backups"))))
-
-(setq auto-save-list-file-prefix
-      (concat user-emacs-directory "backups/auto-save-list/.saves-"))
-
-;; Keep all auto-save files in the temp directory.
-(setq auto-save-file-name-transforms
-      `((".*" ,temporary-file-directory t)))
-
-(setq recentf-save-file (concat user-data-directory "recentf"))
-(setq url-cache-directory (concat user-data-directory "url/cache"))
-
-;; Use GNU Coreutils version of `ls', which is called `gls' when installed via
-;; Homebrew.
-(setq insert-directory-program "gls")
-
-;; Replace list-buffers with ibuffer.
-(defalias 'list-buffers 'ibuffer)
-
-(defmacro hook-into-modes (func modes)
-  `(dolist (mode-hook ,modes)
-     (add-hook mode-hook ,func)))
-
-;; "y or n" instead of "yes or no"
-(fset 'yes-or-no-p 'y-or-n-p)
-
-(add-hook 'text-mode-hook 'turn-on-flyspell)
-(add-hook 'prog-mode-hook 'flyspell-prog-mode)
-
-(defun untabify-buffer ()
+(defun dap/untabify-buffer ()
   (interactive)
   (untabify (point-min) (point-max)))
 
-(defun indent-buffer ()
+(defun dap/untabify-buffer-hook ()
+  "Adds a buffer-local untabify on save hook"
   (interactive)
-  (indent-region (point-min) (point-max)))
+  (add-hook 'after-save-hook
+            (lambda () (dap/untabify-buffer))
+            nil
+            'true))
 
-(defun cleanup-buffer ()
-  "Perform a bunch of operations on the whitespace content of a buffer.
-Including indent-buffer, which should not be called automatically on save."
-  (interactive)
-  (cleanup-buffer-safe)
-  (indent-buffer))
+(defun dap/text-mode-hook ()
+  (rainbow-mode)
+  (fci-mode)
+  (visual-line-mode)
+  (dap/untabify-buffer-hook))
 
-(bind-key "C-c n" 'cleanup-buffer)
+(add-hook 'text-mode-hook 'dap/text-mode-hook)
 
-;;;_. Packages
 
-(unless (package-installed-p 'fill-column-indicator)
-  (package-install 'fill-column-indicator))
-(use-package fill-column-indicator)
+
+
+
+
+;; (defconst emacs-start-time (current-time))
+
+;; (unless noninteractive
+;;   (message "Loading %s..." load-file-name))
+
+;; (defun phunculist/load-init-file (path &optional noerror)
+;;   "This loads a file from inside the the .emacs.d directory"
+;;   (let ((file (file-name-sans-extension
+;;                (expand-file-name path user-emacs-directory))))
+;;     (load file noerror)))
+
+;; (unless (package-installed-p 'use-package)
+;;   (package-install 'use-package))
+;; (require 'use-package)
+;; (eval-when-compile
+;;   (setq use-package-verbose (null byte-compile-current-file)))
+
+;; ;; Emacs server
+;; (require 'server)
+;; (unless (server-running-p) (server-start))
+
+
+
+
+;; ;; Replace list-buffers with ibuffer.
+;; (defalias 'list-buffers 'ibuffer)
+
+;; (defmacro hook-into-modes (func modes)
+;;   `(dolist (mode-hook ,modes)
+;;      (add-hook mode-hook ,func)))
+
+;; ;; "y or n" instead of "yes or no"
+;; (fset 'yes-or-no-p 'y-or-n-p)
+
+;; (add-hook 'text-mode-hook 'turn-on-flyspell)
+;; (add-hook 'prog-mode-hook 'flyspell-prog-mode)
+
+;; (defun indent-buffer ()
+;;   (interactive)
+;;   (indent-region (point-min) (point-max)))
+
+;; (defun cleanup-buffer ()
+;;   "Perform a bunch of operations on the whitespace content of a buffer.
+;; Including indent-buffer, which should not be called automatically on save."
+;;   (interactive)
+;;   (cleanup-buffer-safe)
+;;   (indent-buffer))
+
+;; (bind-key "C-c n" 'cleanup-buffer)
+
+;; ;;;_. Packages
+
+;; (unless (package-installed-p 'fill-column-indicator)
+;;   (package-install 'fill-column-indicator))
+;; (use-package fill-column-indicator)
 
 (unless (package-installed-p 'ag)
   (package-install 'ag))
 (use-package ag)
 
-(unless (package-installed-p 'projectile)
-  (package-install 'projectile))
-(use-package projectile
-  :config (progn
-            (setq projectile-cache-file
-                  (concat user-data-directory "projectile.cache"))
 
-            (unless (package-installed-p 'flx-ido)
-              (package-install 'flx-ido))
-            (use-package flx-ido)
-            (projectile-global-mode 1)))
 
-(use-package ido
-  :config (progn
-            (ido-mode 1)
-            (ido-everywhere 1)
 
-            ;; Disable ido faces to see flx highlights.
-            (setq ido-enable-flex-matching t)
-            (setq ido-use-faces            nil)
-
-            (setq ido-save-directory-list-file
-                  (concat user-data-directory "ido.last"))
-
-            (unless (package-installed-p 'ido-vertical-mode)
-              (package-install 'ido-vertical-mode))
-            (use-package ido-vertical-mode
-              :config (ido-vertical-mode 1))
-
-            (unless (package-installed-p 'flx-ido)
-              (package-install 'flx-ido))
-            (use-package flx-ido
-              :config (flx-ido-mode 1))
-
-            (unless (package-installed-p 'ido-ubiquitous)
-              (package-install 'ido-ubiquitous))
-            (use-package ido-ubiquitous
-              :config (ido-ubiquitous-mode 1))))
 
 (unless (package-installed-p 'magit)
   (package-install 'magit))
@@ -505,101 +626,33 @@ Including indent-buffer, which should not be called automatically on save."
             :init (ad-activate 'magit-log-edit-commit))
           (setq magit-emacsclient-executable "/usr/local/bin/emacsclient")))
 
-(unless (package-installed-p 'smartparens)
-  (package-install 'smartparens))
-(use-package smartparens)
+;; ;; ;;;_ , AUCTeX
 
-;; ;;;_ , AUCTeX
+;; ;; (use-package tex-site
+;; ;;   :load-path "site-lisp/auctex/preview/"
 
-;; (use-package tex-site
-;;   :load-path "site-lisp/auctex/preview/"
+;; ;;   :init (progn
+;; ;;           (hook-into-modes 'TeX-source-correlate-mode '(LaTeX-mode-hook))
+;; ;;           (hook-into-modes 'TeX-PDF-mode '(LaTeX-mode-hook))
+;; ;;           (hook-into-modes (lambda ()
+;; ;;                              (add-to-list 'TeX-expand-list
+;; ;;                                           '("%q" make-skim-url)))
+;; ;;                            '(LaTeX-mode-hook))
 
-;;   :init (progn
-;;           (hook-into-modes 'TeX-source-correlate-mode '(LaTeX-mode-hook))
-;;           (hook-into-modes 'TeX-PDF-mode '(LaTeX-mode-hook))
-;;           (hook-into-modes (lambda ()
-;;                              (add-to-list 'TeX-expand-list
-;;                                           '("%q" make-skim-url)))
-;;                            '(LaTeX-mode-hook))
+;; ;;           (use-package))
 
-;;           (use-package))
+;; ;;;_ , undo-tree
 
-;;;_ , undo-tree
-
-;;;_ , uniquify
+;; ;;;_ , uniquify
 
 
-;;;_ , web-mode
+;; ;;;_ , web-mode
 
-;; (use-package web-mode
-;;   :init (add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode)))
+;; ;; (use-package web-mode
+;; ;;   :init (add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode)))
 
-;;;_ , whitespace
+;; ;;;_ , whitespace
 
-(unless (package-installed-p 'whitespace)
-  (package-install 'whitespace))
-(use-package whitespace
-  :diminish (global-whitespace-mode
-             whitespace-mode
-             whitespace-newline-mode)
-  :commands (whitespace-buffer
-             whitespace-cleanup
-             whitespace-mode)
-  :init (progn
-          (hook-into-modes 'whitespace-mode
-                           '(prog-mode-hook
-                             c-mode-common-hook
-                             ruby-mode-hook
-                             haml-mode-hook))
-
-          (defun normalize-file ()
-            (interactive)
-            (save-excursion
-              (goto-char (point-min))
-              (whitespace-cleanup)
-              (delete-trailing-whitespace)
-              (goto-char (point-max))
-              (delete-blank-lines)
-              (set-buffer-file-coding-system 'unix)
-              (goto-char (point-min))
-              (while (re-search-forward "\r$" nil t)
-                (replace-match ""))
-              (set-buffer-file-coding-system 'utf-8)
-              (let ((require-final-newline t))
-                (save-buffer))))
-
-          (defun maybe-turn-on-whitespace ()
-            "Depending on the file, maybe clean up whitespace."
-            (let ((file (expand-file-name ".clean"))
-                  parent-dir)
-              (while (and (not (file-exists-p file))
-                          (progn
-                            (setq parent-dir
-                                  (file-name-directory
-                                   (directory-file-name
-                                    (file-name-directory file))))
-                            ;; Give up if we are already at the root dir.
-                            (not (string= (file-name-directory file)
-                                          parent-dir))))
-                ;; Move up to the parent dir and try again.
-                (setq file (expand-file-name ".clean" parent-dir)))
-              ;; If we found a change log in a parent, use that.
-              (when (and (file-exists-p file)
-                         (not (file-exists-p ".noclean"))
-                         (not (and buffer-file-name
-                                   (string-match "\\.texi\\'"
-                                                 buffer-file-name))))
-                (add-hook 'write-contents-hooks
-                          #'(lambda ()
-                              (ignore (whitespace-cleanup))) nil t)
-                (whitespace-cleanup))))
-
-          (add-hook 'find-file-hooks 'maybe-turn-on-whitespace t))
-
-  :config (progn
-            (remove-hook 'find-file-hooks 'whitespace-buffer)
-            (remove-hook 'kill-buffer-hook 'whitespace-buffer)
-            (setq whitespace-style '(empty face tabs trailing))))
 
 
 (unless (package-installed-p 'dash-at-point)
@@ -618,7 +671,7 @@ Including indent-buffer, which should not be called automatically on save."
             (unless (package-installed-p 'flymake-puppet)
               (package-install 'flymake-puppet))
             (use-package flymake-puppet
-              :init (hook-into-modes 'flymake-puppet-load '(puppet-mode-hook)))))
+              :init (add-hook 'puppet-mode-hook 'flymake-puppet-load))))
 
 (unless (package-installed-p 'flymake-cursor)
   (package-install 'flymake-cursor))
@@ -632,25 +685,19 @@ Including indent-buffer, which should not be called automatically on save."
               (package-install 'markdown-mode+))
             (use-package markdown-mode+)))
 
-(use-package tramp
-  :config (progn
-            ;; Configure Tramp for use with NCI cloud VMs.
-            (add-to-list 'tramp-default-proxies-alist
-                         '("130\\.56\\." nil "/ssh:dap900@cloudlogin.nci.org.au:"))))
+;; ;; ;;;_ , YAML mode
 
-;; ;;;_ , YAML mode
+;; (unless (package-installed-p 'yaml-mode)
+;;   (package-install 'yaml-mode))
+;; (use-package yaml-mode)
 
-(unless (package-installed-p 'yaml-mode)
-  (package-install 'yaml-mode))
-(use-package yaml-mode)
-
-;; ;;;_ , yasnippet
+;; ;; ;;;_ , yasnippet
 
 
-(unless (package-installed-p 'keyfreq)
-  (package-install 'keyfreq))
-(use-package keyfreq
-  :init (keyfreq-mode 1))
+;; (unless (package-installed-p 'keyfreq)
+;;   (package-install 'keyfreq))
+;; (use-package keyfreq
+;;   :init (keyfreq-mode 1))
 
 (unless (package-installed-p 'ledger-mode)
   (package-install 'ledger-mode))
@@ -689,9 +736,9 @@ Including indent-buffer, which should not be called automatically on save."
                     (".*" . "gmail/sent")))
 
             (setq notmuch-saved-searches
-                  '((:name "unread" :query "tag:unread" :sort-order oldest-first)
-                    (:name "anu unread" :query "tag:anu AND tag:unread" :sort-order oldest-first)
+                  '((:name "anu unread" :query "tag:anu AND tag:unread" :sort-order oldest-first)
                     (:name "gmail unread" :query "tag:gmail AND tag:unread" :sort-order oldest-first)
+                    (:name "unread" :query "tag:unread" :sort-order oldest-first)
                     (:name "inbox" :query "tag:inbox" :sort-order newest-first)
                     (:name "flagged" :query "tag:flagged" :sort-order newest-first)
                     (:name "drafts" :query "tag:draft" :sort-order newest-first)
@@ -781,28 +828,28 @@ Including indent-buffer, which should not be called automatically on save."
 
 ;; Misc functions.
 
-(defun goto-line-with-feedback ()
-  "Show line numbers temporarily, while prompting for the line number input"
-  (interactive)
-  (unwind-protect
-      (progn
-        (linum-mode 1)
-        (call-interactively 'goto-line))
-    (linum-mode -1)))
+;; (defun goto-line-with-feedback ()
+;;   "Show line numbers temporarily, while prompting for the line number input"
+;;   (interactive)
+;;   (unwind-protect
+;;       (progn
+;;         (linum-mode 1)
+;;         (call-interactively 'goto-line))
+;;     (linum-mode -1)))
 
-;; Make "RET" do whatever "M-j" does.
-(defun phunculist/rebind-return ()
-  (local-set-key (kbd "RET") (key-binding (kbd "M-j"))))
+;; ;; Make "RET" do whatever "M-j" does.
+;; (defun phunculist/rebind-return ()
+;;   (local-set-key (kbd "RET") (key-binding (kbd "M-j"))))
 
-(hook-into-modes 'phunculist/rebind-return '(prog-mode-hook))
+;; (hook-into-modes 'phunculist/rebind-return '(prog-mode-hook))
 
-;; Colorise ansi escape codes in compilation buffers.
-(require 'ansi-color)
-(defun colorize-compilation-buffer ()
-  (read-only-mode -1)
-  (ansi-color-apply-on-region (point-min) (point-max))
-  (read-only-mode 1))
-(add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
+;; ;; Colorise ansi escape codes in compilation buffers.
+;; (require 'ansi-color)
+;; (defun colorize-compilation-buffer ()
+;;   (read-only-mode -1)
+;;   (ansi-color-apply-on-region (point-min) (point-max))
+;;   (read-only-mode 1))
+;; (add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
 
 ;; Use ediff in single-frame mode.
 (setq ediff-window-setup-function 'ediff-setup-windows-plain)
