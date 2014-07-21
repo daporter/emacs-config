@@ -730,10 +730,7 @@ Attribution: URL http://emacsredux.com/blog/2013/03/26/smarter-open-line/"
 
             (setq notmuch-archive-tags '("-inbox" "-unread" "+archive"))
 
-            (setq notmuch-fcc-dirs
-                  '(("david.a.porter@gmail.com" . "gmail/sent")
-                    ("david.porter@anu.edu.au"  . "anu/sent")
-                    (".*" . "gmail/sent")))
+            (setq notmuch-fcc-dirs nil)
 
             (setq notmuch-saved-searches
                   '((:name "anu unread" :query "tag:anu AND tag:unread" :sort-order oldest-first)
