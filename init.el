@@ -27,6 +27,10 @@
 ;; Homebrew.
 (setq insert-directory-program "gls")
 
+(defmacro hook-into-modes (func modes)
+  `(dolist (mode-hook ,modes)
+     (add-hook mode-hook ,func)))
+
 (require 'package)
 (package-initialize)
 (add-to-list 'package-archives
@@ -64,7 +68,7 @@
 (unless (package-installed-p 'fill-column-indicator)
   (package-install 'fill-column-indicator))
 (use-package fill-column-indicator
-  :config (add-hook 'prog-mode-hook 'fci-mode))
+  :config (hook-into-modes 'fci-mode '(prog-mode-hook)))
 
 (blink-cursor-mode 0)
 (setq-default cursor-type 'box)
@@ -484,6 +488,128 @@ might be bad."
 (use-package flycheck
   :init (global-flycheck-mode 1))
 
+(unless (package-installed-p 'fancy-narrow)
+  (package-install 'fancy-narrow))
+(use-package fancy-narrow)
+
+(defun dap/disable-tabs ()
+  "Disables tabs."
+  (setq indent-tabs-mode nil))
+
+(defun dap/newline ()
+  "Locally binds newline."
+  (local-set-key (kbd "RET") 'sp-newline))
+
+(defconst dap/lispy-modes '(emacs-lisp-mode-hook
+                            ielm-mode-hook
+                            lisp-interaction-mode-hook
+                            scheme-mode-hook))
+
+(hook-into-modes 'rainbow-mode                    dap/lispy-modes)
+(hook-into-modes 'turn-on-smartparens-strict-mode dap/lispy-modes)
+(hook-into-modes 'turn-on-pretty-mode             dap/lispy-modes)
+(hook-into-modes 'dap/newline                     dap/lispy-modes)
+(hook-into-modes 'dap/untabify-buffer-hook        dap/lispy-modes)
+(hook-into-modes 'dap/disable-tabs                dap/lispy-modes)
+(hook-into-modes 'fci-mode                        dap/lispy-modes)
+(hook-into-modes 'hs-org/minor-mode               dap/lispy-modes)
+(hook-into-modes (lambda ()
+                   (add-hook 'local-write-file-hooks 'check-parens))
+                 dap/lispy-modes)
+
+(defun dap/elisp-eval-buffer ()
+  "Intelligently evaluate an Elisp buffer."
+  (interactive)
+  (dap/save-all-file-buffers)
+  (eval-buffer))
+
+(defun dap/elisp-mode-local-bindings ()
+  "Helpful behavior for Elisp buffers."
+  (local-set-key (kbd "s-l eb") 'dap/elisp-eval-buffer)
+  (local-set-key (kbd "s-l ep") 'eval-print-last-sexp)
+  (local-set-key (kbd "s-l td") 'toggle-debug-on-error)
+  (local-set-key (kbd "s-l mef") 'macroexpand)
+  (local-set-key (kbd "s-l mea") 'macroexpand-all))
+
+(unless (package-installed-p 'lexbind-mode)
+  (package-install 'lexbind-mode))
+(use-package lexbind-mode)
+
+(defun dap/elisp-mode-hook ()
+  (dap/elisp-mode-local-bindings)
+  (lexbind-mode)
+  (turn-on-eldoc-mode))
+
+(hook-into-modes 'emacs-lisp-mode-hook '(dap/elisp-mode-hook))
+
+(setq initial-scratch-message nil)
+
+(defun dap/js-mode-hook ()
+  (local-set-key (kbd "RET") 'newline-and-indent)
+  (setq js-indent-level 2)
+  (fci-mode)
+  (visual-line-mode)
+  (dap/untabify-buffer-hook))
+
+(hook-into-modes 'dap/js-mode-hook '(js-mode-hook))
+
+(unless (package-installed-p 'web-mode)
+  (package-install 'web-mode))
+(use-package web-mode
+  :init (progn
+          (setq web-mode-enable-block-partial-invalidation t)
+          (setq web-mode-engines-alist '(("ctemplate" . "\\.html$"))))
+  :config (progn
+            (whitespace-turn-off)
+            (rainbow-turn-off)
+            (visual-line-mode)
+            (local-set-key (kbd "RET") 'newline-and-indent)
+            (setq web-mode-markup-indent-offset 2)
+            (setq web-mode-css-indent-offset 2)
+            (setq web-mode-code-indent-offset 2)
+            (setq web-mode-indent-style 2)
+            (setq web-mode-style-padding 1)
+            (setq web-mode-script-padding 1)
+            (setq web-mode-block-padding 0)
+            (dap/untabify-buffer-hook)))
+
+(unless (package-installed-p 'json-reformat)
+  (package-install 'json-reformat))
+(use-package json-reformat)
+
+(unless (package-installed-p 'css-mode)
+  (package-install 'css-mode))
+(use-package css-mode
+  :config (progn
+            (fci-mode 1)
+            (whitespace-turn-on)
+            (rainbow-mode)
+            (visual-line-mode)
+            (dap/untabify-buffer-hook)
+            (local-set-key (kbd "RET") 'newline-and-indent)))
+
+(add-hook 'makefile-mode-hook
+          (lambda ()
+            (fci-mode 1)
+            (whitespace-turn-on)
+            (rainbow-mode)
+            (visual-line-mode)
+            (local-set-key (kbd "RET") 'newline-and-indent)))
+
+(unless (package-installed-p 'diff-hl)
+  (package-install 'diff-hl))
+(use-package diff-hl
+  :init (global-diff-hl-mode))
+
+(use-package visual-line-mode
+  :diminish (visual-line-mode
+             'global-visual-line-mode)
+  :init ((global-visual-line-mode 1)))
+
+(unless (package-installed-p 'ace-link)
+  (package-install 'ace-link))
+(use-package ace-link
+  :init (ace-link-setup-default))
 
 
 
@@ -577,10 +703,6 @@ Attribution: URL http://emacsredux.com/blog/2013/03/26/smarter-open-line/"
 
 ;; ;; Replace list-buffers with ibuffer.
 ;; (defalias 'list-buffers 'ibuffer)
-
-;; (defmacro hook-into-modes (func modes)
-;;   `(dolist (mode-hook ,modes)
-;;      (add-hook mode-hook ,func)))
 
 ;; ;; "y or n" instead of "yes or no"
 ;; (fset 'yes-or-no-p 'y-or-n-p)
