@@ -536,6 +536,14 @@ might be bad."
             (save-excursion
               (hs-show-block)))))
 
+(unless (package-installed-p 'flyspell)
+  (package-install 'flyspell))
+(use-package flyspell
+  :init (progn
+          (hook-into-modes 'turn-on-flyspell '(text-mode-hook
+                                               org-mode-hook))
+          (hook-into-modes 'flyspell-prog-mode '(prog-mode-hook))))
+
 (unless (package-installed-p 'flycheck)
   (package-install 'flycheck))
 (use-package flycheck
@@ -797,8 +805,6 @@ Attribution: URL http://emacsredux.com/blog/2013/03/26/smarter-open-line/"
 ;; ;; "y or n" instead of "yes or no"
 ;; (fset 'yes-or-no-p 'y-or-n-p)
 
-;; (add-hook 'text-mode-hook 'turn-on-flyspell)
-;; (add-hook 'prog-mode-hook 'flyspell-prog-mode)
 
 ;; (defun indent-buffer ()
 ;;   (interactive)
