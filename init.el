@@ -61,14 +61,21 @@
 (unless (package-installed-p 'key-chord)
   (package-install 'key-chord))
 (use-package key-chord
-  :config (key-chord-mode 1))
+  :config (progn
+            (key-chord-mode 1)
+            (key-chord-define-global (concat "<" "_")
+                                     (lambda () (interactive) (insert "←")))
+            (key-chord-define-global (concat "_" ">")
+                                     (lambda () (interactive) (insert "→")))))
 
 (setq-default fill-column 80)
 
 (unless (package-installed-p 'fill-column-indicator)
   (package-install 'fill-column-indicator))
 (use-package fill-column-indicator
-  :config (hook-into-modes 'fci-mode '(prog-mode-hook)))
+  :config (progn
+            (hook-into-modes 'fci-mode '(prog-mode-hook))
+            (hook-into-modes 'fci-mode dap/lispy-modes)))
 
 (blink-cursor-mode 0)
 (setq-default cursor-type 'box)
@@ -130,7 +137,8 @@
 
 (unless (package-installed-p 'pretty-mode)
   (package-install 'pretty-mode))
-(use-package pretty-mode)
+(use-package pretty-mode
+  :init (hook-into-modes 'turn-on-pretty-mode dap/lispy-modes))
 
 (setq make-pointer-invisible 1)
 
@@ -240,14 +248,21 @@ might be bad."
 
 (setq echo-keystrokes 0.02)
 
-(key-chord-define-global (concat "<" "_")
-                         (lambda () (interactive) (insert "←")))
-(key-chord-define-global (concat "_" ">")
-                         (lambda () (interactive) (insert "→")))
+(defun dap/beginning-of-line-dwim ()
+  "Toggles between moving point to the first non-whitespace
+    character, and the start of the line. Src:
+    http://www.wilfred.me.uk/"
+  (interactive)
+  (let ((start-position (point)))
+    ;; see if going to the beginning of the line changes our position
+    (move-beginning-of-line nil)
 
-(key-chord-define-global "hu" 'goto-line)
+    (when (= (point) start-position)
+      ;; we're already at the beginning of the line, so go to the
+      ;; first non-whitespace character
+      (back-to-indentation))))
 
-(global-set-key (kbd "C-a") 'dap/beginning-of-line-dwim)
+(bind-key "C-a" 'dap/beginning-of-line-dwim)
 
 (unless (package-installed-p 'expand-region)
   (package-install 'expand-region))
@@ -361,7 +376,9 @@ might be bad."
   (package-install 'rainbow-mode))
 (use-package rainbow-mode
   :diminish rainbow-mode
-  :config (rainbow-mode 1))
+  :config (progn
+            (hook-into-modes 'rainbow-mode dap/lispy-modes)
+            (rainbow-mode 1)))
 
 (use-package ido
   :config (progn
@@ -408,7 +425,7 @@ might be bad."
 (use-package smartparens-config
   :diminish smartparens-mode
   :config (progn
-            (show-smartparens-global-mode 1)
+            (hook-into-modes 'turn-on-smartparens-strict-mode dap/lispy-modes)
             (setq sp-show-pair-from-inside nil)))
 
 (use-package tramp
@@ -456,18 +473,12 @@ might be bad."
              "at: " savehist-file-store " . Savehist should continue "
              "to function normally; but your history may be lost.")))
   (setq savehist-file savehist-file-store))
+
 (savehist-mode 1)
 (setq savehist-save-minibuffer-history 1)
-(setq savehist-additional-variables
-      '(kill-ring
-        search-ring
-        regexp-search-ring))
-
-(unless (package-installed-p 'hideshow-org)
-  (package-install 'hideshow-org))
-(use-package hideshow-org)
-(setq hs-hide-comments-when-hiding-all 1)
-(setq hs-isearch-open 1)
+(setq savehist-additional-variables '(kill-ring
+                                      search-ring
+                                      regexp-search-ring))
 
 (defun dap/display-code-line-counts (ov)
   "Displaying overlay content in echo area or tooltip"
@@ -476,12 +487,54 @@ might be bad."
                  (buffer-substring (overlay-start ov)
                                    (overlay-end ov)))))
 
-(setq hs-set-up-overlay 'dap/display-code-line-counts)
+(use-package org
+  :init (progn
+          (fci-mode 1)
+          (dap/untabify-buffer-hook)
+          (local-set-key (kbd "C-1") 'org-narrow-to-subtree)
+          (local-set-key (kbd "M-1") 'widen)
+          (local-set-key (kbd "C-2") 'org-edit-special)
 
-(defadvice goto-line (after expand-after-goto-line activate compile)
-  "How do I get it to expand upon a goto-line? hideshow-expand affected block when using goto-line in a collapsed buffer."
-  (save-excursion
-    (hs-show-block)))
+          (setq org-completion-use-ido 1)
+          (setq org-use-speed-commands 1)
+          (setq org-confirm-shell-link-function 'y-or-n-p)
+          (setq org-confirm-elisp-link-function 'y-or-n-p)
+          (setq org-pretty-entities 1)
+          (setq org-ellipsis "…")
+          (setq org-hide-leading-stars 1)
+          (setq org-src-fontify-natively nil)
+          (setq org-fontify-emphasized-text 1)
+          (setq org-src-preserve-indentation 1)
+          (setq org-edit-src-content-indentation 0)
+          (setq org-highlight-latex-and-related '(latex script entities))
+
+          (setq org-footnote-define-inline 1)
+          (setq org-footnote-auto-label 'random)
+          (setq org-footnote-auto-adjust nil)
+          (setq org-footnote-section nil)
+
+          (setq org-catch-invisible-edits 'error)
+
+          (unless (package-installed-p 'hideshow-org)
+            (package-install 'hideshow-org))
+          (use-package hideshow-org)
+
+          (unless (package-installed-p 'org-ac)
+            (package-install 'org-ac))
+          (use-package org-ac
+            :init (org-ac/config-default))))
+
+(use-package hideshow
+  :init (progn
+          (setq hs-hide-comments-when-hiding-all 1)
+          (setq hs-isearch-open 1)
+          (setq hs-set-up-overlay 'dap/display-code-line-counts)
+          (hook-into-modes 'hs-org/minor-mode dap/lispy-modes)
+
+          (defadvice goto-line (after expand-after-goto-line activate compile)
+            "How do I get it to expand upon a goto-line? hideshow-expand affected block when using goto-line in a collapsed buffer."
+            (save-excursion
+              (hs-show-block)))))
 
 (unless (package-installed-p 'flycheck)
   (package-install 'flycheck))
@@ -505,14 +558,9 @@ might be bad."
                             lisp-interaction-mode-hook
                             scheme-mode-hook))
 
-(hook-into-modes 'rainbow-mode                    dap/lispy-modes)
-(hook-into-modes 'turn-on-smartparens-strict-mode dap/lispy-modes)
-(hook-into-modes 'turn-on-pretty-mode             dap/lispy-modes)
-(hook-into-modes 'dap/newline                     dap/lispy-modes)
-(hook-into-modes 'dap/untabify-buffer-hook        dap/lispy-modes)
-(hook-into-modes 'dap/disable-tabs                dap/lispy-modes)
-(hook-into-modes 'fci-mode                        dap/lispy-modes)
-(hook-into-modes 'hs-org/minor-mode               dap/lispy-modes)
+(hook-into-modes 'dap/newline              dap/lispy-modes)
+(hook-into-modes 'dap/untabify-buffer-hook dap/lispy-modes)
+(hook-into-modes 'dap/disable-tabs         dap/lispy-modes)
 (hook-into-modes (lambda ()
                    (add-hook 'local-write-file-hooks 'check-parens))
                  dap/lispy-modes)
@@ -544,14 +592,15 @@ might be bad."
 
 (setq initial-scratch-message nil)
 
-(defun dap/js-mode-hook ()
-  (local-set-key (kbd "RET") 'newline-and-indent)
-  (setq js-indent-level 2)
-  (fci-mode)
-  (visual-line-mode)
-  (dap/untabify-buffer-hook))
-
-(hook-into-modes 'dap/js-mode-hook '(js-mode-hook))
+(unless (package-installed-p 'js2-mode)
+  (package-install 'js2-mode))
+(use-package js2-mode
+  :config (progn
+            (local-set-key (kbd "RET") 'newline-and-indent)
+            (setq js-indent-level 2)
+            (fci-mode 1)
+            (visual-line-mode)
+            (dap/untabify-buffer-hook)))
 
 (unless (package-installed-p 'web-mode)
   (package-install 'web-mode))
@@ -611,21 +660,62 @@ might be bad."
 (use-package ace-link
   :init (ace-link-setup-default))
 
+(use-package ruby-mode
+  :config (progn
+            (fci-mode 1)
+            (rainbow-mode)
+            (dap/untabify-buffer-hook)
+            (visual-line-mode)
+            (local-set-key (kbd "RET") 'newline-and-indent)))
+
+(use-package erc
+  :init (progn
+          (erc-irccontrols-enable)
+          (whitespace-turn-off)
+
+          (use-package erc-join
+            :init (progn
+                    (erc-autojoin-mode 1)
+                    (setq erc-autojoin-channels-alist
+                          '((".*\\.freenode\\.net" .
+                             '("#emacs" "#idris" "#haskell-beginners"))))))
+
+          (use-package erc-button
+            :init (progn
+                    (erc-button-mode 1)
+                    (setq erc-button-wrap-long-urls  nil)
+                    (setq erc-button-buttonize-nicks nil)))
+
+          (use-package erc-fill
+            :init (progn
+                    (erc-fill-mode 1)
+                    (setq erc-fill-column        80)
+                    (setq erc-fill-function      'erc-fill-static)
+                    (setq erc-fill-static-center 0)))
+
+          (use-package erc-netsplit
+            :init (erc-netsplit-mode 1))
+
+          (use-package erc-ring
+            :init (erc-ring-mode 1))
+
+          (use-package erc-track
+            :init (progn
+                    (setq erc-track-switch-direction 'importance)
+                    (setq erc-track-position-in-mode-line 1)
+                    (setq erc-track-exclude-types
+                          '("324" "329" "332" "333" "353"
+                            "JOIN" "NAMES" "NICK" "QUIT" "PART" "TOPIC"))
+                    (add-to-list 'erc-modules 'track)))
+
+          (add-to-list 'erc-modules 'notify)
+          (add-to-list 'erc-modules 'scrolltobottom)
+          (erc-update-modules)))
 
 
-(defun dap/beginning-of-line-dwim ()
-  "Toggles between moving point to the first non-whitespace
-    character, and the start of the line. Src:
-    http://www.wilfred.me.uk/"
-  (interactive)
-  (let ((start-position (point)))
-    ;; see if going to the beginning of the line changes our position
-    (move-beginning-of-line nil)
 
-    (when (= (point) start-position)
-      ;; we're already at the beginning of the line, so go to the
-      ;; first non-whitespace character
-      (back-to-indentation))))
+
+
 
 (defun dap/smart-open-line ()
   "Insert a new line, indent it, and move the cursor there.
