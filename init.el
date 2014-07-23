@@ -4,6 +4,8 @@
 
 ;; Phunculist's Emacs configuration.
 
+;;; Code:
+
 (setq-default user-full-name    "David Porter"
               user-mail-address "david.a.porter@gmail.com")
 
@@ -12,10 +14,15 @@
 
 (setq gc-cons-threshold (* 25 1024 1024))
 
-(setq user-data-directory
-      (concat (expand-file-name user-emacs-directory) "data/"))
-(setq recentf-save-file (concat user-data-directory "recentf"))
-(setq url-cache-directory (concat user-data-directory "url/cache"))
+(defconst dap/user-data-directory
+  (concat (expand-file-name user-emacs-directory) "data/"))
+
+(require 'recentf)
+(setq recentf-save-file
+      (concat dap/user-data-directory "recentf"))
+
+(require 'url-cache)
+(setq url-cache-directory (concat dap/user-data-directory "url/cache"))
 
 (setq backup-directory-alist
       (list (cons "." (concat user-emacs-directory "backups"))))
@@ -32,6 +39,7 @@
 (setq insert-directory-program "gls")
 
 (defmacro hook-into-modes (func modes)
+  "Add a hook for function FUNC to the modes MODES."
   `(dolist (mode-hook ,modes)
      (add-hook mode-hook ,func)))
 
@@ -79,6 +87,8 @@
                             lisp-interaction-mode-hook
                             scheme-mode-hook))
 
+(hook-into-modes 'eldoc-mode dap/lispy-modes)
+
 (unless (package-installed-p 'fill-column-indicator)
   (package-install 'fill-column-indicator))
 (use-package fill-column-indicator
@@ -94,6 +104,8 @@
 
 (setq blink-matching-paren nil)
 (show-paren-mode 1)
+
+(require 'paren)
 (setq show-paren-delay 0)
 (setq show-paren-style 'expression)
 
@@ -115,11 +127,11 @@
           (key-chord-define-global "bm" 'ace-window)))
 
 (defadvice yes-or-no-p (around prevent-dialog activate)
-  "Prevent yes-or-no-p from activating a dialog"
+  "Prevent `yes-or-no-p' from activating a dialog."
   (let ((use-dialog-box nil))
     ad-do-it))
 (defadvice y-or-n-p (around prevent-dialog-yorn activate)
-  "Prevent y-or-n-p from activating a dialog"
+  "Prevent `y-or-n-p' from activating a dialog."
   (let ((use-dialog-box nil))
     ad-do-it))
 
@@ -151,9 +163,10 @@
 
 (setq make-pointer-invisible 1)
 
+(require 'desktop)
 (desktop-save-mode 1)
 (setq desktop-restore-eager 10)
-(setq desktop-dirname user-data-directory)
+(setq desktop-dirname dap/user-data-directory)
 
 (use-package uniquify
   :config (setq uniquify-buffer-name-style 'forward))
@@ -162,7 +175,7 @@
 
 (defun dap/cleanup-buffer-safe ()
   "Perform a bunch of safe operations on the whitespace content of a buffer.
-Does not indent buffer, because it is used for a before-save-hook, and that
+Does not indent buffer, because it is used for a `before-save-hook', and that
 might be bad."
   (interactive)
   (dap/untabify-buffer)
@@ -172,7 +185,6 @@ might be bad."
 (add-hook 'before-save-hook 'dap/cleanup-buffer-safe)
 
 (prefer-coding-system 'utf-8)
-(setq x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING))
 
 (unless (package-installed-p 'undo-tree)
   (package-install 'undo-tree))
@@ -213,6 +225,7 @@ might be bad."
 (column-number-mode 1)
 
 (defadvice kill-line (around kill-line-remove-newline activate)
+  "Make `kill-line' kill the whole line."
   (let ((kill-whole-line t))
     ad-do-it))
 
@@ -227,6 +240,7 @@ might be bad."
 (minibuffer-depth-indicate-mode 1)
 
 (defadvice global-set-key (before check-keymapping activate)
+  "Check for existing binding when setting a global keybinding."
   (let* ((key (ad-get-arg 0))
          (new-command (ad-get-arg 1))
          (old-command (lookup-key global-map key)))
@@ -258,9 +272,9 @@ might be bad."
 (setq echo-keystrokes 0.02)
 
 (defun dap/beginning-of-line-dwim ()
-  "Toggles between moving point to the first non-whitespace
-    character, and the start of the line. Src:
-    http://www.wilfred.me.uk/"
+  "Move to beginning of line intelligently.
+Toggle between moving point to the first non-whitespace
+character, and the start of the line."
   (interactive)
   (let ((start-position (point)))
     ;; see if going to the beginning of the line changes our position
@@ -282,7 +296,7 @@ might be bad."
   (package-install 'multiple-cursors))
 (use-package multiple-cursors
   :config (progn
-            (setq mc/list-file (concat user-data-directory ".mc-lists.el"))
+            (setq mc/list-file (concat dap/user-data-directory ".mc-lists.el"))
             (bind-key "M-9" 'mc/edit-lines)
             (bind-key "M-0" 'mc/mark-next-like-this)
             (bind-key "M--" 'mc/mark-all-like-this)
@@ -305,7 +319,7 @@ might be bad."
   :config (progn
             (setq ac-quick-help-prefer-pos-tip nil)
             (setq ac-comphist-file
-                  (concat user-data-directory "ac-comphist.dat"))
+                  (concat dap/user-data-directory "ac-comphist.dat"))
 
             (ac-config-default)
             (setq ac-auto-start nil)
@@ -342,8 +356,8 @@ might be bad."
   (package-install 'yasnippet))
 (use-package yasnippet
   :mode     ("/\\.emacs\\.d/snippets/" . snippet-mode)
-  :commands (yas/minor-mode yas/expand)
-  :diminish yas/minor-mode
+  :commands (yas-minor-mode yas-expand)
+  :diminish yas-minor-mode
   :init (yas-global-mode 1)
   :config (progn
             (setq yas-snippet-dirs     (concat user-emacs-directory "snippets")
@@ -402,7 +416,7 @@ might be bad."
             (setq ido-create-new-buffer    'always)
 
             (setq ido-save-directory-list-file
-                  (concat user-data-directory "ido.last"))
+                  (concat dap/user-data-directory "ido.last"))
 
             (unless (package-installed-p 'ido-vertical-mode)
               (package-install 'ido-vertical-mode))
@@ -428,7 +442,7 @@ might be bad."
 (use-package projectile
   :config (progn
             (setq projectile-cache-file
-                  (concat user-data-directory "projectile.cache"))
+                  (concat dap/user-data-directory "projectile.cache"))
             (projectile-global-mode 1)))
 
 (unless (package-installed-p 'smartparens)
@@ -447,6 +461,7 @@ might be bad."
                            nil
                            "/ssh:dap900@cloudlogin.nci.org.au:"))))
 
+(require 'dired)
 (setq dired-listing-switches  "-alh")
 (setq dired-recursive-deletes 1)
 
@@ -477,7 +492,8 @@ might be bad."
             (setq wdired-confirm-overwrite           t)
             (setq wdired-use-dired-vertical-movement 'sometimes)))
 
-(let ((savehist-file-store (concat user-data-directory "savehist")))
+(require 'savehist)
+(let ((savehist-file-store (concat dap/user-data-directory "savehist")))
   (when (not (file-exists-p savehist-file-store))
     (warn
      (concat "Can't seem to find a savehist store file where it was expected "
@@ -492,18 +508,19 @@ might be bad."
                                       regexp-search-ring))
 
 (defun dap/display-code-line-counts (ov)
-  "Displaying overlay content in echo area or tooltip"
+  "Displaying overlay (as OV) content in echo area or tooltip."
   (when (eq 'code (overlay-get ov 'hs))
     (overlay-put ov 'help-echo
                  (buffer-substring (overlay-start ov)
                                    (overlay-end ov)))))
 
 (defun dap/untabify-buffer ()
+  "Remove tabs from the whole buffer."
   (interactive)
   (untabify (point-min) (point-max)))
 
 (defun dap/untabify-buffer-hook ()
-  "Adds a buffer-local untabify on save hook"
+  "Add a buffer-local untabify on save hook."
   (interactive)
   (add-hook 'after-save-hook
             (lambda () (dap/untabify-buffer))
@@ -577,7 +594,7 @@ might be bad."
 (use-package fancy-narrow)
 
 (defun dap/disable-tabs ()
-  "Disables tabs."
+  "Disable tabs."
   (setq indent-tabs-mode nil))
 
 (defun dap/newline ()
@@ -591,15 +608,9 @@ might be bad."
                    (add-hook 'local-write-file-hooks 'check-parens))
                  dap/lispy-modes)
 
-(defun dap/elisp-eval-buffer ()
-  "Intelligently evaluate an Elisp buffer."
-  (interactive)
-  (dap/save-all-file-buffers)
-  (eval-buffer))
-
 (defun dap/elisp-mode-local-bindings ()
   "Helpful behavior for Elisp buffers."
-  (local-set-key (kbd "s-l eb") 'dap/elisp-eval-buffer)
+  (local-set-key (kbd "s-l eb") 'eval-buffer)
   (local-set-key (kbd "s-l ep") 'eval-print-last-sexp)
   (local-set-key (kbd "s-l td") 'toggle-debug-on-error)
   (local-set-key (kbd "s-l mef") 'macroexpand)
@@ -611,6 +622,7 @@ might be bad."
   :init (hook-into-modes 'lexbind-mode '(elisp-mode-hook)))
 
 (defun dap/elisp-mode-hook ()
+  "My elisp-mode hook."
   (dap/elisp-mode-local-bindings)
   (turn-on-eldoc-mode))
 
@@ -623,7 +635,6 @@ might be bad."
 (use-package js2-mode
   :config (progn
             (local-set-key (kbd "RET") 'newline-and-indent)
-            (setq js-indent-level 2)
             (fci-mode 1)
             (visual-line-mode)
             (dap/untabify-buffer-hook)))
@@ -676,10 +687,9 @@ might be bad."
 (use-package diff-hl
   :init (global-diff-hl-mode))
 
-(use-package visual-line-mode
-  :diminish (visual-line-mode
-             'global-visual-line-mode)
-  :init ((global-visual-line-mode 1)))
+(global-visual-line-mode 1)
+(diminish 'visual-line-mode)
+(diminish 'global-visual-line-mode)
 
 (unless (package-installed-p 'ace-link)
   (package-install 'ace-link))
@@ -746,12 +756,12 @@ might be bad."
 (defun dap/smart-open-line ()
   "Insert a new line, indent it, and move the cursor there.
 
-This behavior is different then the typical function bound to return
-which may be `open-line' or `newline-and-indent'. When you call with
-the cursor between ^ and $, the contents of the line to the right of
-it will be moved to the newly inserted line. This function will not
-do that. The current line is left alone, a new line is inserted, indented,
-and the cursor is moved there.
+This behavior is different then the typical function bound to
+return which may be `open-line' or `newline-and-indent'.  When
+you call with the cursor between ^ and $, the contents of the
+line to the right of it will be moved to the newly inserted line.
+This function will not do that.  The current line is left alone,
+a new line is inserted, indented, and the cursor is moved there.
 
 Attribution: URL http://emacsredux.com/blog/2013/03/26/smarter-open-line/"
   (interactive)
@@ -759,16 +769,17 @@ Attribution: URL http://emacsredux.com/blog/2013/03/26/smarter-open-line/"
   (newline-and-indent))
 
 (defun dap/insert-timestamp ()
-  "Produces and inserts a full ISO 8601 format timestamp."
+  "Insert a full ISO 8601 format timestamp."
   (interactive)
   (insert (format-time-string "%Y-%m-%dT%T%z")))
 
 (defun dap/insert-datestamp ()
-  "Produces and inserts a partial ISO 8601 format timestamp."
+  "Insert a partial ISO 8601 format timestamp."
   (interactive)
   (insert (format-time-string "%Y-%m-%d")))
 
 (defun dap/text-mode-hook ()
+  "My `text-mode' hook."
   (rainbow-mode)
   (fci-mode)
   (visual-line-mode)
@@ -777,6 +788,7 @@ Attribution: URL http://emacsredux.com/blog/2013/03/26/smarter-open-line/"
 (add-hook 'text-mode-hook 'dap/text-mode-hook)
 
 (defun dap/indent-buffer ()
+  "Indent the whole buffer."
   (interactive)
   (indent-region (point-min) (point-max)))
 
@@ -902,14 +914,14 @@ Including indent-buffer, which should not be called automatically on save."
             (defun notmuch-search-mark-deleted ()
               "Mark this email as deleted."
               (interactive)
-              (when (y-or-n-p "Are you sure you want to delete this message?")
+              (when (y-or-n-p "Are you sure you want to delete this message? ")
                 (notmuch-search-tag '("-inbox" "-archive" "-unread" "+trash"))
                 (notmuch-search-next-thread)))
 
             (defun notmuch-show-mark-deleted ()
               "Mark this email as deleted."
               (interactive)
-              (when (y-or-n-p "Are you sure you want to delete this message?")
+              (when (y-or-n-p "Are you sure you want to delete this message? ")
                 (notmuch-show-tag '("-inbox" "-archive" "-unread" "+trash"))
                 (notmuch-show-next-thread)))
 
@@ -972,6 +984,7 @@ Including indent-buffer, which should not be called automatically on save."
 
 ;; Mail.
 
+(require 'sendmail)
 (setq mail-user-agent 'message-user-agent
       message-send-mail-function 'message-send-mail-with-sendmail
       sendmail-program "/usr/local/bin/msmtp"
@@ -989,6 +1002,7 @@ Including indent-buffer, which should not be called automatically on save."
           (hook-into-modes 'colorize-compilation-buffer
                            '(compilation-filter-hook))))
 
+(require 'ediff)
 ;; Use ediff in single-frame mode.
 (setq ediff-window-setup-function 'ediff-setup-windows-plain)
 
@@ -1007,3 +1021,6 @@ Including indent-buffer, which should not be called automatically on save."
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
+
+(provide 'init)
+;;; init.el ends here
