@@ -1,3 +1,7 @@
+;;; package --- Summary
+
+;;; Commentary:
+
 ;; Phunculist's Emacs configuration.
 
 (setq-default user-full-name    "David Porter"
@@ -69,6 +73,11 @@
                                      (lambda () (interactive) (insert "→")))))
 
 (setq-default fill-column 80)
+
+(defconst dap/lispy-modes '(emacs-lisp-mode-hook
+                            ielm-mode-hook
+                            lisp-interaction-mode-hook
+                            scheme-mode-hook))
 
 (unless (package-installed-p 'fill-column-indicator)
   (package-install 'fill-column-indicator))
@@ -325,7 +334,9 @@ might be bad."
                   (whitespace-mode 1)))
 
             (ad-activate 'popup-draw)
-            (ad-activate 'popup-delete)))
+            (ad-activate 'popup-delete)
+
+            (global-auto-complete-mode 1)))
 
 (unless (package-installed-p 'yasnippet)
   (package-install 'yasnippet))
@@ -487,6 +498,18 @@ might be bad."
                  (buffer-substring (overlay-start ov)
                                    (overlay-end ov)))))
 
+(defun dap/untabify-buffer ()
+  (interactive)
+  (untabify (point-min) (point-max)))
+
+(defun dap/untabify-buffer-hook ()
+  "Adds a buffer-local untabify on save hook"
+  (interactive)
+  (add-hook 'after-save-hook
+            (lambda () (dap/untabify-buffer))
+            nil
+            'true))
+
 (use-package org
   :init (progn
           (fci-mode 1)
@@ -560,11 +583,6 @@ might be bad."
 (defun dap/newline ()
   "Locally binds newline."
   (local-set-key (kbd "RET") 'sp-newline))
-
-(defconst dap/lispy-modes '(emacs-lisp-mode-hook
-                            ielm-mode-hook
-                            lisp-interaction-mode-hook
-                            scheme-mode-hook))
 
 (hook-into-modes 'dap/newline              dap/lispy-modes)
 (hook-into-modes 'dap/untabify-buffer-hook dap/lispy-modes)
@@ -749,18 +767,6 @@ Attribution: URL http://emacsredux.com/blog/2013/03/26/smarter-open-line/"
   "Produces and inserts a partial ISO 8601 format timestamp."
   (interactive)
   (insert (format-time-string "%Y-%m-%d")))
-
-(defun dap/untabify-buffer ()
-  (interactive)
-  (untabify (point-min) (point-max)))
-
-(defun dap/untabify-buffer-hook ()
-  "Adds a buffer-local untabify on save hook"
-  (interactive)
-  (add-hook 'after-save-hook
-            (lambda () (dap/untabify-buffer))
-            nil
-            'true))
 
 (defun dap/text-mode-hook ()
   (rainbow-mode)
