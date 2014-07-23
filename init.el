@@ -52,6 +52,15 @@
   (package-install 'use-package))
 (require 'use-package)
 
+(setq-default case-fold-search t)
+
+(define-prefix-command 'dap/toggle-map)
+(define-key ctl-x-map "t" 'dap/toggle-map)
+(define-key dap/toggle-map "c" 'toggle-case-fold-search)
+(define-key dap/toggle-map "d" 'toggle-debug-on-error)
+(define-key dap/toggle-map "l" 'linum-mode)
+(define-key dap/toggle-map "r" 'dired-toggle-read-only)
+
 (unless (package-installed-p 'exec-path-from-shell)
   (package-install 'exec-path-from-shell))
 (use-package exec-path-from-shell
