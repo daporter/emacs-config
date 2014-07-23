@@ -589,11 +589,11 @@ might be bad."
 
 (unless (package-installed-p 'lexbind-mode)
   (package-install 'lexbind-mode))
-(use-package lexbind-mode)
+(use-package lexbind-mode
+  :init (hook-into-modes 'lexbind-mode '(elisp-mode-hook)))
 
 (defun dap/elisp-mode-hook ()
   (dap/elisp-mode-local-bindings)
-  (lexbind-mode)
   (turn-on-eldoc-mode))
 
 (hook-into-modes 'emacs-lisp-mode-hook '(dap/elisp-mode-hook))
@@ -770,68 +770,20 @@ Attribution: URL http://emacsredux.com/blog/2013/03/26/smarter-open-line/"
 
 (add-hook 'text-mode-hook 'dap/text-mode-hook)
 
+(defun dap/indent-buffer ()
+  (interactive)
+  (indent-region (point-min) (point-max)))
 
-
-
-
-
-;; (defconst emacs-start-time (current-time))
-
-;; (unless noninteractive
-;;   (message "Loading %s..." load-file-name))
-
-;; (defun phunculist/load-init-file (path &optional noerror)
-;;   "This loads a file from inside the the .emacs.d directory"
-;;   (let ((file (file-name-sans-extension
-;;                (expand-file-name path user-emacs-directory))))
-;;     (load file noerror)))
-
-;; (unless (package-installed-p 'use-package)
-;;   (package-install 'use-package))
-;; (require 'use-package)
-;; (eval-when-compile
-;;   (setq use-package-verbose (null byte-compile-current-file)))
-
-;; ;; Emacs server
-;; (require 'server)
-;; (unless (server-running-p) (server-start))
-
-
-
-
-;; ;; Replace list-buffers with ibuffer.
-;; (defalias 'list-buffers 'ibuffer)
-
-;; ;; "y or n" instead of "yes or no"
-;; (fset 'yes-or-no-p 'y-or-n-p)
-
-
-;; (defun indent-buffer ()
-;;   (interactive)
-;;   (indent-region (point-min) (point-max)))
-
-;; (defun cleanup-buffer ()
-;;   "Perform a bunch of operations on the whitespace content of a buffer.
-;; Including indent-buffer, which should not be called automatically on save."
-;;   (interactive)
-;;   (cleanup-buffer-safe)
-;;   (indent-buffer))
-
-;; (bind-key "C-c n" 'cleanup-buffer)
-
-;; ;;;_. Packages
-
-;; (unless (package-installed-p 'fill-column-indicator)
-;;   (package-install 'fill-column-indicator))
-;; (use-package fill-column-indicator)
+(defun dap/cleanup-buffer ()
+  "Perform a bunch of operations on the whitespace content of a buffer.
+Including indent-buffer, which should not be called automatically on save."
+  (interactive)
+  (dap/cleanup-buffer-safe)
+  (dap/indent-buffer))
 
 (unless (package-installed-p 'ag)
   (package-install 'ag))
 (use-package ag)
-
-
-
-
 
 (unless (package-installed-p 'magit)
   (package-install 'magit))
@@ -856,21 +808,6 @@ Attribution: URL http://emacsredux.com/blog/2013/03/26/smarter-open-line/"
 ;; ;;                              (add-to-list 'TeX-expand-list
 ;; ;;                                           '("%q" make-skim-url)))
 ;; ;;                            '(LaTeX-mode-hook))
-
-;; ;;           (use-package))
-
-;; ;;;_ , undo-tree
-
-;; ;;;_ , uniquify
-
-
-;; ;;;_ , web-mode
-
-;; ;; (use-package web-mode
-;; ;;   :init (add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode)))
-
-;; ;;;_ , whitespace
-
 
 
 (unless (package-installed-p 'dash-at-point)
@@ -903,19 +840,14 @@ Attribution: URL http://emacsredux.com/blog/2013/03/26/smarter-open-line/"
               (package-install 'markdown-mode+))
             (use-package markdown-mode+)))
 
-;; ;; ;;;_ , YAML mode
+(unless (package-installed-p 'yaml-mode)
+  (package-install 'yaml-mode))
+(use-package yaml-mode)
 
-;; (unless (package-installed-p 'yaml-mode)
-;;   (package-install 'yaml-mode))
-;; (use-package yaml-mode)
-
-;; ;; ;;;_ , yasnippet
-
-
-;; (unless (package-installed-p 'keyfreq)
-;;   (package-install 'keyfreq))
-;; (use-package keyfreq
-;;   :init (keyfreq-mode 1))
+(unless (package-installed-p 'keyfreq)
+  (package-install 'keyfreq))
+(use-package keyfreq
+  :init (keyfreq-mode 1))
 
 (unless (package-installed-p 'ledger-mode)
   (package-install 'ledger-mode))
@@ -1042,30 +974,14 @@ Attribution: URL http://emacsredux.com/blog/2013/03/26/smarter-open-line/"
       ;; Need to tell msmtp which account we're using.
       message-sendmail-extra-arguments '("--read-envelope-from"))
 
-;; Misc functions.
-
-;; (defun goto-line-with-feedback ()
-;;   "Show line numbers temporarily, while prompting for the line number input"
-;;   (interactive)
-;;   (unwind-protect
-;;       (progn
-;;         (linum-mode 1)
-;;         (call-interactively 'goto-line))
-;;     (linum-mode -1)))
-
-;; ;; Make "RET" do whatever "M-j" does.
-;; (defun phunculist/rebind-return ()
-;;   (local-set-key (kbd "RET") (key-binding (kbd "M-j"))))
-
-;; (hook-into-modes 'phunculist/rebind-return '(prog-mode-hook))
-
-;; ;; Colorise ansi escape codes in compilation buffers.
-;; (require 'ansi-color)
-;; (defun colorize-compilation-buffer ()
-;;   (read-only-mode -1)
-;;   (ansi-color-apply-on-region (point-min) (point-max))
-;;   (read-only-mode 1))
-;; (add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
+(use-package ansi-color
+  :init (progn
+          (defun colorize-compilation-buffer ()
+            (read-only-mode -1)
+            (ansi-color-apply-on-region (point-min) (point-max))
+            (read-only-mode 1))
+          (hook-into-modes 'colorize-compilation-buffer
+                           '(compilation-filter-hook))))
 
 ;; Use ediff in single-frame mode.
 (setq ediff-window-setup-function 'ediff-setup-windows-plain)
