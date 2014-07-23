@@ -1,5 +1,4 @@
 ;;; package --- Summary
-
 ;;; Commentary:
 
 ;; Phunculist's Emacs configuration.
@@ -687,9 +686,8 @@ character, and the start of the line."
 (use-package diff-hl
   :init (global-diff-hl-mode))
 
-(global-visual-line-mode 1)
-(diminish 'visual-line-mode)
-(diminish 'global-visual-line-mode)
+(hook-into-modes 'turn-on-visual-line-mode '(org-mode-hook))
+(setq visual-line-fringe-indicators '(left-curly-arrow right-curly-arrow))
 
 (unless (package-installed-p 'ace-link)
   (package-install 'ace-link))
@@ -747,11 +745,6 @@ character, and the start of the line."
           (add-to-list 'erc-modules 'notify)
           (add-to-list 'erc-modules 'scrolltobottom)
           (erc-update-modules)))
-
-
-
-
-
 
 (defun dap/smart-open-line ()
   "Insert a new line, indent it, and move the cursor there.
