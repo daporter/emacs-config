@@ -877,6 +877,15 @@ Including indent-buffer, which should not be called automatically on save."
               (package-install 'flycheck-ledger))
             (use-package flycheck-ledger)))
 
+(unless (package-installed-p 'guide-key)
+  (package-install 'guide-key))
+(use-package guide-key
+  :init (progn
+          (setq guide-key/guide-key-sequence '("C-x r" "C-x 4"
+                                               (org-mode "C-c C-x")
+                                               (dired-mode "%")))
+          (guide-key-mode 1)))
+
 (unless (package-installed-p 'notmuch)
   (package-install 'notmuch))
 (use-package notmuch
