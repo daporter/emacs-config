@@ -33,6 +33,10 @@
 (setq auto-save-file-name-transforms
       `((".*" ,temporary-file-directory t)))
 
+;; An Emacs server for `emacsclient'.
+(require 'server)
+(unless (server-running-p) (server-start))
+
 ;; Use GNU Coreutils version of `ls', which is called `gls' when installed via
 ;; Homebrew.
 (setq insert-directory-program "gls")
