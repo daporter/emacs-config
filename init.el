@@ -58,12 +58,83 @@
 
 (setq-default case-fold-search t)
 
-(define-prefix-command 'dap/toggle-map)
-(define-key ctl-x-map "t" 'dap/toggle-map)
-(define-key dap/toggle-map "c" 'toggle-case-fold-search)
-(define-key dap/toggle-map "d" 'toggle-debug-on-error)
-(define-key dap/toggle-map "l" 'linum-mode)
-(define-key dap/toggle-map "r" 'dired-toggle-read-only)
+(defun dap/current-file ()
+  "Gets the \"file\" of the current buffer.
+
+The file is the buffer's file name, or the `default-directory' in
+`dired-mode'."
+  (if (eq major-mode 'dired-mode)
+      default-directory
+    (buffer-file-name)))
+
+(defun dap/copy-filename-as-kill (&optional arg)
+  "Copy the name of the currently visited file to kill ring.
+
+With a zero prefix arg, copy the absolute file name.  With
+\\[universal-argument], copy the file name relative to the
+current buffer's `default-directory'.  Otherwise copy the
+non-directory part only."
+  (interactive "P")
+  (-if-let* ((filename (dap/current-file))
+             (name-to-copy (cond ((zerop (prefix-numeric-value arg)) filename)
+                                 ((consp arg) (file-relative-name filename))
+                                 (:else (file-name-nondirectory filename)))))
+      (progn
+        (kill-new name-to-copy)
+        (message "%s" name-to-copy))
+    (user-error "This buffer is not visiting a file")))
+
+(defun dap/rename-file-and-buffer ()
+  "Rename the current file and buffer."
+  (interactive)
+  (let* ((filename (buffer-file-name))
+         (old-name (if filename
+                       (file-name-nondirectory filename)
+                     (buffer-name)))
+         (new-name (read-file-name "New name: " nil nil nil old-name)))
+    (cond
+     ((not (and filename (file-exists-p filename))) (rename-buffer new-name))
+     ((vc-backend filename) (vc-rename-file filename new-name))
+     (:else
+      (rename-file filename new-name :force-overwrite)
+      (set-visited-file-name new-name :no-query :along-with-file)))))
+
+(defun dap/delete-file-and-buffer ()
+  "Delete the current file and kill the buffer."
+  (interactive)
+  (let ((filename (buffer-file-name)))
+    (cond
+     ((not filename) (kill-buffer))
+     ((vc-backend filename) (vc-delete-file filename))
+     (:else
+      (delete-file filename)
+      (kill-buffer)))))
+
+(defun dap/find-user-init-file-other-window ()
+  "Edit the `user-init-file', in another window."
+  (interactive)
+  (find-file-other-window user-init-file))
+
+(defvar dap/files-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "R") 'dap/rename-file-and-buffer)
+    (define-key map (kbd "D") 'dap/delete-file-and-buffer)
+    (define-key map (kbd "w") 'dap/copy-filename-as-kill)
+    (define-key map (kbd "i") 'dap/find-user-init-file-other-window)
+    map)
+  "Keymap for file operations.")
+
+(defvar dap/toggle-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "c") 'toggle-case-fold-search)
+    (define-key map (kbd "d") 'toggle-debug-on-error)
+    (define-key map (kbd "l") 'linum-mode)
+    (define-key map (kbd "r") 'dired-toggle-read-only)
+    map)
+  "Keymap for toggle operations.")
+
+(global-set-key (kbd "C-c t") dap/toggle-map)
+(global-set-key (kbd "C-c f") dap/files-map)
 
 (unless (package-installed-p 'exec-path-from-shell)
   (package-install 'exec-path-from-shell))
@@ -1016,6 +1087,7 @@ Including indent-buffer, which should not be called automatically on save."
             (read-only-mode 1))
           (hook-into-modes 'colorize-compilation-buffer
                            '(compilation-filter-hook))))
+
 
 (require 'ediff)
 ;; Use ediff in single-frame mode.
