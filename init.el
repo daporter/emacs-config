@@ -1088,6 +1088,20 @@ Including indent-buffer, which should not be called automatically on save."
           (hook-into-modes 'colorize-compilation-buffer
                            '(compilation-filter-hook))))
 
+(unless (package-installed-p 'haskell-mode)
+  (package-install 'haskell-mode))
+(use-package haskell-mode
+  :init (progn
+          (unless (package-installed-p 'flycheck-haskell)
+            (package-install 'flycheck-haskell))
+          (use-package flycheck-haskell
+            :init (progn
+                    (hook-into-modes 'flycheck-haskell-setup
+                                     '(flycheck-mode-hook))))
+
+          (turn-on-haskell-doc-mode)
+          (turn-on-haskell-indentation)
+          (turn-on-haskell-decl-scan)))
 
 (require 'ediff)
 ;; Use ediff in single-frame mode.
