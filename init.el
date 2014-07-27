@@ -238,7 +238,7 @@ non-directory part only."
             (setq solarized-use-less-bold 1)
             (setq solarized-use-more-italic nil)
             (setq solarized-emphasize-indicators nil)
-            (load-theme 'solarized-dark t)))
+            (load-theme 'solarized-light t)))
 
 (unless (package-installed-p 'pretty-mode)
   (package-install 'pretty-mode))
@@ -1124,7 +1124,8 @@ Including indent-buffer, which should not be called automatically on save."
  ;; If there is more than one, they won't work right.
  '(custom-safe-themes
    (quote
-    ("8aebf25556399b58091e533e455dd50a6a9cba958cc4ebb0aab175863c25b9a4" "06f0b439b62164c6f8f84fdda32b62fb50b6d00e8b01c2208e55543a6337433a" default)))
+    ("d677ef584c6dfc0697901a44b885cc18e206f05114c8a3b7fde674fce6180879" "8aebf25556399b58091e533e455dd50a6a9cba958cc4ebb0aab175863c25b9a4" "06f0b439b62164c6f8f84fdda32b62fb50b6d00e8b01c2208e55543a6337433a" default)))
+ '(magit-use-overlays nil)
  '(smartparens-global-mode t))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
