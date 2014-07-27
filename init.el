@@ -129,8 +129,8 @@ non-directory part only."
     (define-key map (kbd "c") 'toggle-case-fold-search)
     (define-key map (kbd "d") 'toggle-debug-on-error)
     (define-key map (kbd "l") 'linum-mode)
-    (define-key map (kbd "o") 'longlines-mode)
     (define-key map (kbd "r") 'dired-toggle-read-only)
+    (define-key map (kbd "t") 'toggle-truncate-lines)
     map)
   "Keymap for toggle operations.")
 
