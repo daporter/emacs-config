@@ -46,6 +46,9 @@
   `(dolist (mode-hook ,modes)
      (add-hook mode-hook ,func)))
 
+(require 'bookmark)
+(setq bookmark-default-file (concat dap/user-data-directory "bookmarks"))
+
 (require 'package)
 (package-initialize)
 (add-to-list 'package-archives
