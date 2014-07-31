@@ -1116,6 +1116,14 @@ Including indent-buffer, which should not be called automatically on save."
           (define-key haskell-mode-map (kbd "C-c M-.") nil)
           (define-key haskell-mode-map (kbd "C-c C-d") nil)))
 
+(unless (package-installed-p 'php-mode)
+  (package-install 'php-mode))
+(use-package php-mode
+  :init (progn
+          (unless (package-installed-p 'flymake-php)
+            (package-install 'flymake-php))
+          (use-package flymake-php)))
+
 (require 'ediff)
 ;; Use ediff in single-frame mode.
 (setq ediff-window-setup-function 'ediff-setup-windows-plain)
