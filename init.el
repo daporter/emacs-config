@@ -1124,6 +1124,12 @@ Including indent-buffer, which should not be called automatically on save."
             (package-install 'flymake-php))
           (use-package flymake-php)))
 
+(unless (package-installed-p 'hungry-delete)
+  (package-install 'hungry-delete))
+(use-package hungry-delete
+  :init (progn
+          (global-hungry-delete-mode 1)))
+
 (require 'ediff)
 ;; Use ediff in single-frame mode.
 (setq ediff-window-setup-function 'ediff-setup-windows-plain)
