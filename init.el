@@ -402,6 +402,7 @@ character, and the start of the line."
 (unless (package-installed-p 'company)
   (package-install 'company))
 (use-package company
+  :diminish company-mode
   :init (progn
           (global-company-mode 1)))
 
