@@ -1129,6 +1129,7 @@ Including indent-buffer, which should not be called automatically on save."
           (bind-key "C-z"   'helm-select-action             helm-map)
 
           (setq
+           helm-truncate-lines t
            helm-google-suggest-use-curl-p t
            helm-scroll-amount 4
            helm-quick-update t
