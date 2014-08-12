@@ -1106,6 +1106,7 @@ Including indent-buffer, which should not be called automatically on save."
 (unless (package-installed-p 'helm)
   (package-install 'helm))
 (use-package helm
+  :diminish helm-mode
   :init (progn
           (setq helm-command-prefix-key "C-c h")
 
