@@ -399,45 +399,11 @@ character, and the start of the line."
             ;; This is your old M-x.
             (global-set-key (kbd "C-c C-c M-x") 'execute-extended-command)))
 
-(unless (package-installed-p 'auto-complete)
-  (package-install 'auto-complete))
-(use-package auto-complete-config
-  :diminish auto-complete-mode
-  :config (progn
-            (setq ac-quick-help-prefer-pos-tip nil)
-            (setq ac-comphist-file
-                  (concat dap/user-data-directory "ac-comphist.dat"))
-
-            (ac-config-default)
-            (setq ac-auto-start nil)
-            (ac-set-trigger-key "TAB")
-            (bind-key "s-<tab>" 'auto-complete)
-
-            (ac-flyspell-workaround)
-
-            ;; Advice for whitespace-mode conflict.
-            ;; Copied from https://github.com/bbatsov/prelude/issues/19
-            (defvar my-prev-whitespace-mode nil)
-            (make-variable-buffer-local 'my-prev-whitespace-mode)
-
-            (defadvice popup-draw (before my-turn-off-whitespace)
-              "Turn off whitespace mode before showing autocomplete box"
-              (make-local-variable 'my-prev-whitespace-mode)
-              (if whitespace-mode
-                  (progn
-                    (setq my-prev-whitespace-mode t)
-                    (whitespace-mode -1))
-                (setq my-prev-whitespace-mode nil)))
-
-            (defadvice popup-delete (after my-restore-whitespace)
-              "Restore previous whitespace mode when deleting autocomplete box"
-              (if my-prev-whitespace-mode
-                  (whitespace-mode 1)))
-
-            (ad-activate 'popup-draw)
-            (ad-activate 'popup-delete)
-
-            (global-auto-complete-mode 1)))
+(unless (package-installed-p 'company)
+  (package-install 'company))
+(use-package company
+  :init (progn
+          (global-company-mode 1)))
 
 (unless (package-installed-p 'yasnippet)
   (package-install 'yasnippet))
