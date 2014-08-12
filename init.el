@@ -1101,6 +1101,66 @@ Including indent-buffer, which should not be called automatically on save."
 ;; Use ediff in single-frame mode.
 (setq ediff-window-setup-function 'ediff-setup-windows-plain)
 
+;; Helm
+
+(unless (package-installed-p 'helm)
+  (package-install 'helm))
+(use-package helm
+  :init (progn
+          (setq helm-command-prefix-key "C-c h")
+
+          (use-package helm-config)
+          (use-package helm-eshell)
+          (use-package helm-files)
+          (use-package helm-grep
+            :init (progn
+                    (bind-key "<return>"
+                              'helm-grep-mode-jump-other-window
+                              helm-grep-mode-map)
+                    (bind-key "n"
+                              'helm-grep-mode-jump-other-window-forward
+                              helm-grep-mode-map)
+                    (bind-key "p"
+                              'helm-grep-mode-jump-other-window-backward
+                              helm-grep-mode-map)))
+
+          (bind-key "<tab>" 'helm-execute-persistent-action helm-map)
+          (bind-key "C-i"   'helm-execute-persistent-action helm-map)
+          (bind-key "C-z"   'helm-select-action             helm-map)
+
+          (setq
+           helm-google-suggest-use-curl-p t
+           helm-scroll-amount 4
+           helm-quick-update t
+           helm-idle-delay 0.01
+           helm-input-idle-delay 0.01
+           helm-ff-search-library-in-sexp t
+
+           helm-split-window-default-side 'other
+           helm-split-window-in-side-p t
+           helm-buffers-favorite-modes (append helm-buffers-favorite-modes
+                                               '(picture-mode artist-mode))
+           helm-candidate-number-limit 200
+           helm-M-x-requires-pattern 0
+           helm-boring-file-regexp-list '("\\.git$" "\\.hg$" "\\.svn$"
+                                          "\\.CVS$" "\\._darcs$" "\\.la$"
+                                          "\\.o$" "\\.i$")
+           helm-ff-file-name-history-use-recentf t
+           helm-move-to-line-cycle-in-source t
+           ido-use-virtual-buffers t
+           helm-buffers-fuzzy-matching t)
+
+          ;; Save current position to mark ring when jumping to a different
+          ;; place.
+          (add-hook 'helm-goto-line-before-hook
+                    'helm-save-current-pos-to-mark-ring)
+
+          (bind-key "M-x"   'helm-M-x)
+          (bind-key "M-y"   'helm-show-kill-ring)
+          (bind-key "C-x b" 'helm-mini)
+
+          (helm-mode 1)))
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
