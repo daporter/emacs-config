@@ -1156,9 +1156,10 @@ Including indent-buffer, which should not be called automatically on save."
           (add-hook 'helm-goto-line-before-hook
                     'helm-save-current-pos-to-mark-ring)
 
-          (bind-key "M-x"   'helm-M-x)
-          (bind-key "M-y"   'helm-show-kill-ring)
-          (bind-key "C-x b" 'helm-mini)
+          (bind-key "M-x"     'helm-M-x)
+          (bind-key "M-y"     'helm-show-kill-ring)
+          (bind-key "C-x b"   'helm-mini)
+          (bind-key "C-x r b" 'helm-filtered-bookmarks)
 
           (helm-mode 1)))
 
