@@ -505,6 +505,7 @@ character, and the start of the line."
   :diminish smartparens-mode
   :config (progn
             (hook-into-modes 'turn-on-smartparens-strict-mode dap/lispy-modes)
+            (hook-into-modes 'turn-on-smartparens-mode '(puppet-mode-hook))
             (setq sp-show-pair-from-inside nil)))
 
 (use-package tramp
