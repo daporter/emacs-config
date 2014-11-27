@@ -192,6 +192,11 @@ non-directory part only."
 (setq blink-matching-paren nil)
 (show-paren-mode 1)
 
+;; Pref splitting windows horizontally when reasonable, otherwise split
+;; vertically.
+(setq split-height-threshold nil)
+(setq split-width-threshold 80)
+
 (require 'paren)
 (setq show-paren-delay 0)
 (setq show-paren-style 'expression)
