@@ -192,6 +192,11 @@ non-directory part only."
 (setq blink-matching-paren nil)
 (show-paren-mode 1)
 
+;; Pref splitting windows horizontally when reasonable, otherwise split
+;; vertically.
+(setq split-height-threshold nil)
+(setq split-width-threshold 80)
+
 (require 'paren)
 (setq show-paren-delay 0)
 (setq show-paren-style 'expression)
@@ -505,6 +510,7 @@ character, and the start of the line."
   :diminish smartparens-mode
   :config (progn
             (hook-into-modes 'turn-on-smartparens-strict-mode dap/lispy-modes)
+            (hook-into-modes 'turn-on-smartparens-mode '(puppet-mode-hook))
             (setq sp-show-pair-from-inside nil)))
 
 (use-package tramp
@@ -883,7 +889,7 @@ Including indent-buffer, which should not be called automatically on save."
 (unless (package-installed-p 'chruby)
   (package-install 'chruby))
 (use-package chruby
-  :init (chruby "ruby-2.1.2"))
+  :init (chruby "ruby-2.1.3"))
 
 (unless (package-installed-p 'puppet-mode)
   (package-install 'puppet-mode))
@@ -982,6 +988,12 @@ Including indent-buffer, which should not be called automatically on save."
                 (notmuch-show-tag '("-inbox" "-archive" "-unread" "+trash"))
                 (notmuch-show-next-thread)))
 
+            (defun notmuch-show-bounce-message (&optional address)
+              "Bounce the current message."
+              (interactive "sBounce To: ")
+              (notmuch-show-view-raw-message)
+              (message-resend address))
+
             (define-key
               notmuch-hello-mode-map  (kbd "g")   'notmuch-refresh-this-buffer)
             (define-key
@@ -996,6 +1008,9 @@ Including indent-buffer, which should not be called automatically on save."
               notmuch-show-mode-map   (kbd "TAB") 'notmuch-show-toggle-message)
             (define-key
               notmuch-show-mode-map   (kbd "C-c n") 'notmuch-show-next-button)
+            (define-key
+              notmuch-show-mode-map   (kbd "b")   'notmuch-show-bounce-message)
+
 
             (use-package notmuch-address
               :config (progn
@@ -1100,6 +1115,69 @@ Including indent-buffer, which should not be called automatically on save."
 (require 'ediff)
 ;; Use ediff in single-frame mode.
 (setq ediff-window-setup-function 'ediff-setup-windows-plain)
+
+;; Helm
+
+(unless (package-installed-p 'helm)
+  (package-install 'helm))
+(use-package helm
+  :diminish helm-mode
+  :init (progn
+          (setq helm-command-prefix-key "C-c h")
+
+          (use-package helm-config)
+          (use-package helm-eshell)
+          (use-package helm-files)
+          (use-package helm-grep
+            :init (progn
+                    (bind-key "<return>"
+                              'helm-grep-mode-jump-other-window
+                              helm-grep-mode-map)
+                    (bind-key "n"
+                              'helm-grep-mode-jump-other-window-forward
+                              helm-grep-mode-map)
+                    (bind-key "p"
+                              'helm-grep-mode-jump-other-window-backward
+                              helm-grep-mode-map)))
+
+          (bind-key "<tab>" 'helm-execute-persistent-action helm-map)
+          (bind-key "C-i"   'helm-execute-persistent-action helm-map)
+          (bind-key "C-z"   'helm-select-action             helm-map)
+
+          (setq
+           helm-truncate-lines t
+           helm-google-suggest-use-curl-p t
+           helm-scroll-amount 4
+           helm-quick-update t
+           helm-idle-delay 0.01
+           helm-input-idle-delay 0.01
+           helm-ff-search-library-in-sexp t
+
+           helm-split-window-default-side 'other
+           helm-split-window-in-side-p t
+           helm-buffers-favorite-modes (append helm-buffers-favorite-modes
+                                               '(picture-mode artist-mode))
+           helm-candidate-number-limit 200
+           helm-M-x-requires-pattern 0
+           helm-boring-file-regexp-list '("\\.git$" "\\.hg$" "\\.svn$"
+                                          "\\.CVS$" "\\._darcs$" "\\.la$"
+                                          "\\.o$" "\\.i$")
+           helm-ff-file-name-history-use-recentf t
+           helm-move-to-line-cycle-in-source t
+           ido-use-virtual-buffers t
+           helm-buffers-fuzzy-matching t)
+
+          ;; Save current position to mark ring when jumping to a different
+          ;; place.
+          (add-hook 'helm-goto-line-before-hook
+                    'helm-save-current-pos-to-mark-ring)
+
+          (bind-key "M-x"     'helm-M-x)
+          (bind-key "M-y"     'helm-show-kill-ring)
+          (bind-key "C-x b"   'helm-mini)
+          (bind-key "C-x r b" 'helm-filtered-bookmarks)
+
+          (helm-mode 1)))
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.

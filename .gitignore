@@ -13,3 +13,5 @@ tramp
 /elpa/
 /projectile-bookmarks.eld
 /data/
+/.emacs.desktop
+/.emacs.desktop.lock
