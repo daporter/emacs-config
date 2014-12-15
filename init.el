@@ -988,6 +988,12 @@ Including indent-buffer, which should not be called automatically on save."
                 (notmuch-show-tag '("-inbox" "-archive" "-unread" "+trash"))
                 (notmuch-show-next-thread)))
 
+            (defun notmuch-show-bounce-message (&optional address)
+              "Bounce the current message."
+              (interactive "sBounce To: ")
+              (notmuch-show-view-raw-message)
+              (message-resend address))
+
             (define-key
               notmuch-hello-mode-map  (kbd "g")   'notmuch-refresh-this-buffer)
             (define-key
@@ -1002,6 +1008,9 @@ Including indent-buffer, which should not be called automatically on save."
               notmuch-show-mode-map   (kbd "TAB") 'notmuch-show-toggle-message)
             (define-key
               notmuch-show-mode-map   (kbd "C-c n") 'notmuch-show-next-button)
+            (define-key
+              notmuch-show-mode-map   (kbd "b")   'notmuch-show-bounce-message)
+
 
             (use-package notmuch-address
               :config (progn
