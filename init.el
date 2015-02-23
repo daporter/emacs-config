@@ -419,7 +419,8 @@ character, and the start of the line."
   :diminish yas-minor-mode
   :init (yas-global-mode 1)
   :config (progn
-            (setq yas-snippet-dirs     (concat user-emacs-directory "snippets")
+            (setq yas-snippet-dirs     (concat (expand-file-name user-emacs-directory)
+                                               "snippets")
                   yas-prompt-functions '(yas/ido-prompt yas/completing-prompt))
 
             ;; Use only my own snippets, not the bundled ones.
