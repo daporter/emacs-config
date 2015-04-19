@@ -204,13 +204,6 @@ non-directory part only."
 (setq ring-bell-function 'ignore)
 (setq visible-bell 1)
 
-(unless (package-installed-p 'winner)
-  (package-install 'winner))
-(use-package winner
-  :if (not noninteractive)
-  :diminish winner-mode
-  :init (winner-mode 1))
-
 (unless (package-installed-p 'ace-window)
   (package-install 'ace-window))
 (use-package ace-window
