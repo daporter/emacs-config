@@ -853,7 +853,8 @@ Including indent-buffer, which should not be called automatically on save."
   :config (bind-key "C-x g" 'magit-status)
   :init (progn
           (setq magit-emacsclient-executable "/usr/local/bin/emacsclient")
-          (setq magit-last-seen-setup-instructions "1.4.0")))
+          (setq magit-last-seen-setup-instructions "1.4.0")
+          (setq magit-use-overlays nil)))
 
 ;; ;; ;;;_ , AUCTeX
 
