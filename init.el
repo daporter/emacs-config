@@ -207,9 +207,11 @@ non-directory part only."
 (unless (package-installed-p 'ace-window)
   (package-install 'ace-window))
 (use-package ace-window
+  x0
   :init (progn
           (setq aw-keys '(?a ?o ?e ?u ?i ?d ?h ?t ?n))
-          (key-chord-define-global "bm" 'ace-window)))
+          (key-chord-define-global "bm" 'ace-window)
+          (ace-window-display-mode)))
 
 (defadvice yes-or-no-p (around prevent-dialog activate)
   "Prevent `yes-or-no-p' from activating a dialog."
