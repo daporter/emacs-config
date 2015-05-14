@@ -613,7 +613,6 @@ character, and the start of the line."
           (setq hs-hide-comments-when-hiding-all 1)
           (setq hs-isearch-open 1)
           (setq hs-set-up-overlay 'dap/display-code-line-counts)
-          (hook-into-modes 'hs-org/minor-mode dap/lispy-modes)
 
           (defadvice goto-line (after expand-after-goto-line activate compile)
             "How do I get it to expand upon a goto-line? hideshow-expand affected block when using goto-line in a collapsed buffer."
