@@ -501,6 +501,7 @@ character, and the start of the line."
 (use-package tramp
   :config (progn
             ;; Configure Tramp for use with NCI cloud VMs.
+            (setq tramp-default-method "ssh")
             (add-to-list 'tramp-default-proxies-alist
                          '("130\\.56\\."
                            nil
