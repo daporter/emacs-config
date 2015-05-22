@@ -633,7 +633,7 @@ character, and the start of the line."
   (package-install 'org-journal))
 (use-package org-journal
   :init (progn
-          (setq org-journal-dir "~/Dropbox/journal")))
+          (setq org-journal-dir "~/Dropbox/journal/")))
 
 (unless (package-installed-p 'flycheck)
   (package-install 'flycheck))
