@@ -234,6 +234,7 @@ non-directory part only."
 (unless (package-installed-p 'solarized-theme)
   (package-install 'solarized-theme))
 (use-package solarized-theme
+  :disabled
   :config (progn
             (setq solarized-distinct-fringe-background 1)
             (setq solarized-high-contrast-mode-line 1)
@@ -241,6 +242,20 @@ non-directory part only."
             (setq solarized-use-more-italic nil)
             (setq solarized-emphasize-indicators nil)
             (load-theme 'solarized-light t)))
+
+(unless (package-installed-p 'monokai-theme)
+  (package-install 'monokai-theme))
+(use-package monokai-theme
+  :config (progn
+            (load-theme 'monokai t)))
+
+(unless (package-installed-p 'twittering-mode)
+  (package-install 'twittering-mode))
+(use-package twittering-mode)
+
+(unless (package-installed-p 'sx)
+  (package-install 'sx))
+(use-package sx)
 
 (unless (package-installed-p 'pretty-mode)
   (package-install 'pretty-mode))
@@ -1173,9 +1188,13 @@ Including indent-buffer, which should not be called automatically on save."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(custom-safe-themes
+   (quote
+    ("8aebf25556399b58091e533e455dd50a6a9cba958cc4ebb0aab175863c25b9a4" default)))
+ '(magit-diff-use-overlays nil)
  '(package-selected-packages
    (quote
-    (ace-jump-mode yasnippet yaml-mode web-mode use-package undo-tree solarized-theme smex smartparens rainbow-mode puppet-mode projectile pretty-mode php-mode osx-browse org-journal org-ac notmuch noflet multiple-cursors markdown-mode+ magit lexbind-mode ledger-mode keyfreq key-chord json-reformat js2-mode imenu-anywhere ido-vertical-mode ido-ubiquitous ido-hacks hungry-delete hideshow-org helm guide-key flymake-puppet flymake-php flymake-cursor flycheck-ledger flycheck-haskell flx-ido fill-column-indicator fancy-narrow expand-region exec-path-from-shell dired-details+ diff-hl dash-at-point company chruby boxquote alert ag ace-window ace-link))))
+    (monokai-theme sx twittering-mode ace-jump-mode yasnippet yaml-mode web-mode use-package undo-tree solarized-theme smex smartparens rainbow-mode puppet-mode projectile pretty-mode php-mode osx-browse org-journal org-ac notmuch noflet multiple-cursors markdown-mode+ magit lexbind-mode ledger-mode keyfreq key-chord json-reformat js2-mode imenu-anywhere ido-vertical-mode ido-ubiquitous ido-hacks hungry-delete hideshow-org helm guide-key flymake-puppet flymake-php flymake-cursor flycheck-ledger flycheck-haskell flx-ido fill-column-indicator fancy-narrow expand-region exec-path-from-shell dired-details+ diff-hl dash-at-point company chruby boxquote alert ag ace-window ace-link))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
