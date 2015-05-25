@@ -1009,7 +1009,7 @@ Including indent-buffer, which should not be called automatically on save."
               "Mark this email as deleted."
               (interactive)
               (notmuch-show-tag '("-inbox" "-archive" "-unread" "+trash"))
-              (notmuch-show-next-thread))
+              (notmuch-show-next-thread-show))
 
             (defun notmuch-show-bounce-message (&optional address)
               "Bounce the current message."
