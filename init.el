@@ -980,16 +980,14 @@ Including indent-buffer, which should not be called automatically on save."
             (defun notmuch-search-mark-deleted ()
               "Mark this email as deleted."
               (interactive)
-              (when (y-or-n-p "Are you sure you want to delete this message? ")
-                (notmuch-search-tag '("-inbox" "-archive" "-unread" "+trash"))
-                (notmuch-search-next-thread)))
+              (notmuch-search-tag '("-inbox" "-archive" "-unread" "+trash"))
+              (notmuch-search-next-thread))
 
             (defun notmuch-show-mark-deleted ()
               "Mark this email as deleted."
               (interactive)
-              (when (y-or-n-p "Are you sure you want to delete this message? ")
-                (notmuch-show-tag '("-inbox" "-archive" "-unread" "+trash"))
-                (notmuch-show-next-thread)))
+              (notmuch-show-tag '("-inbox" "-archive" "-unread" "+trash"))
+              (notmuch-show-next-thread))
 
             (defun notmuch-show-bounce-message (&optional address)
               "Bounce the current message."
