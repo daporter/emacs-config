@@ -1062,9 +1062,7 @@ Including indent-buffer, which should not be called automatically on save."
       message-send-mail-function 'message-send-mail-with-sendmail
       sendmail-program "/usr/local/bin/msmtp"
       ;; This is needed to allow msmtp to do its magic:
-      message-sendmail-f-is-evil t
-      ;; Need to tell msmtp which account we're using.
-      message-sendmail-extra-arguments '("--read-envelope-from"))
+      message-sendmail-f-is-evil t)
 
 (use-package ansi-color
   :init (progn
