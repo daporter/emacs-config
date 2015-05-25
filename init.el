@@ -968,14 +968,36 @@ Including indent-buffer, which should not be called automatically on save."
             (setq notmuch-fcc-dirs nil)
 
             (setq notmuch-saved-searches
-                  '((:name "anu unread" :query "tag:anu AND tag:unread" :sort-order oldest-first)
-                    (:name "gmail unread" :query "tag:gmail AND tag:unread" :sort-order oldest-first)
-                    (:name "unread" :query "tag:unread" :sort-order oldest-first)
-                    (:name "inbox" :query "tag:inbox" :sort-order newest-first)
-                    (:name "flagged" :query "tag:flagged" :sort-order newest-first)
-                    (:name "drafts" :query "tag:draft" :sort-order newest-first)
-                    (:name "sent" :query "tag:sent" :sort-order newest-first)
-                    (:name "all mail" :query "*" :sort-order newest-first)))
+                  '((:name "anu unread"
+                           :query "tag:anu AND tag:unread"
+                           :sort-order oldest-first)
+                    (:name "gmail unread"
+                           :query "tag:gmail AND tag:unread"
+                           :sort-order oldest-first)
+                    (:name "unread"
+                           :query "tag:unread"
+                           :key "u"
+                           :sort-order oldest-first)
+                    (:name "inbox"
+                           :query "tag:inbox"
+                           :key "i"
+                           :sort-order newest-first)
+                    (:name "flagged"
+                           :query "tag:flagged"
+                           :key "f"
+                           :sort-order newest-first)
+                    (:name "drafts"
+                           :query "tag:draft"
+                           :key "d"
+                           :sort-order newest-first)
+                    (:name "sent"
+                           :query "tag:sent"
+                           :key "s"
+                           :sort-order newest-first)
+                    (:name "all mail"
+                           :query "*"
+                           :key "a"
+                           :sort-order newest-first)))
 
             (defun notmuch-search-mark-deleted ()
               "Mark this email as deleted."
