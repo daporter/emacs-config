@@ -209,7 +209,7 @@ non-directory part only."
 (use-package ace-window
   :init (progn
           (setq aw-keys '(?a ?o ?e ?u ?i ?d ?h ?t ?n))
-          (key-chord-define-global "bm" 'ace-window)
+          (key-chord-define-global "ww" 'ace-window)
           (ace-window-display-mode)))
 
 (defadvice yes-or-no-p (around prevent-dialog activate)
@@ -302,7 +302,7 @@ might be bad."
 (use-package ace-jump-mode
   :bind ("C-0" . ace-jump-mode)
   :init (progn
-          (key-chord-define-global "nh" 'ace-jump-mode)
+          (key-chord-define-global "jj" 'ace-jump-mode)
           (ace-jump-mode-enable-mark-sync)
           (bind-key"C-x SPC" 'ace-jump-mode-pop-mark)))
 
