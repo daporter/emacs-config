@@ -1087,67 +1087,92 @@ Including indent-buffer, which should not be called automatically on save."
 ;; Use ediff in single-frame mode.
 (setq ediff-window-setup-function 'ediff-setup-windows-plain)
 
-;; Helm
-
 (use-package helm
   :ensure t
   :diminish helm-mode
   :init (progn
-          (setq helm-command-prefix-key "C-c h")
-
           (use-package helm-config)
-          (use-package helm-eshell)
-          (use-package helm-files)
-          (use-package helm-grep
-            :init (progn
-                    (bind-key "<return>"
-                              'helm-grep-mode-jump-other-window
-                              helm-grep-mode-map)
-                    (bind-key "n"
-                              'helm-grep-mode-jump-other-window-forward
-                              helm-grep-mode-map)
-                    (bind-key "p"
-                              'helm-grep-mode-jump-other-window-backward
-                              helm-grep-mode-map)))
 
-          (bind-key "<tab>" 'helm-execute-persistent-action helm-map)
-          (bind-key "C-i"   'helm-execute-persistent-action helm-map)
-          (bind-key "C-z"   'helm-select-action             helm-map)
+          (setq helm-candidate-number-limit 100)
+          ;; From https://gist.github.com/antifuchs/9238468
+          (setq helm-idle-delay 0.0  ; update fast sources immediately (doesn't)
+                ;; This actually updates things relatively quickly:
+                helm-input-idle-delay 0.01
 
-          (setq
-           helm-truncate-lines t
-           helm-google-suggest-use-curl-p t
-           helm-scroll-amount 4
-           helm-quick-update t
-           helm-idle-delay 0.01
-           helm-input-idle-delay 0.01
-           helm-ff-search-library-in-sexp t
+                helm-yas-display-key-on-candidate t
+                helm-quick-update t
+                helm-M-x-requires-pattern nil
+                helm-ff-skip-boring-files t)
+          (helm-mode 1)
+          ;; (use-package helm-eshell)
+          ;; (use-package helm-files)
+          ;; (use-package helm-grep
+          ;;   :init (progn
+          ;;           (bind-key "<return>"
+          ;;                     'helm-grep-mode-jump-other-window
+          ;;                     helm-grep-mode-map)
+          ;;           (bind-key "n"
+          ;;                     'helm-grep-mode-jump-other-window-forward
+          ;;                     helm-grep-mode-map)
+          ;;           (bind-key "p"
+          ;;                     'helm-grep-mode-jump-other-window-backward
+          ;;                     helm-grep-mode-map)))
 
-           helm-split-window-default-side 'other
-           helm-split-window-in-side-p t
-           helm-buffers-favorite-modes (append helm-buffers-favorite-modes
-                                               '(picture-mode artist-mode))
-           helm-candidate-number-limit 200
-           helm-M-x-requires-pattern 0
-           helm-boring-file-regexp-list '("\\.git$" "\\.hg$" "\\.svn$"
-                                          "\\.CVS$" "\\._darcs$" "\\.la$"
-                                          "\\.o$" "\\.i$")
-           helm-ff-file-name-history-use-recentf t
-           helm-move-to-line-cycle-in-source t
-           ido-use-virtual-buffers t
-           helm-buffers-fuzzy-matching t)
+          ;; (bind-key "<tab>" 'helm-execute-persistent-action helm-map)
+          ;; (bind-key "C-i"   'helm-execute-persistent-action helm-map)
+          ;; (bind-key "C-z"   'helm-select-action             helm-map)
 
-          ;; Save current position to mark ring when jumping to a different
-          ;; place.
-          (add-hook 'helm-goto-line-before-hook
-                    'helm-save-current-pos-to-mark-ring)
+          ;; (setq
+          ;;  helm-truncate-lines t
+          ;;  helm-google-suggest-use-curl-p t
+          ;;  helm-scroll-amount 4
+          ;;  helm-quick-update t
+          ;;  helm-idle-delay 0.01
+          ;;  helm-input-idle-delay 0.01
+          ;;  helm-ff-search-library-in-sexp t
 
-          (bind-key "M-x"     'helm-M-x)
-          (bind-key "M-y"     'helm-show-kill-ring)
-          (bind-key "C-x b"   'helm-mini)
-          (bind-key "C-x r b" 'helm-filtered-bookmarks)
+          ;;  helm-split-window-default-side 'other
+          ;;  helm-split-window-in-side-p t
+          ;;  helm-buffers-favorite-modes (append helm-buffers-favorite-modes
+          ;;                                      '(picture-mode artist-mode))
+          ;;  helm-candidate-number-limit 200
+          ;;  helm-M-x-requires-pattern 0
+          ;;  helm-boring-file-regexp-list '("\\.git$" "\\.hg$" "\\.svn$"
+          ;;                                 "\\.CVS$" "\\._darcs$" "\\.la$"
+          ;;                                 "\\.o$" "\\.i$")
+          ;;  helm-ff-file-name-history-use-recentf t
+          ;;  helm-move-to-line-cycle-in-source t
+          ;;  ido-use-virtual-buffers t
+          ;;  helm-buffers-fuzzy-matching t)
 
-          (helm-mode 1)))
+          ;; ;; Save current position to mark ring when jumping to a different
+          ;; ;; place.
+          ;; (add-hook 'helm-goto-line-before-hook
+          ;;           'helm-save-current-pos-to-mark-ring)
+
+          ;; (bind-key "M-x"     'helm-M-x)
+          ;; (bind-key "M-y"     'helm-show-kill-ring)
+          ;; (bind-key "C-x b"   'helm-mini)
+          ;; (bind-key "C-x r b" 'helm-filtered-bookmarks)
+
+          )
+  :bind (("C-c h"     . helm-mini)
+         ("C-h a"     . helm-apropos)
+         ("C-x C-b"   . helm-buffers-list)
+         ("C-x b"     . helm-buffers-list)
+         ("M-y"       . helm-show-kill-ring)
+         ("M-x"       . helm-M-x)
+         ("C-x c o"   . helm-occur)
+         ("C-x c s"   . helm-swoop)
+         ("C-x c y"   . helm-yas-complete)
+         ("C-x c Y"   . helm-yas-create-snippet-on-region)
+         ("C-x c b"   . my/helm-do-grep-book-notes)
+         ("C-x c SPC" . helm-all-mark-rings)))
+
+(use-package helm-descbinds
+  :defer t
+  :bind (("C-h b" . helm-descbinds)
+         ("C-h w" . helm-descbinds)))
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
