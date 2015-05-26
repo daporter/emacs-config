@@ -140,14 +140,12 @@ non-directory part only."
 (global-set-key (kbd "C-c t") dap/toggle-map)
 (global-set-key (kbd "C-c f") dap/files-map)
 
-(unless (package-installed-p 'exec-path-from-shell)
-  (package-install 'exec-path-from-shell))
 (use-package exec-path-from-shell
+  :ensure t
   :config (exec-path-from-shell-initialize))
 
-(unless (package-installed-p 'alert)
-  (package-install 'alert))
 (use-package alert
+  :ensure t
   :config (progn
             (setq alert-fade-time 10)
             (setq alert-default-style 'growl)
@@ -157,9 +155,8 @@ non-directory part only."
 
 (setq make-pointer-invisible 1)
 
-(unless (package-installed-p 'key-chord)
-  (package-install 'key-chord))
 (use-package key-chord
+  :ensure t
   :config (progn
             (key-chord-mode 1)
             (key-chord-define-global (concat "<" "_")
@@ -176,9 +173,8 @@ non-directory part only."
 
 (hook-into-modes 'eldoc-mode dap/lispy-modes)
 
-(unless (package-installed-p 'fill-column-indicator)
-  (package-install 'fill-column-indicator))
 (use-package fill-column-indicator
+  :ensure t
   :config (progn
             (hook-into-modes 'fci-mode '(prog-mode-hook))
             (hook-into-modes 'fci-mode dap/lispy-modes)))
@@ -204,9 +200,8 @@ non-directory part only."
 (setq ring-bell-function 'ignore)
 (setq visible-bell 1)
 
-(unless (package-installed-p 'ace-window)
-  (package-install 'ace-window))
 (use-package ace-window
+  :ensure t
   :init (progn
           (setq aw-keys '(?a ?o ?e ?u ?i ?d ?h ?t ?n))
           (key-chord-define-global "ww" 'ace-window)
@@ -226,14 +221,12 @@ non-directory part only."
 
 (setq browse-url-browser-function 'browse-url-generic)
 
-(unless (package-installed-p 'osx-browse)
-  (package-install 'osx-browse))
 (use-package osx-browse
+  :ensure t
   :init (osx-browse-mode 1))
 
-(unless (package-installed-p 'solarized-theme)
-  (package-install 'solarized-theme))
 (use-package solarized-theme
+  :ensure t
   :config (progn
             (setq solarized-distinct-fringe-background 1)
             (setq solarized-high-contrast-mode-line 1)
@@ -242,24 +235,20 @@ non-directory part only."
             (setq solarized-emphasize-indicators nil)
             (load-theme 'solarized-dark t)))
 
-(unless (package-installed-p 'monokai-theme)
-  (package-install 'monokai-theme))
 (use-package monokai-theme
+  :ensure t
   :disabled
   :config (progn
             (load-theme 'monokai t)))
 
-(unless (package-installed-p 'twittering-mode)
-  (package-install 'twittering-mode))
-(use-package twittering-mode)
+(use-package twittering-mode
+  :ensure t)
 
-(unless (package-installed-p 'sx)
-  (package-install 'sx))
-(use-package sx)
+(use-package sx
+  :ensure t)
 
-(unless (package-installed-p 'pretty-mode)
-  (package-install 'pretty-mode))
 (use-package pretty-mode
+  :ensure t
   :init (hook-into-modes 'turn-on-pretty-mode dap/lispy-modes))
 
 (setq make-pointer-invisible 1)
@@ -287,9 +276,8 @@ might be bad."
 
 (prefer-coding-system 'utf-8)
 
-(unless (package-installed-p 'undo-tree)
-  (package-install 'undo-tree))
 (use-package undo-tree
+  :ensure t
   :diminish undo-tree-mode
   :init (global-undo-tree-mode 1))
 
@@ -297,9 +285,8 @@ might be bad."
 
 (global-auto-revert-mode 1)
 
-(unless (package-installed-p 'ace-jump-mode)
-  (package-install 'ace-jump-mode))
 (use-package ace-jump-mode
+  :ensure t
   :bind ("C-0" . ace-jump-mode)
   :init (progn
           (key-chord-define-global "jj" 'ace-jump-mode)
@@ -315,9 +302,8 @@ might be bad."
 (setq isearch-lax-whitespace 1)
 (setq isearch-regexp-lax-whitespace 1)
 
-(unless (package-installed-p 'boxquote)
-  (package-install 'boxquote))
-(use-package boxquote)
+(use-package boxquote
+  :ensure t)
 
 (setq track-eol 1)
 (setq line-move-visual nil)
@@ -388,14 +374,12 @@ character, and the start of the line."
 
 (bind-key "C-a" 'dap/beginning-of-line-dwim)
 
-(unless (package-installed-p 'expand-region)
-  (package-install 'expand-region))
 (use-package expand-region
+  :ensure t
   :config (bind-key "C-'" 'er/expand-region))
 
-(unless (package-installed-p 'multiple-cursors)
-  (package-install 'multiple-cursors))
 (use-package multiple-cursors
+  :ensure t
   :config (progn
             (setq mc/list-file (concat dap/user-data-directory ".mc-lists.el"))
             (bind-key "M-9" 'mc/edit-lines)
@@ -403,16 +387,14 @@ character, and the start of the line."
             (bind-key "M--" 'mc/mark-all-like-this)
             (bind-key "M-8" 'mc/mark-previous-like-this)))
 
-(unless (package-installed-p 'company)
-  (package-install 'company))
 (use-package company
+  :ensure t
   :diminish company-mode
   :init (progn
           (global-company-mode 1)))
 
-(unless (package-installed-p 'yasnippet)
-  (package-install 'yasnippet))
 (use-package yasnippet
+  :ensure t
   :mode     ("/\\.emacs\\.d/snippets/" . snippet-mode)
   :commands (yas-minor-mode yas-expand)
   :diminish yas-minor-mode
@@ -434,9 +416,8 @@ character, and the start of the line."
 (bind-key "C-<f2>" 'emacs-index-search)
 (bind-key "S-<f2>" 'elisp-index-search)
 
-(unless (package-installed-p 'imenu-anywhere)
-  (package-install 'imenu-anywhere))
 (use-package imenu-anywhere
+  :ensure t
   :bind ("C-<f3>". imenu-anywhere))
 
 (bind-key "s-<up>"   'enlarge-window)
@@ -446,9 +427,8 @@ character, and the start of the line."
 
 (setq-default ispell-program-name "aspell")
 
-(unless (package-installed-p 'whitespace)
-  (package-install 'whitespace))
 (use-package whitespace
+  :ensure t
   :diminish (global-whitespace-mode
              whitespace-mode)
   :config (progn
@@ -456,9 +436,8 @@ character, and the start of the line."
             (setq whitespace-style '(trailing lines tab-mark))
             (global-whitespace-mode 1)))
 
-(unless (package-installed-p 'rainbow-mode)
-  (package-install 'rainbow-mode))
 (use-package rainbow-mode
+  :ensure t
   :diminish rainbow-mode
   :config (progn
             (hook-into-modes 'rainbow-mode dap/lispy-modes)
@@ -496,17 +475,15 @@ character, and the start of the line."
             (use-package ido-ubiquitous
               :config (ido-ubiquitous-mode 1))))
 
-(unless (package-installed-p 'projectile)
-  (package-install 'projectile))
 (use-package projectile
+  :ensure t
   :config (progn
             (setq projectile-cache-file
                   (concat dap/user-data-directory "projectile.cache"))
             (projectile-global-mode 1)))
 
-(unless (package-installed-p 'smartparens)
-  (package-install 'smartparens))
 (use-package smartparens-config
+  :ensure t
   :diminish smartparens-mode
   :config (progn
             (hook-into-modes 'turn-on-smartparens-strict-mode dap/lispy-modes)
@@ -526,14 +503,12 @@ character, and the start of the line."
 (setq dired-listing-switches  "-alh")
 (setq dired-recursive-deletes 1)
 
-(unless (package-installed-p 'dired-details+)
-  (package-install 'dired-details+))
 (use-package dired-details+
+  :ensure t
   :config (setq-default dired-details-hidden-string ""))
 
-(unless (package-installed-p 'diff-hl)
-  (package-install 'diff-hl))
-(use-package diff-hl)
+(use-package diff-hl
+  :ensure t)
 
 (defun dap/dired-mode-hook ()
   "Personal dired customizations."
@@ -636,28 +611,24 @@ character, and the start of the line."
             (save-excursion
               (hs-show-block)))))
 
-(unless (package-installed-p 'flyspell)
-  (package-install 'flyspell))
 (use-package flyspell
+  :ensure t
   :init (progn
           (hook-into-modes 'turn-on-flyspell '(text-mode-hook
                                                org-mode-hook))
           (hook-into-modes 'flyspell-prog-mode '(prog-mode-hook))))
 
-(unless (package-installed-p 'org-journal)
-  (package-install 'org-journal))
 (use-package org-journal
+  :ensure t
   :init (progn
           (setq org-journal-dir "~/Dropbox/journal/")))
 
-(unless (package-installed-p 'flycheck)
-  (package-install 'flycheck))
 (use-package flycheck
+  :ensure t
   :init (global-flycheck-mode 1))
 
-(unless (package-installed-p 'fancy-narrow)
-  (package-install 'fancy-narrow))
-(use-package fancy-narrow)
+(use-package fancy-narrow
+  :ensure t)
 
 (defun dap/disable-tabs ()
   "Disable tabs."
@@ -682,9 +653,8 @@ character, and the start of the line."
   (local-set-key (kbd "s-l mef") 'macroexpand)
   (local-set-key (kbd "s-l mea") 'macroexpand-all))
 
-(unless (package-installed-p 'lexbind-mode)
-  (package-install 'lexbind-mode))
 (use-package lexbind-mode
+  :ensure t
   :init (hook-into-modes 'lexbind-mode '(elisp-mode-hook)))
 
 (defun dap/elisp-mode-hook ()
@@ -696,18 +666,16 @@ character, and the start of the line."
 
 (setq initial-scratch-message nil)
 
-(unless (package-installed-p 'js2-mode)
-  (package-install 'js2-mode))
 (use-package js2-mode
+  :ensure t
   :config (progn
             (local-set-key (kbd "RET") 'newline-and-indent)
             (fci-mode 1)
             (visual-line-mode)
             (dap/untabify-buffer-hook)))
 
-(unless (package-installed-p 'web-mode)
-  (package-install 'web-mode))
 (use-package web-mode
+  :ensure t
   :init (progn
           (setq web-mode-enable-block-partial-invalidation t)
           (setq web-mode-engines-alist '(("ctemplate" . "\\.html$"))))
@@ -725,13 +693,11 @@ character, and the start of the line."
             (setq web-mode-block-padding 0)
             (dap/untabify-buffer-hook)))
 
-(unless (package-installed-p 'json-reformat)
-  (package-install 'json-reformat))
-(use-package json-reformat)
+(use-package json-reformat
+  :ensure t)
 
-(unless (package-installed-p 'css-mode)
-  (package-install 'css-mode))
 (use-package css-mode
+  :ensure t
   :config (progn
             (fci-mode 1)
             (whitespace-turn-on)
@@ -748,17 +714,15 @@ character, and the start of the line."
             (visual-line-mode)
             (local-set-key (kbd "RET") 'newline-and-indent)))
 
-(unless (package-installed-p 'diff-hl)
-  (package-install 'diff-hl))
 (use-package diff-hl
+  :ensure t
   :init (global-diff-hl-mode))
 
 (hook-into-modes 'turn-on-visual-line-mode '(org-mode-hook))
 (setq visual-line-fringe-indicators '(left-curly-arrow right-curly-arrow))
 
-(unless (package-installed-p 'ace-link)
-  (package-install 'ace-link))
 (use-package ace-link
+  :ensure t
   :init (ace-link-setup-default))
 
 (use-package ruby-mode
@@ -859,13 +823,11 @@ Including indent-buffer, which should not be called automatically on save."
   (dap/cleanup-buffer-safe)
   (dap/indent-buffer))
 
-(unless (package-installed-p 'ag)
-  (package-install 'ag))
-(use-package ag)
+(use-package ag
+  :ensure t)
 
-(unless (package-installed-p 'magit)
-  (package-install 'magit))
 (use-package magit
+  :ensure t
   :config (bind-key "C-x g" 'magit-status)
   :init (progn
           (setq magit-emacsclient-executable "/usr/local/bin/emacsclient")
@@ -886,48 +848,40 @@ Including indent-buffer, which should not be called automatically on save."
 ;; ;;                            '(LaTeX-mode-hook))
 
 
-(unless (package-installed-p 'dash-at-point)
-  (package-install 'dash-at-point))
-(use-package dash-at-point)
+(use-package dash-at-point
+  :ensure t)
 
-(unless (package-installed-p 'chruby)
-  (package-install 'chruby))
 (use-package chruby
+  :ensure t
   :init (chruby "ruby-2.1.3"))
 
-(unless (package-installed-p 'puppet-mode)
-  (package-install 'puppet-mode))
 (use-package puppet-mode
+  :ensure t
   :config (progn
             (unless (package-installed-p 'flymake-puppet)
               (package-install 'flymake-puppet))
             (use-package flymake-puppet
               :init (add-hook 'puppet-mode-hook 'flymake-puppet-load))))
 
-(unless (package-installed-p 'flymake-cursor)
-  (package-install 'flymake-cursor))
-(use-package flymake-cursor)
+(use-package flymake-cursor
+  :ensure t)
 
-(unless (package-installed-p 'markdown-mode)
-  (package-install 'markdown-mode))
 (use-package markdown-mode
+  :ensure t
   :config (progn
             (unless (package-installed-p 'markdown-mode+)
               (package-install 'markdown-mode+))
             (use-package markdown-mode+)))
 
-(unless (package-installed-p 'yaml-mode)
-  (package-install 'yaml-mode))
-(use-package yaml-mode)
+(use-package yaml-mode
+  :ensure t)
 
-(unless (package-installed-p 'keyfreq)
-  (package-install 'keyfreq))
 (use-package keyfreq
+  :ensure t
   :init (keyfreq-mode 1))
 
-(unless (package-installed-p 'ledger-mode)
-  (package-install 'ledger-mode))
 (use-package ledger-mode
+  :ensure t
   :config (progn
             (unless (package-installed-p 'flycheck-ledger)
               (package-install 'flycheck-ledger))
@@ -942,9 +896,8 @@ Including indent-buffer, which should not be called automatically on save."
                                                (dired-mode "%")))
           (guide-key-mode 1)))
 
-(unless (package-installed-p 'notmuch)
-  (package-install 'notmuch))
 (use-package notmuch
+  :ensure t
   :bind ("C-c m" . notmuch)
   :config (progn
             (setq notmuch-hello-thousands-separator ",")
@@ -1095,9 +1048,8 @@ Including indent-buffer, which should not be called automatically on save."
           (hook-into-modes 'colorize-compilation-buffer
                            '(compilation-filter-hook))))
 
-(unless (package-installed-p 'haskell-mode)
-  (package-install 'haskell-mode))
 (use-package haskell-mode
+  :ensure t
   :init (progn
           (unless (package-installed-p 'flycheck-haskell)
             (package-install 'flycheck-haskell))
@@ -1119,17 +1071,15 @@ Including indent-buffer, which should not be called automatically on save."
           (define-key haskell-mode-map (kbd "C-c M-.") nil)
           (define-key haskell-mode-map (kbd "C-c C-d") nil)))
 
-(unless (package-installed-p 'php-mode)
-  (package-install 'php-mode))
 (use-package php-mode
+  :ensure t
   :init (progn
           (unless (package-installed-p 'flymake-php)
             (package-install 'flymake-php))
           (use-package flymake-php)))
 
-(unless (package-installed-p 'hungry-delete)
-  (package-install 'hungry-delete))
 (use-package hungry-delete
+  :ensure t
   :init (progn
           (global-hungry-delete-mode 1)))
 
@@ -1139,9 +1089,8 @@ Including indent-buffer, which should not be called automatically on save."
 
 ;; Helm
 
-(unless (package-installed-p 'helm)
-  (package-install 'helm))
 (use-package helm
+  :ensure t
   :diminish helm-mode
   :init (progn
           (setq helm-command-prefix-key "C-c h")
