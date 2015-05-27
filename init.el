@@ -444,6 +444,8 @@ character, and the start of the line."
             (rainbow-mode 1)))
 
 (use-package ido
+  :ensure t
+  :disabled t
   :config (progn
             (ido-mode 1)
             (ido-everywhere 1)
