@@ -89,6 +89,9 @@
 (use-package move-text
   :ensure t)
 
+(use-package git-gutter-fringe
+  :ensure t)
+
 (use-package hydra
   :ensure t
   :config (progn
@@ -169,7 +172,37 @@ Frames: _f_rame new  _df_ delete
                ("q" nil)
                ("i" ace-maximize-window "ace-one" :color blue)
                ;;("b" ido-switch-buffer "buf")
-               ("m" headlong-bookmark-jump)))))
+               ("m" headlong-bookmark-jump)))
+
+            (defhydra hydra-git-gutter (:body-pre (git-gutter-mode 1)
+                                                  :hint nil)
+              "
+Git gutter:
+  _j_: next hunk        _s_tage hunk     _q_uit
+  _k_: previous hunk    _r_evert hunk    _Q_uit and deactivate git-gutter
+  ^ ^                   _p_opup hunk
+  _h_: first hunk
+  _l_: last hunk        set start _R_evision
+"
+              ("j" git-gutter:next-hunk)
+              ("k" git-gutter:previous-hunk)
+              ("h" (progn (goto-char (point-min))
+                          (git-gutter:next-hunk 1)))
+              ("l" (progn (goto-char (point-min))
+                          (git-gutter:previous-hunk 1)))
+              ("s" git-gutter:stage-hunk)
+              ("r" git-gutter:revert-hunk)
+              ("p" git-gutter:popup-hunk)
+              ("R" git-gutter:set-start-revision)
+              ("q" nil :color blue)
+              ("Q" (progn (git-gutter-mode -1)
+                          ;; git-gutter-fringe doesn't seem to
+                          ;; clear the markup right away
+                          (sit-for 0.1)
+                          (git-gutter:clear))
+               :color blue))
+            (global-set-key (kbd "C-c g")
+                            'hydra-git-gutter/git-gutter:next-hunk)))
 
 (setq-default case-fold-search t)
 
@@ -828,6 +861,7 @@ character, and the start of the line."
             (local-set-key (kbd "RET") 'newline-and-indent)))
 
 (use-package diff-hl
+  :disabled
   :ensure t
   :init (global-diff-hl-mode))
 
@@ -1310,7 +1344,7 @@ Including indent-buffer, which should not be called automatically on save."
  '(magit-use-overlays nil)
  '(package-selected-packages
    (quote
-    (notmuch-address yasnippet yaml-mode web-mode use-package undo-tree twittering-mode sx solarized-theme smex smartparens smart-mode-line rainbow-mode puppet-mode projectile pretty-mode powerline php-mode osx-browse org-journal org-ac notmuch-labeler multiple-cursors move-text monokai-theme markdown-mode+ magit lexbind-mode ledger-mode keyfreq key-chord json-reformat js2-mode imenu-anywhere ido-vertical-mode ido-ubiquitous ido-hacks hydra hungry-delete hideshow-org helm-swoop guide-key flymake-puppet flymake-php flymake-cursor flycheck-ledger flycheck-haskell flx-ido fill-column-indicator fancy-narrow expand-region exec-path-from-shell dired-details+ diff-hl dash-at-point company chruby boxquote alert ag ace-window ace-link ace-jump-mode))))
+    (git-gutter-fringe notmuch-address yasnippet yaml-mode web-mode use-package undo-tree twittering-mode sx solarized-theme smex smartparens smart-mode-line rainbow-mode puppet-mode projectile pretty-mode powerline php-mode osx-browse org-journal org-ac notmuch-labeler multiple-cursors move-text monokai-theme markdown-mode+ magit lexbind-mode ledger-mode keyfreq key-chord json-reformat js2-mode imenu-anywhere ido-vertical-mode ido-ubiquitous ido-hacks hydra hungry-delete hideshow-org helm-swoop guide-key flymake-puppet flymake-php flymake-cursor flycheck-ledger flycheck-haskell flx-ido fill-column-indicator fancy-narrow expand-region exec-path-from-shell dired-details+ diff-hl dash-at-point company chruby boxquote alert ag ace-window ace-link ace-jump-mode))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
