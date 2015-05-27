@@ -59,6 +59,28 @@
   (package-install 'use-package))
 (require 'use-package)
 
+(use-package smart-mode-line
+  :ensure t
+  :defer 3
+  :config (progn
+            (setq-default mode-line-format
+                          '("%e"
+                            mode-line-front-space
+                            mode-line-mule-info
+                            mode-line-client
+                            mode-line-modified
+                            mode-line-remote
+                            mode-line-frame-identification
+                            mode-line-buffer-identification
+                            "   "
+                            mode-line-position
+                            (vc-mode vc-mode)
+                            "  "
+                            mode-line-modes
+                            mode-line-misc-info
+                            mode-line-end-spaces))
+            (smart-mode-line-enable)))
+
 (setq-default case-fold-search t)
 
 (defun dap/current-file ()
@@ -1203,7 +1225,7 @@ Including indent-buffer, which should not be called automatically on save."
  '(magit-diff-use-overlays nil)
  '(package-selected-packages
    (quote
-    (helm-swoop smartparens-config sx twittering-mode monokai-theme yasnippet yaml-mode web-mode use-package undo-tree solarized-theme smex smartparens rainbow-mode puppet-mode projectile pretty-mode php-mode osx-browse org-journal org-ac notmuch multiple-cursors markdown-mode+ magit lexbind-mode ledger-mode keyfreq key-chord json-reformat js2-mode imenu-anywhere ido-vertical-mode ido-ubiquitous ido-hacks hungry-delete hideshow-org helm flymake-puppet flymake-php flymake-cursor flycheck-ledger flycheck-haskell flx-ido fill-column-indicator fancy-narrow expand-region exec-path-from-shell dired-details+ diff-hl dash-at-point company chruby boxquote alert ag ace-window ace-link ace-jump-mode))))
+    (smart-mode-line helm-swoop smartparens-config hydra sx twittering-mode monokai-theme yasnippet yaml-mode web-mode use-package undo-tree solarized-theme smex smartparens rainbow-mode puppet-mode projectile pretty-mode php-mode osx-browse org-journal org-ac notmuch multiple-cursors markdown-mode+ magit lexbind-mode ledger-mode keyfreq key-chord json-reformat js2-mode imenu-anywhere ido-vertical-mode ido-ubiquitous ido-hacks hungry-delete hideshow-org helm guide-key flymake-puppet flymake-php flymake-cursor flycheck-ledger flycheck-haskell flx-ido fill-column-indicator fancy-narrow expand-region exec-path-from-shell dired-details+ diff-hl dash-at-point company chruby boxquote alert ag ace-window ace-link ace-jump-mode))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
