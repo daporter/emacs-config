@@ -1169,6 +1169,22 @@ Including indent-buffer, which should not be called automatically on save."
          ("C-x c b"   . my/helm-do-grep-book-notes)
          ("C-x c SPC" . helm-all-mark-rings)))
 
+(use-package helm-swoop
+  :ensure t
+  :defer t
+  :bind (("C-S-s"   . helm-swoop)
+         ("M-i"     . helm-swoop)
+         ("M-s s"   . helm-swoop)
+         ("M-s M-s" . helm-swoop)
+         ("M-I"     . helm-swoop-back-to-last-point)
+         ("C-c M-i" . helm-multi-swoop)
+         ("C-x M-i" . helm-multi-swoop-all))
+  :config (progn
+            (define-key isearch-mode-map (kbd "M-i")
+              'helm-swoop-from-isearch)
+            (define-key helm-swoop-map (kbd "M-i")
+              'helm-multi-swoop-all-from-helm-swoop)))
+
 (use-package helm-descbinds
   :defer t
   :bind (("C-h b" . helm-descbinds)
@@ -1182,9 +1198,10 @@ Including indent-buffer, which should not be called automatically on save."
  '(custom-safe-themes
    (quote
     ("8aebf25556399b58091e533e455dd50a6a9cba958cc4ebb0aab175863c25b9a4" default)))
+ '(magit-diff-use-overlays nil)
  '(package-selected-packages
    (quote
-    (sx twittering-mode monokai-theme yasnippet yaml-mode web-mode use-package undo-tree solarized-theme smex smartparens rainbow-mode puppet-mode projectile pretty-mode php-mode osx-browse org-journal org-ac notmuch multiple-cursors markdown-mode+ magit lexbind-mode ledger-mode keyfreq key-chord json-reformat js2-mode imenu-anywhere ido-vertical-mode ido-ubiquitous ido-hacks hungry-delete hideshow-org helm guide-key flymake-puppet flymake-php flymake-cursor flycheck-ledger flycheck-haskell flx-ido fill-column-indicator fancy-narrow expand-region exec-path-from-shell dired-details+ diff-hl dash-at-point company chruby boxquote alert ag ace-window ace-link ace-jump-mode))))
+    (helm-swoop smartparens-config sx twittering-mode monokai-theme yasnippet yaml-mode web-mode use-package undo-tree solarized-theme smex smartparens rainbow-mode puppet-mode projectile pretty-mode php-mode osx-browse org-journal org-ac notmuch multiple-cursors markdown-mode+ magit lexbind-mode ledger-mode keyfreq key-chord json-reformat js2-mode imenu-anywhere ido-vertical-mode ido-ubiquitous ido-hacks hungry-delete hideshow-org helm flymake-puppet flymake-php flymake-cursor flycheck-ledger flycheck-haskell flx-ido fill-column-indicator fancy-narrow expand-region exec-path-from-shell dired-details+ diff-hl dash-at-point company chruby boxquote alert ag ace-window ace-link ace-jump-mode))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
