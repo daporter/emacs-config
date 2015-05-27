@@ -312,7 +312,6 @@ might be bad."
   :bind ("C-0" . ace-jump-mode)
   :init (progn
           (key-chord-define-global "jj" 'ace-jump-mode)
-          (ace-jump-mode-enable-mark-sync)
           (bind-key"C-x SPC" 'ace-jump-mode-pop-mark)))
 
 (let ((text-buffer (get-buffer-create "*text*")))
@@ -750,6 +749,7 @@ character, and the start of the line."
   :init (ace-link-setup-default))
 
 (use-package ruby-mode
+  :ensure t
   :config (progn
             (fci-mode 1)
             (rainbow-mode)
@@ -758,8 +758,8 @@ character, and the start of the line."
             (local-set-key (kbd "RET") 'newline-and-indent)))
 
 (use-package erc
+  :ensure t
   :init (progn
-          (erc-irccontrols-enable)
           (whitespace-turn-off)
 
           (use-package erc-join
@@ -1010,7 +1010,6 @@ Including indent-buffer, which should not be called automatically on save."
               notmuch-show-mode-map   (kbd "C-c n") 'notmuch-show-next-button)
             (define-key
               notmuch-show-mode-map   (kbd "b")   'notmuch-show-bounce-message)
-
 
             (use-package notmuch-address
               :config (progn
