@@ -156,7 +156,7 @@
 ;;          ("C-x c SPC" . helm-all-mark-rings)))
 
 (use-package notmuch
-  :load-path "site-lisp/notmuch"
+  :load-path "site-lisp/notmuch/emacs"
   :bind ("C-c m" . notmuch)
   :config (progn
             (setq notmuch-hello-thousands-separator ",")
