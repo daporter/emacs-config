@@ -36,21 +36,19 @@
 (use-package helm-config
   :demand t
   :load-path "site-lisp/helm"
-  :bind (("C-c h"   . helm-command-prefix)
-         ("C-h a"   . helm-apropos)
-         ("C-h e a" . my-helm-apropos)
-         ("C-x f"   . helm-multi-files)
-         ("M-s b"   . helm-occur)
-         ("M-s n"   . my-helm-find)
-         ("M-H"     . helm-resume))
-  
-  :preface
-  (defun my-helm-find ()
-    (interactive)
-    (helm-find nil))
 
+  :bind (("C-c h"     . helm-mini)
+         ("C-h a"     . helm-apropos)
+         ("C-x C-b"   . helm-buffers-list)
+         ("C-x b"     . helm-buffers-list)
+         ("M-x"       . helm-M-x)
+         ("C-x c o"   . helm-occur)
+         ;;("C-x c s"   . helm-swoop)
+         ("C-x c y"   . helm-yas-complete)
+         ("C-x c Y"   . helm-yas-create-snippet-on-region)
+         ("C-x c SPC" . helm-all-mark-rings))
+  
   :config
-  (use-package helm-commands)
   (use-package helm-files)
   (use-package helm-buffers)
   (use-package helm-mode
@@ -61,16 +59,16 @@
   (use-package helm-ls-git
     :load-path "site-lisp/helm-ls-git")
 
-  (use-package helm-match-plugin
-    :config
-    (helm-match-plugin-mode 1))
+  (bind-key "<tab>" 'helm-execute-persistent-action helm-map)
+  (bind-key "C-i"   'helm-execute-persistent-action helm-map)
+  (bind-key "C-z"   'helm-select-action             helm-map)
+
+  (bind-key "M-x"     'helm-M-x)
+  (bind-key "M-y"     'helm-show-kill-ring)
+  (bind-key "C-x b"   'helm-mini)
+  (bind-key "C-x r b" 'helm-filtered-bookmarks)
 
   (helm-autoresize-mode 1)
-
-  (bind-key "<tab>" 'helm-execute-persistent-action helm-map)
-  (bind-key "C-i" 'helm-execute-persistent-action helm-map)
-  (bind-key "C-z" 'helm-select-action helm-map)
-  (bind-key "A-v" 'helm-previous-page helm-map)
 
   (when (executable-find "curl")
     (setq helm-google-suggest-use-curl-p t)))
@@ -156,6 +154,139 @@
 ;;          ("C-x c Y"   . helm-yas-create-snippet-on-region)
 ;;          ("C-x c b"   . my/helm-do-grep-book-notes)
 ;;          ("C-x c SPC" . helm-all-mark-rings)))
+
+(use-package notmuch
+  :load-path "site-lisp/notmuch"
+  :bind ("C-c m" . notmuch)
+  :config (progn
+            (setq notmuch-hello-thousands-separator ",")
+            (setq notmuch-search-oldest-first       nil)
+            (setq notmuch-wash-wrap-lines-length    80)
+
+            (setq notmuch-tag-formats
+                  ;; Set to red from sanityinc-tomorrow-night.
+                  '(("unread" (propertize
+                               tag 'face '(:foreground "#cc6666")))
+                    ("flagged" (notmuch-tag-format-image-data
+                                tag (notmuch-tag-star-icon)))))
+
+            (setq notmuch-search-line-faces
+                  '(("unread" :weight bold)
+                    ;; Set to green from sanityinc-tomorrow-night.
+                    ("flagged" :foreground "#b5bd68")))
+
+            (setq notmuch-archive-tags '("-inbox" "-unread" "+archive"))
+
+            (setq notmuch-fcc-dirs nil)
+
+            (setq notmuch-saved-searches
+                  '((:name "anu unread"
+                           :query "tag:anu AND tag:unread"
+                           :sort-order oldest-first)
+                    (:name "gmail unread"
+                           :query "tag:gmail AND tag:unread"
+                           :sort-order oldest-first)
+                    (:name "unread"
+                           :query "tag:unread"
+                           :key "u"
+                           :sort-order oldest-first)
+                    (:name "inbox"
+                           :query "tag:inbox"
+                           :key "i"
+                           :sort-order newest-first)
+                    (:name "flagged"
+                           :query "tag:flagged"
+                           :key "f"
+                           :sort-order newest-first)
+                    (:name "drafts"
+                           :query "tag:draft"
+                           :key "d"
+                           :sort-order newest-first)
+                    (:name "sent"
+                           :query "tag:sent"
+                           :key "s"
+                           :sort-order newest-first)
+                    (:name "all mail"
+                           :query "*"
+                           :key "a"
+                           :sort-order newest-first)))
+
+            (defun notmuch-search-mark-deleted ()
+              "Mark this email as deleted."
+              (interactive)
+              (notmuch-search-tag '("-inbox" "-archive" "-unread" "+deleted"))
+              (notmuch-search-next-thread))
+
+            (defun notmuch-show-mark-deleted ()
+              "Mark this email as deleted."
+              (interactive)
+              (notmuch-show-tag '("-inbox" "-archive" "-unread" "+deleted"))
+              (notmuch-show-next-thread-show))
+
+            (defun notmuch-show-bounce-message (&optional address)
+              "Bounce the current message."
+              (interactive "sBounce To: ")
+              (notmuch-show-view-raw-message)
+              (message-resend address))
+
+            (define-key
+              notmuch-hello-mode-map  (kbd "g")   'notmuch-refresh-this-buffer)
+            (define-key
+              notmuch-search-mode-map (kbd "g")   'notmuch-refresh-this-buffer)
+            (define-key
+              notmuch-search-mode-map (kbd "d")   'notmuch-search-mark-deleted)
+            (define-key
+              notmuch-show-mode-map   (kbd "d")   'notmuch-show-mark-deleted)
+            (define-key
+              notmuch-show-mode-map   (kbd "RET") 'goto-address-at-point)
+            (define-key
+              notmuch-show-mode-map   (kbd "TAB") 'notmuch-show-toggle-message)
+            (define-key
+              notmuch-show-mode-map   (kbd "C-c n") 'notmuch-show-next-button)
+            (define-key
+              notmuch-show-mode-map   (kbd "b")   'notmuch-show-bounce-message)
+
+            (use-package notmuch-address
+              :config (progn
+                        (setq notmuch-address-command "notmuch-contacts")
+                        (notmuch-address-message-insinuate)
+
+                        ;; We need to override this function to make
+                        ;; it work nicely with `ido-completing-read'.
+                        (defun notmuch-address-expand-name ()
+                          (let* ((end (point))
+                                 (beg (save-excursion
+                                        (re-search-backward "\\(\\`\\|[\n:,]\\)[ \t]*")
+                                        (goto-char (match-end 0))
+                                        (point)))
+                                 (orig (buffer-substring-no-properties beg end))
+                                 (completion-ignore-case t)
+                                 (options (notmuch-address-options orig))
+                                 (num-options (length options))
+                                 (chosen (cond
+                                          ((eq num-options 0)
+                                           nil)
+                                          ((eq num-options 1)
+                                           (car options))
+                                          (t
+                                           ;; (funcall notmuch-address-selection-function
+                                           ;;       (format "Address (%s matches): " num-options)
+                                           ;;       (cdr options) (car options))))))
+                                           ;;
+                                           ;; Instead of choosing the first option, as in the
+                                           ;; default implementation, we pass the whole list of
+                                           ;; options, and use the string entered so far for the
+                                           ;; selection.
+                                           (funcall notmuch-address-selection-function
+                                                    (format "Address (%s matches): " num-options)
+                                                    options orig)))))
+                            (if chosen
+                                (progn
+                                  (push chosen notmuch-address-history)
+                                  (delete-region beg end)
+                                  (insert chosen))
+                              (message "No matches.")
+                              (ding))))))))
 
 ;; (setq-default eval-expression-print-level nil)
 ;; (setq-default case-fold-search nil)
@@ -1186,138 +1317,6 @@
 ;;                                                (dired-mode "%")))
 ;;           (guide-key-mode 1)))
 
-;; (use-package notmuch
-;;   :ensure t
-;;   :bind ("C-c m" . notmuch)
-;;   :config (progn
-;;             (setq notmuch-hello-thousands-separator ",")
-;;             (setq notmuch-search-oldest-first       nil)
-;;             (setq notmuch-wash-wrap-lines-length    80)
-
-;;             (setq notmuch-tag-formats
-;;                   ;; Set to red from sanityinc-tomorrow-night.
-;;                   '(("unread" (propertize
-;;                                tag 'face '(:foreground "#cc6666")))
-;;                     ("flagged" (notmuch-tag-format-image-data
-;;                                 tag (notmuch-tag-star-icon)))))
-
-;;             (setq notmuch-search-line-faces
-;;                   '(("unread" :weight bold)
-;;                     ;; Set to green from sanityinc-tomorrow-night.
-;;                     ("flagged" :foreground "#b5bd68")))
-
-;;             (setq notmuch-archive-tags '("-inbox" "-unread" "+archive"))
-
-;;             (setq notmuch-fcc-dirs nil)
-
-;;             (setq notmuch-saved-searches
-;;                   '((:name "anu unread"
-;;                            :query "tag:anu AND tag:unread"
-;;                            :sort-order oldest-first)
-;;                     (:name "gmail unread"
-;;                            :query "tag:gmail AND tag:unread"
-;;                            :sort-order oldest-first)
-;;                     (:name "unread"
-;;                            :query "tag:unread"
-;;                            :key "u"
-;;                            :sort-order oldest-first)
-;;                     (:name "inbox"
-;;                            :query "tag:inbox"
-;;                            :key "i"
-;;                            :sort-order newest-first)
-;;                     (:name "flagged"
-;;                            :query "tag:flagged"
-;;                            :key "f"
-;;                            :sort-order newest-first)
-;;                     (:name "drafts"
-;;                            :query "tag:draft"
-;;                            :key "d"
-;;                            :sort-order newest-first)
-;;                     (:name "sent"
-;;                            :query "tag:sent"
-;;                            :key "s"
-;;                            :sort-order newest-first)
-;;                     (:name "all mail"
-;;                            :query "*"
-;;                            :key "a"
-;;                            :sort-order newest-first)))
-
-;;             (defun notmuch-search-mark-deleted ()
-;;               "Mark this email as deleted."
-;;               (interactive)
-;;               (notmuch-search-tag '("-inbox" "-archive" "-unread" "+deleted"))
-;;               (notmuch-search-next-thread))
-
-;;             (defun notmuch-show-mark-deleted ()
-;;               "Mark this email as deleted."
-;;               (interactive)
-;;               (notmuch-show-tag '("-inbox" "-archive" "-unread" "+deleted"))
-;;               (notmuch-show-next-thread-show))
-
-;;             (defun notmuch-show-bounce-message (&optional address)
-;;               "Bounce the current message."
-;;               (interactive "sBounce To: ")
-;;               (notmuch-show-view-raw-message)
-;;               (message-resend address))
-
-;;             (define-key
-;;               notmuch-hello-mode-map  (kbd "g")   'notmuch-refresh-this-buffer)
-;;             (define-key
-;;               notmuch-search-mode-map (kbd "g")   'notmuch-refresh-this-buffer)
-;;             (define-key
-;;               notmuch-search-mode-map (kbd "d")   'notmuch-search-mark-deleted)
-;;             (define-key
-;;               notmuch-show-mode-map   (kbd "d")   'notmuch-show-mark-deleted)
-;;             (define-key
-;;               notmuch-show-mode-map   (kbd "RET") 'goto-address-at-point)
-;;             (define-key
-;;               notmuch-show-mode-map   (kbd "TAB") 'notmuch-show-toggle-message)
-;;             (define-key
-;;               notmuch-show-mode-map   (kbd "C-c n") 'notmuch-show-next-button)
-;;             (define-key
-;;               notmuch-show-mode-map   (kbd "b")   'notmuch-show-bounce-message)
-
-;;             (use-package notmuch-address
-;;               :config (progn
-;;                         (setq notmuch-address-command "notmuch-contacts")
-;;                         (notmuch-address-message-insinuate)
-
-;;                         ;; We need to override this function to make
-;;                         ;; it work nicely with `ido-completing-read'.
-;;                         (defun notmuch-address-expand-name ()
-;;                           (let* ((end (point))
-;;                                  (beg (save-excursion
-;;                                         (re-search-backward "\\(\\`\\|[\n:,]\\)[ \t]*")
-;;                                         (goto-char (match-end 0))
-;;                                         (point)))
-;;                                  (orig (buffer-substring-no-properties beg end))
-;;                                  (completion-ignore-case t)
-;;                                  (options (notmuch-address-options orig))
-;;                                  (num-options (length options))
-;;                                  (chosen (cond
-;;                                           ((eq num-options 0)
-;;                                            nil)
-;;                                           ((eq num-options 1)
-;;                                            (car options))
-;;                                           (t
-;;                                            ;; (funcall notmuch-address-selection-function
-;;                                            ;;       (format "Address (%s matches): " num-options)
-;;                                            ;;       (cdr options) (car options))))))
-;;                                            ;;
-;;                                            ;; Instead of choosing the first option, as in the
-;;                                            ;; default implementation, we pass the whole list of
-;;                                            ;; options, and use the string entered so far for the
-;;                                            ;; selection.
-;;                                            (funcall notmuch-address-selection-function
-;;                                                     (format "Address (%s matches): " num-options)
-;;                                                     options orig)))))
-;;                             (if chosen
-;;                                 (progn
-;;                                   (push chosen notmuch-address-history)
-;;                                   (delete-region beg end)
-;;                                   (insert chosen))
-;;                               (message "No matches.")
-;;                               (ding))))))))
 
 ;; ;; Mail.
 
