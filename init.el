@@ -9,6 +9,7 @@
 (unless noninteractive
   (message "Loading %s..." load-file-name))
 
+
 (when (eq system-type 'darwin)
   (progn
     (setq mac-control-modifier 'control)
@@ -32,6 +33,10 @@
 
 (scroll-bar-mode -1)
 (tool-bar-mode -1)
+
+(use-package exec-path-from-shell
+  :load-path "site-lisp/exec-path-from-shell"
+  :config (exec-path-from-shell-initialize))
 
 (use-package helm-config
   :demand t
@@ -159,6 +164,15 @@
   :load-path "site-lisp/notmuch/emacs"
   :bind ("C-c m" . notmuch)
   :config (progn
+
+	    (setq mail-user-agent 'message-user-agent
+		  message-send-mail-function 'message-send-mail-with-sendmail
+		  ;; This is needed to allow msmtp to do its magic:
+		  message-sendmail-f-is-evil t)
+
+	    (use-package sendmail
+	      :config (setq sendmail-program "/usr/local/bin/msmtp"))
+
             (setq notmuch-hello-thousands-separator ",")
             (setq notmuch-search-oldest-first       nil)
             (setq notmuch-wash-wrap-lines-length    80)
@@ -287,6 +301,14 @@
                                   (insert chosen))
                               (message "No matches.")
                               (ding))))))))
+
+(use-package magit
+  :load-path "site-lisp/magit"
+  :bind (("C-x g" 'magit-status))
+  :config (progn
+	    (setq magit-emacsclient-executable "/usr/local/bin/emacsclient")
+	    (setq magit-last-seen-setup-instructions "1.4.0")
+	    (setq magit-use-overlays nil)))
 
 ;; (setq-default eval-expression-print-level nil)
 ;; (setq-default case-fold-search nil)
@@ -563,9 +585,6 @@
 ;; (global-set-key (kbd "C-c t") dap/toggle-map)
 ;; (global-set-key (kbd "C-c f") dap/files-map)
 
-;; (use-package exec-path-from-shell
-;;   :ensure t
-;;   :config (exec-path-from-shell-initialize))
 
 ;; (use-package alert
 ;;   :ensure t
@@ -1247,14 +1266,6 @@
 ;; (use-package ag
 ;;   :ensure t)
 
-;; (use-package magit
-;;   :ensure t
-;;   :config (bind-key "C-x g" 'magit-status)
-;;   :init (progn
-;;           (setq magit-emacsclient-executable "/usr/local/bin/emacsclient")
-;;           (setq magit-last-seen-setup-instructions "1.4.0")
-;;           (setq magit-use-overlays nil)))
-
 ;; ;; ;; ;;;_ , AUCTeX
 
 ;; ;; ;; (use-package tex-site
@@ -1320,12 +1331,6 @@
 
 ;; ;; Mail.
 
-;; (require 'sendmail)
-;; (setq mail-user-agent 'message-user-agent
-;;       message-send-mail-function 'message-send-mail-with-sendmail
-;;       sendmail-program "/usr/local/bin/msmtp"
-;;       ;; This is needed to allow msmtp to do its magic:
-;;       message-sendmail-f-is-evil t)
 
 ;; (use-package ansi-color
 ;;   :init (progn
@@ -1434,3 +1439,15 @@
 
 ;; (provide 'init)
 ;; ;;; init.el ends here
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(send-mail-function (quote smtpmail-send-it)))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
