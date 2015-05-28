@@ -304,7 +304,7 @@
 
 (use-package magit
   :load-path "site-lisp/magit"
-  :bind (("C-x g" 'magit-status))
+  :bind (("C-x g" . magit-status))
   :config (progn
 	    (setq magit-emacsclient-executable "/usr/local/bin/emacsclient")
 	    (setq magit-last-seen-setup-instructions "1.4.0")
