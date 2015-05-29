@@ -1345,6 +1345,7 @@ Including indent-buffer, which should not be called automatically on save."
  '(custom-safe-themes
    (quote
     ("05c3bc4eb1219953a4f182e10de1f7466d28987f48d647c01f1f0037ff35ab9a" default)))
+ '(magit-diff-use-overlays nil)
  '(magit-use-overlays nil)
  '(package-selected-packages
    (quote
