@@ -69,6 +69,11 @@
   :config (setq bookmark-default-file
 		(expand-file-name "bookmarks" user-data-directory)))
 
+(use-package define-word
+  :load-path "site-lisp/define-word"
+  :bind (("C-c d" . define-word-at-point)
+         ("C-c D" . define-word)))
+
 (use-package exec-path-from-shell
   :load-path "site-lisp/exec-path-from-shell"
   :config (exec-path-from-shell-initialize))
