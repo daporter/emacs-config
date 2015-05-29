@@ -353,6 +353,15 @@
   :config (setq recentf-save-file
 		(expand-file-name "recentf" user-data-directory)))
 
+(use-package tramp
+  :config (progn
+            ;; Configure Tramp for use with the NCI cloud VMs.
+            (setq tramp-default-method "ssh")
+            (add-to-list 'tramp-default-proxies-alist
+                         '("130\\.56\\."
+                           nil
+                           "/ssh:dap900@cloudlogin.nci.org.au:"))))
+
 (use-package yaml-mode
   :load-path "site-lisp/yaml-mode"
   :mode "\\.yaml\\'")
@@ -967,15 +976,6 @@
 ;;             (hook-into-modes 'turn-on-smartparens-strict-mode dap/lispy-modes)
 ;;             (hook-into-modes 'turn-on-smartparens-mode '(puppet-mode-hook))
 ;;             (setq sp-show-pair-from-inside nil)))
-
-;; (use-package tramp
-;;   :config (progn
-;;             ;; Configure Tramp for use with NCI cloud VMs.
-;;             (setq tramp-default-method "ssh")
-;;             (add-to-list 'tramp-default-proxies-alist
-;;                          '("130\\.56\\."
-;;                            nil
-;;                            "/ssh:dap900@cloudlogin.nci.org.au:"))))
 
 ;; (require 'dired)
 ;; (setq dired-listing-switches  "-alh")
