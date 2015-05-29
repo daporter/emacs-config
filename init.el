@@ -34,6 +34,11 @@
 (scroll-bar-mode -1)
 (tool-bar-mode -1)
 
+;; On OS X, use the GNU Coreutils version of `ls', installed by
+;; Homebrew, which is called `gls'.
+(when (eq system-type 'darwin)
+  (setq insert-directory-program "gls"))
+
 ;;; Configure libraries
 
 (eval-and-compile
@@ -352,7 +357,6 @@
   :load-path "site-lisp/yaml-mode"
   :mode "\\.yaml\\'")
 
-
 ;; (setq-default eval-expression-print-level nil)
 ;; (setq-default case-fold-search nil)
 
@@ -376,9 +380,6 @@
 ;; (require 'server)
 ;; (unless (server-running-p) (server-start))
 
-;; ;; Use GNU Coreutils version of `ls', which is called `gls' when installed via
-;; ;; Homebrew.
-;; (setq insert-directory-program "gls")
 
 ;; (defmacro hook-into-modes (func modes)
 ;;   "Add a hook for function FUNC to the modes MODES."
