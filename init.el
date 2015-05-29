@@ -338,6 +338,14 @@
   :config (progn
 	    (setq org-journal-dir "~/Dropbox/journal/")))
 
+(use-package puppet-mode
+  :load-path "site-lisp/puppet-mode"
+  :mode "\\.pp\\'"
+  :init (use-package flymake-puppet
+	  :load-path "site-lisp/flymake-puppet"
+	  :init (add-hook 'puppet-mode-hook 'flymake-puppet-load)))
+
+
 
 ;; (setq-default eval-expression-print-level nil)
 ;; (setq-default case-fold-search nil)
@@ -1310,14 +1318,6 @@
 ;; (use-package chruby
 ;;   :ensure t
 ;;   :init (chruby "ruby-2.1.3"))
-
-;; (use-package puppet-mode
-;;   :ensure t
-;;   :config (progn
-;;             (unless (package-installed-p 'flymake-puppet)
-;;               (package-install 'flymake-puppet))
-;;             (use-package flymake-puppet
-;;               :init (add-hook 'puppet-mode-hook 'flymake-puppet-load))))
 
 ;; (use-package flymake-cursor
 ;;   :ensure t)
