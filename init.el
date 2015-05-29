@@ -47,6 +47,10 @@
 (use-package dash		:load-path "site-lisp/dash"         :defer t)
 (use-package flymake-easy	:load-path "site-lisp/flymake-easy" :defer t)
 
+(use-package bookmark
+  :config (setq bookmark-default-file
+		(expand-file-name "bookmarks" user-data-directory)))
+
 (use-package exec-path-from-shell
   :load-path "site-lisp/exec-path-from-shell"
   :config (exec-path-from-shell-initialize))
@@ -395,8 +399,6 @@
 ;;   `(dolist (mode-hook ,modes)
 ;;      (add-hook mode-hook ,func)))
 
-;; (require 'bookmark)
-;; (setq bookmark-default-file (concat dap/user-data-directory "bookmarks"))
 
 ;; (require 'package)
 ;; (package-initialize)
