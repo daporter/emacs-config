@@ -332,6 +332,11 @@
     (helm-projectile-on))
   (projectile-global-mode))
 
+(use-package org-journal
+  :load-path "site-lisp/org-journal"
+  :config (progn
+	    (setq org-journal-dir "~/Dropbox/journal/")))
+
 
 ;; (setq-default eval-expression-print-level nil)
 ;; (setq-default case-fold-search nil)
@@ -1078,11 +1083,6 @@
 ;;           (hook-into-modes 'turn-on-flyspell '(text-mode-hook
 ;;                                                org-mode-hook))
 ;;           (hook-into-modes 'flyspell-prog-mode '(prog-mode-hook))))
-
-;; (use-package org-journal
-;;   :ensure t
-;;   :init (progn
-;;           (setq org-journal-dir "~/Dropbox/journal/")))
 
 ;; (use-package flycheck
 ;;   :ensure t
