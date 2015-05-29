@@ -10,17 +10,29 @@
   (message "Loading %s..." load-file-name))
 
 
-(when (eq system-type 'darwin)
-  (progn
-    (setq mac-control-modifier 'control)
-    (setq mac-command-modifier 'meta)
-    (setq mac-option-modifier 'super)))
-
 (eval-and-compile
   (mapc
    #'(lambda (path)
        (push (expand-file-name path user-emacs-directory) load-path))
    '("site-lisp" "site-lisp/use-package" "override" "lisp")))
+
+(defsubst hook-into-modes (func &rest modes)
+  (dolist (mode-hook modes) (add-hook mode-hook func)))
+
+(defvar lisp-modes '(emacs-lisp-mode
+                     inferior-emacs-lisp-mode
+                     ielm-mode
+                     lisp-mode
+                     inferior-lisp-mode
+                     lisp-interaction-mode
+                     slime-repl-mode))
+
+(defvar lisp-mode-hooks
+  (mapcar (function
+           (lambda (mode)
+             (intern
+              (concat (symbol-name mode) "-hook"))))
+          lisp-modes))
 
 (require 'use-package)
 (require 'bind-key)
@@ -30,6 +42,12 @@
 
 (setq-default user-full-name    "David Porter"
               user-mail-address "david.a.porter@gmail.com")
+
+(when (eq system-type 'darwin)
+  (progn
+    (setq mac-control-modifier 'control)
+    (setq mac-command-modifier 'meta)
+    (setq mac-option-modifier 'super)))
 
 (scroll-bar-mode -1)
 (tool-bar-mode -1)
@@ -175,6 +193,26 @@
 ;;          ("C-x c Y"   . helm-yas-create-snippet-on-region)
 ;;          ("C-x c b"   . my/helm-do-grep-book-notes)
 ;;          ("C-x c SPC" . helm-all-mark-rings)))
+
+(use-package lisp-mode
+  :defer t
+  :preface
+  (defun my-lisp-mode-hook ()
+    (progn
+      (use-package edebug)
+      (use-package eldoc
+        :diminish eldoc-mode
+        :commands eldoc-mode))
+
+    (auto-fill-mode 1)
+    (paredit-mode 1)
+
+    (local-set-key (kbd "<return>") 'paredit-newline)
+
+    (add-hook 'after-save-hook 'check-parens nil t))
+
+  :init
+  (apply #'hook-into-modes 'my-lisp-mode-hook lisp-mode-hooks))
 
 (use-package magit
   :load-path "site-lisp/magit"
@@ -332,6 +370,11 @@
   :load-path "site-lisp/org-journal"
   :config (progn
 	    (setq org-journal-dir "~/Dropbox/journal/")))
+
+(use-package paredit
+  :load-path "site-lisp/paredit"
+  :commands paredit-mode
+  :diminish paredit-mode)
 
 (use-package projectile
   :load-path "site-lisp/projectile"
