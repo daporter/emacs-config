@@ -345,6 +345,9 @@
 	  :load-path "site-lisp/flymake-puppet"
 	  :init (add-hook 'puppet-mode-hook 'flymake-puppet-load)))
 
+(use-package recentf
+  :config (setq recentf-save-file
+		(expand-file-name "recentf" user-data-directory)))
 
 
 ;; (setq-default eval-expression-print-level nil)
@@ -352,10 +355,6 @@
 
 ;; (setq gc-cons-threshold (* 25 1024 1024))
 
-
-;; (require 'recentf)
-;; (setq recentf-save-file
-;;       (concat dap/user-data-directory "recentf"))
 
 ;; (require 'url-cache)
 ;; (setq url-cache-directory (concat dap/user-data-directory "url/cache"))
