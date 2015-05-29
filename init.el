@@ -39,7 +39,7 @@
 (eval-and-compile
   (push (expand-file-name "lib" user-emacs-directory) load-path))
 
-(use-package dash :defer t :load-path "site-lisp/dash")
+(use-package dash :load-path "site-lisp/dash" :defer t)
 
 (use-package exec-path-from-shell
   :load-path "site-lisp/exec-path-from-shell"
@@ -312,9 +312,11 @@
 (use-package magit
   :load-path "site-lisp/magit"
   :bind (("C-x g" . magit-status))
+  :init (progn
+	  (use-package git-commit-mode :load-path "site-lisp/git-modes" :defer t)
+	  (setq magit-last-seen-setup-instructions "1.4.0"))
   :config (progn
 	    (setq magit-emacsclient-executable "/usr/local/bin/emacsclient")
-	    (setq magit-last-seen-setup-instructions "1.4.0")
 	    (setq magit-use-overlays nil)))
 
 (use-package projectile
