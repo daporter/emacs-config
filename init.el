@@ -69,6 +69,18 @@
   :config (setq bookmark-default-file
 		(expand-file-name "bookmarks" user-data-directory)))
 
+(use-package company
+  :load-path "site-lisp/company-mode"
+  :diminish company-mode
+  :init (add-hook 'after-init-hook 'global-company-mode)
+  :config
+  ;; From https://github.com/company-mode/company-mode/issues/87
+  ;; See also https://github.com/company-mode/company-mode/issues/123
+  (defadvice company-pseudo-tooltip-unless-just-one-frontend
+      (around only-show-tooltip-when-invoked activate)
+    (when (company-explicit-action-p)
+      ad-do-it)))
+
 (use-package define-word
   :load-path "site-lisp/define-word"
   :bind (("C-c d" . define-word-at-point)
@@ -921,12 +933,6 @@
 ;;             (bind-key "M-0" 'mc/mark-next-like-this)
 ;;             (bind-key "M--" 'mc/mark-all-like-this)
 ;;             (bind-key "M-8" 'mc/mark-previous-like-this)))
-
-;; (use-package company
-;;   :ensure t
-;;   :diminish company-mode
-;;   :init (progn
-;;           (global-company-mode 1)))
 
 ;; (use-package yasnippet
 ;;   :ensure t
