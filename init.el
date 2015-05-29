@@ -9,7 +9,6 @@
 (unless noninteractive
   (message "Loading %s..." load-file-name))
 
-
 (eval-and-compile
   (mapc
    #'(lambda (path)
@@ -52,6 +51,9 @@
 (scroll-bar-mode -1)
 (tool-bar-mode -1)
 
+;; Prevent extraneous tabs.
+(setq-default indent-tabs-mode nil)
+
 ;; On OS X, use the GNU Coreutils version of `ls', installed by
 ;; Homebrew, which is called `gls'.
 (when (eq system-type 'darwin)
@@ -62,12 +64,12 @@
 (eval-and-compile
   (push (expand-file-name "lib" user-emacs-directory) load-path))
 
-(use-package dash		:load-path "site-lisp/dash"         :defer t)
-(use-package flymake-easy	:load-path "site-lisp/flymake-easy" :defer t)
+(use-package dash         :load-path "site-lisp/dash"         :defer t)
+(use-package flymake-easy :load-path "site-lisp/flymake-easy" :defer t)
 
 (use-package bookmark
   :config (setq bookmark-default-file
-		(expand-file-name "bookmarks" user-data-directory)))
+                (expand-file-name "bookmarks" user-data-directory)))
 
 (use-package company
   :load-path "site-lisp/company-mode"
@@ -235,24 +237,24 @@
   :load-path "site-lisp/magit"
   :bind (("C-x g" . magit-status))
   :init (progn
-	  (use-package git-commit-mode :load-path "site-lisp/git-modes" :defer t)
-	  (setq magit-last-seen-setup-instructions "1.4.0"))
+          (use-package git-commit-mode :load-path "site-lisp/git-modes" :defer t)
+          (setq magit-last-seen-setup-instructions "1.4.0"))
   :config (progn
-	    (setq magit-emacsclient-executable "/usr/local/bin/emacsclient")
-	    (setq magit-use-overlays nil)))
+            (setq magit-emacsclient-executable "/usr/local/bin/emacsclient")
+            (setq magit-use-overlays nil)))
 
 (use-package notmuch
   :load-path "site-lisp/notmuch/emacs"
   :bind ("C-c m" . notmuch)
   :config (progn
 
-	    (setq mail-user-agent 'message-user-agent
-		  message-send-mail-function 'message-send-mail-with-sendmail
-		  ;; This is needed to allow msmtp to do its magic:
-		  message-sendmail-f-is-evil t)
+            (setq mail-user-agent 'message-user-agent
+                  message-send-mail-function 'message-send-mail-with-sendmail
+                  ;; This is needed to allow msmtp to do its magic:
+                  message-sendmail-f-is-evil t)
 
-	    (use-package sendmail
-	      :config (setq sendmail-program "/usr/local/bin/msmtp"))
+            (use-package sendmail
+              :config (setq sendmail-program "/usr/local/bin/msmtp"))
 
             (setq notmuch-hello-thousands-separator ",")
             (setq notmuch-search-oldest-first       nil)
@@ -386,7 +388,7 @@
 (use-package org-journal
   :load-path "site-lisp/org-journal"
   :config (progn
-	    (setq org-journal-dir "~/Dropbox/journal/")))
+            (setq org-journal-dir "~/Dropbox/journal/")))
 
 (use-package paredit
   :load-path "site-lisp/paredit"
@@ -410,12 +412,12 @@
   :load-path "site-lisp/puppet-mode"
   :mode "\\.pp\\'"
   :init (use-package flymake-puppet
-	  :load-path "site-lisp/flymake-puppet"
-	  :init (add-hook 'puppet-mode-hook 'flymake-puppet-load)))
+          :load-path "site-lisp/flymake-puppet"
+          :init (add-hook 'puppet-mode-hook 'flymake-puppet-load)))
 
 (use-package recentf
   :config (setq recentf-save-file
-		(expand-file-name "recentf" user-data-directory)))
+                (expand-file-name "recentf" user-data-directory)))
 
 (use-package tramp
   :config (progn
