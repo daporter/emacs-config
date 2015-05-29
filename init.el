@@ -317,6 +317,20 @@
 	    (setq magit-last-seen-setup-instructions "1.4.0")
 	    (setq magit-use-overlays nil)))
 
+(use-package projectile
+  :load-path "site-lisp/projectile"
+  :diminish projectile-mode
+  :commands projectile-global-mode
+  :defer 5
+  :bind-keymap ("C-c p" . projectile-command-map)
+  :config
+  (use-package helm-projectile
+    :config
+    (setq projectile-completion-system 'helm)
+    (helm-projectile-on))
+  (projectile-global-mode))
+
+
 ;; (setq-default eval-expression-print-level nil)
 ;; (setq-default case-fold-search nil)
 
