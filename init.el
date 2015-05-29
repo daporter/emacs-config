@@ -34,6 +34,13 @@
 (scroll-bar-mode -1)
 (tool-bar-mode -1)
 
+;;; Configure libraries
+
+(eval-and-compile
+  (push (expand-file-name "lib" user-emacs-directory) load-path))
+
+(use-package dash :defer t :load-path "site-lisp/dash")
+
 (use-package exec-path-from-shell
   :load-path "site-lisp/exec-path-from-shell"
   :config (exec-path-from-shell-initialize))
