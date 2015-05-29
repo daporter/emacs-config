@@ -86,7 +86,6 @@
   (when (executable-find "curl")
     (setq helm-google-suggest-use-curl-p t)))
 
-
 ;; (use-package helm
 ;;   :ensure t
 ;;   :diminish helm-mode
@@ -167,6 +166,16 @@
 ;;          ("C-x c Y"   . helm-yas-create-snippet-on-region)
 ;;          ("C-x c b"   . my/helm-do-grep-book-notes)
 ;;          ("C-x c SPC" . helm-all-mark-rings)))
+
+(use-package magit
+  :load-path "site-lisp/magit"
+  :bind (("C-x g" . magit-status))
+  :init (progn
+	  (use-package git-commit-mode :load-path "site-lisp/git-modes" :defer t)
+	  (setq magit-last-seen-setup-instructions "1.4.0"))
+  :config (progn
+	    (setq magit-emacsclient-executable "/usr/local/bin/emacsclient")
+	    (setq magit-use-overlays nil)))
 
 (use-package notmuch
   :load-path "site-lisp/notmuch/emacs"
@@ -310,15 +319,10 @@
                               (message "No matches.")
                               (ding))))))))
 
-(use-package magit
-  :load-path "site-lisp/magit"
-  :bind (("C-x g" . magit-status))
-  :init (progn
-	  (use-package git-commit-mode :load-path "site-lisp/git-modes" :defer t)
-	  (setq magit-last-seen-setup-instructions "1.4.0"))
+(use-package org-journal
+  :load-path "site-lisp/org-journal"
   :config (progn
-	    (setq magit-emacsclient-executable "/usr/local/bin/emacsclient")
-	    (setq magit-use-overlays nil)))
+	    (setq org-journal-dir "~/Dropbox/journal/")))
 
 (use-package projectile
   :load-path "site-lisp/projectile"
@@ -332,11 +336,6 @@
     (setq projectile-completion-system 'helm)
     (helm-projectile-on))
   (projectile-global-mode))
-
-(use-package org-journal
-  :load-path "site-lisp/org-journal"
-  :config (progn
-	    (setq org-journal-dir "~/Dropbox/journal/")))
 
 (use-package puppet-mode
   :load-path "site-lisp/puppet-mode"
