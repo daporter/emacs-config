@@ -348,6 +348,10 @@
   :config (setq recentf-save-file
 		(expand-file-name "recentf" user-data-directory)))
 
+(use-package yaml-mode
+  :load-path "site-lisp/yaml-mode"
+  :mode "\\.yaml\\'")
+
 
 ;; (setq-default eval-expression-print-level nil)
 ;; (setq-default case-fold-search nil)
@@ -1326,9 +1330,6 @@
 ;;             (unless (package-installed-p 'markdown-mode+)
 ;;               (package-install 'markdown-mode+))
 ;;             (use-package markdown-mode+)))
-
-;; (use-package yaml-mode
-;;   :ensure t)
 
 ;; (use-package keyfreq
 ;;   :ensure t
