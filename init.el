@@ -39,7 +39,8 @@
 (eval-and-compile
   (push (expand-file-name "lib" user-emacs-directory) load-path))
 
-(use-package dash :load-path "site-lisp/dash" :defer t)
+(use-package dash		:load-path "site-lisp/dash"         :defer t)
+(use-package flymake-easy	:load-path "site-lisp/flymake-easy" :defer t)
 
 (use-package exec-path-from-shell
   :load-path "site-lisp/exec-path-from-shell"
