@@ -692,9 +692,8 @@ can be set here with `helm-set-local-variable'.")
 
 (defvar helm-after-initialize-hook nil
   "Run after helm initialization.
-This hook run inside `helm-buffer' once created.
-Variables are initialized and the `helm-buffer' is created.
-But the `helm-buffer' has no contents.")
+This hook run after `helm-buffer' is created but not from `helm-buffer'
+so the hook have to specify in which buffer it should run.")
 
 (defvar helm-update-hook nil
   "Run after the helm buffer was updated according the new input pattern.
@@ -2191,7 +2190,12 @@ It uses `switch-to-buffer' or `pop-to-buffer' depending of value of
           (and (eq helm-split-window-default-side 'same)
                (one-window-p t)))
       (progn (delete-other-windows) (switch-to-buffer buffer))
-    (when (and (or helm-always-two-windows helm-autoresize-mode)
+    (when (and (or helm-always-two-windows helm-autoresize-mode
+                   (and (not helm-split-window-in-side-p)
+                        (eq (save-selected-window
+                              (funcall helm-split-window-preferred-function
+                                       (selected-window)))
+                            (get-buffer-window helm-current-buffer))))
                (not (eq helm-split-window-default-side 'same))
                (not (minibufferp helm-current-buffer))
                (not helm-split-window-in-side-p))
