@@ -419,6 +419,9 @@
   :config (setq recentf-save-file
                 (expand-file-name "recentf" user-data-directory)))
 
+(use-package server
+  :config (unless (server-running-p) (server-start)))
+
 (use-package tramp
   :config (progn
             ;; Configure Tramp for use with the NCI cloud VMs.
@@ -450,10 +453,6 @@
 ;; ;; Keep all auto-save files in the temp directory.
 ;; (setq auto-save-file-name-transforms
 ;;       `((".*" ,temporary-file-directory t)))
-
-;; ;; An Emacs server for `emacsclient'.
-;; (require 'server)
-;; (unless (server-running-p) (server-start))
 
 
 ;; (defmacro hook-into-modes (func modes)
