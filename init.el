@@ -39,6 +39,17 @@
 
 (defvar user-data-directory (expand-file-name "data" user-emacs-directory))
 
+
+(setq backup-directory-alist
+      (list (cons "." (expand-file-name "backups" user-emacs-directory))))
+
+(setq auto-save-list-file-prefix
+      (expand-file-name "backups/auto-save-list/.saves-" user-emacs-directory))
+
+;; Keep all auto-save files in the temp directory.
+(setq auto-save-file-name-transforms
+      `((".*" ,temporary-file-directory t)))
+
 (setq-default user-full-name    "David Porter"
               user-mail-address "david.a.porter@gmail.com")
 
@@ -459,16 +470,6 @@
 
 ;; (require 'url-cache)
 ;; (setq url-cache-directory (concat dap/user-data-directory "url/cache"))
-
-;; (setq backup-directory-alist
-;;       (list (cons "." (concat user-emacs-directory "backups"))))
-
-;; (setq auto-save-list-file-prefix
-;;       (concat user-emacs-directory "backups/auto-save-list/.saves-"))
-
-;; ;; Keep all auto-save files in the temp directory.
-;; (setq auto-save-file-name-transforms
-;;       `((".*" ,temporary-file-directory t)))
 
 
 ;; (defmacro hook-into-modes (func modes)
