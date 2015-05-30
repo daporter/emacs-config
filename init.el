@@ -308,11 +308,23 @@
                            :key "a"
                            :sort-order newest-first)))
 
+            (defun my-notmuch-search-mark-flagged ()
+              "Flagg this email."
+              (interactive)
+              (notmuch-search-tag '("+flagged"))
+              (notmuch-search-next-thread))
+
             (defun notmuch-search-mark-deleted ()
               "Mark this email as deleted."
               (interactive)
               (notmuch-search-tag '("-inbox" "-archive" "-unread" "+deleted"))
               (notmuch-search-next-thread))
+
+            (defun my-notmuch-show-mark-flagged ()
+              "Flagg this email."
+              (interactive)
+              (notmuch-show-tag '("+flagged"))
+              (notmuch-show-next-thread-show))
 
             (defun notmuch-show-mark-deleted ()
               "Mark this email as deleted."
@@ -326,22 +338,26 @@
               (notmuch-show-view-raw-message)
               (message-resend address))
 
-            (define-key
-              notmuch-hello-mode-map  (kbd "g")   'notmuch-refresh-this-buffer)
-            (define-key
-              notmuch-search-mode-map (kbd "g")   'notmuch-refresh-this-buffer)
-            (define-key
-              notmuch-search-mode-map (kbd "d")   'notmuch-search-mark-deleted)
-            (define-key
-              notmuch-show-mode-map   (kbd "d")   'notmuch-show-mark-deleted)
-            (define-key
-              notmuch-show-mode-map   (kbd "RET") 'goto-address-at-point)
-            (define-key
-              notmuch-show-mode-map   (kbd "TAB") 'notmuch-show-toggle-message)
-            (define-key
-              notmuch-show-mode-map   (kbd "C-c n") 'notmuch-show-next-button)
-            (define-key
-              notmuch-show-mode-map   (kbd "b")   'notmuch-show-bounce-message)
+            (define-key notmuch-hello-mode-map
+              (kbd "g") 'notmuch-refresh-this-buffer)
+            (define-key notmuch-search-mode-map
+              (kbd "g") 'notmuch-refresh-this-buffer)
+            (define-key notmuch-search-mode-map
+              (kbd "C-c f") 'my-notmuch-search-mark-flagged)
+            (define-key notmuch-search-mode-map
+              (kbd "d") 'notmuch-search-mark-deleted)
+            (define-key notmuch-show-mode-map
+              (kbd "C-c f") 'my-notmuch-show-mark-flagged)
+            (define-key notmuch-show-mode-map
+              (kbd "d") 'notmuch-show-mark-deleted)
+            (define-key notmuch-show-mode-map
+              (kbd "RET") 'goto-address-at-point)
+            (define-key notmuch-show-mode-map
+              (kbd "TAB") 'notmuch-show-toggle-message)
+            (define-key notmuch-show-mode-map
+              (kbd "C-c n") 'notmuch-show-next-button)
+            (define-key notmuch-show-mode-map
+              (kbd "b") 'notmuch-show-bounce-message)
 
             (use-package notmuch-address
               :config (progn
