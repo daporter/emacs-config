@@ -458,6 +458,10 @@
                            nil
                            "/ssh:dap900@cloudlogin.nci.org.au:"))))
 
+(use-package twittering-mode
+  :load-path "site-lisp/twittering-mode"
+  :commands twit)
+
 (use-package yaml-mode
   :load-path "site-lisp/yaml-mode"
   :mode "\\.yaml\\'")
@@ -809,9 +813,6 @@
 ;;   :disabled
 ;;   :config (progn
 ;;             (load-theme 'monokai t)))
-
-;; (use-package twittering-mode
-;;   :ensure t)
 
 ;; (use-package sx
 ;;   :ensure t)
