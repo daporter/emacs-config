@@ -328,7 +328,7 @@
             (defun notmuch-search-mark-deleted ()
               "Mark this email as deleted."
               (interactive)
-              (notmuch-search-tag '("-inbox" "-archive" "-unread" "+deleted"))
+              (notmuch-search-tag '("-inbox" "-archive" "-unread" "+trash"))
               (notmuch-search-next-thread))
 
             (defun my-notmuch-show-mark-flagged ()
@@ -340,7 +340,7 @@
             (defun notmuch-show-mark-deleted ()
               "Mark this email as deleted."
               (interactive)
-              (notmuch-show-tag '("-inbox" "-archive" "-unread" "+deleted"))
+              (notmuch-show-tag '("-inbox" "-archive" "-unread" "+trash"))
               (notmuch-show-next-thread-show))
 
             (defun notmuch-show-bounce-message (&optional address)
