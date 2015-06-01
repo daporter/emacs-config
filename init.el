@@ -9,6 +9,9 @@
 (unless noninteractive
   (message "Loading %s..." load-file-name))
 
+;; Suppress `ad-handle-definition' warnings (mostly from 3rd-party packages).
+(setq ad-redefinition-action 'accept)
+
 (eval-and-compile
   (mapc
    #'(lambda (path)
