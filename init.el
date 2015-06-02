@@ -247,6 +247,10 @@
   :init
   (apply #'hook-into-modes 'my-lisp-mode-hook lisp-mode-hooks))
 
+(use-package macrostep
+  :load-path "site-lisp/macrostep"
+  :bind ("C-c e m" . macrostep-expand))
+
 (use-package magit
   :load-path "site-lisp/magit"
   :bind (("C-x g" . magit-status))
