@@ -261,6 +261,13 @@
             (setq magit-emacsclient-executable "/usr/local/bin/emacsclient")
             (setq magit-use-overlays nil)))
 
+(use-package markdown-mode
+  :load-path "site-lisp/markdown-mode"
+  :mode "\\.markdown\\'"
+  :commands markdown-mode
+  :init (use-package markdown-mode+
+          :load-path "site-lisp/markdown-mode-plus"))
+
 (use-package notmuch
   :load-path "site-lisp/notmuch/emacs"
   :bind ("C-c m" . notmuch)
@@ -1406,13 +1413,6 @@
 
 ;; (use-package flymake-cursor
 ;;   :ensure t)
-
-;; (use-package markdown-mode
-;;   :ensure t
-;;   :config (progn
-;;             (unless (package-installed-p 'markdown-mode+)
-;;               (package-install 'markdown-mode+))
-;;             (use-package markdown-mode+)))
 
 ;; (use-package keyfreq
 ;;   :ensure t
