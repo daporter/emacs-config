@@ -2424,7 +2424,9 @@ copy and rename."
         (dirflag (and (= (length files) 1)
                       (file-directory-p (car files))
                       (not (file-directory-p candidate))))
-        (dired-async-state (if dired-async-mode 1 -1)))
+        (dired-async-state (if (and (boundp 'dired-async-mode)
+                                    dired-async-mode)
+                               1 -1)))
     (and follow (fboundp 'dired-async-mode) (dired-async-mode -1))
     (unwind-protect
          (dired-create-files
@@ -2910,7 +2912,8 @@ Set `recentf-max-saved-items' to a bigger value if default is too small.")
 
 ;;;###autoload
 (defun helm-browse-project (arg)
-  "Browse files and see status of project with its vcs.
+  "Preconfigured helm to browse projects.
+Browse files and see status of project with its vcs.
 Only HG and GIT are supported for now.
 Fall back to `helm-browse-project-find-files'
 if current directory is not under control of one of those vcs.
@@ -3261,7 +3264,10 @@ Run all sources defined in `helm-for-files-preferred-list'."
 
 ;;;###autoload
 (defun helm-multi-files ()
-  "Same as `helm-for-files' but allow toggling from locate to others sources."
+  "Preconfigured helm similar to `helm-for-files' but that don't run locate.
+Allow toggling from locate to others sources.
+This allow seeing first if what you search is in other sources before launching
+locate."
   (interactive)
   (unless helm-source-buffers-list
     (setq helm-source-buffers-list
