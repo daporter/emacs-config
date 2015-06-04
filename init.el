@@ -481,6 +481,9 @@
   :load-path "site-lisp/twittering-mode"
   :commands twit)
 
+(use-package url-cache
+  :init (setq url-cache-directory (expand-file-name "url/cache" user-data-directory)))
+
 (use-package yaml-mode
   :load-path "site-lisp/yaml-mode"
   :mode "\\.yaml\\'")
@@ -489,11 +492,6 @@
 ;; (setq-default case-fold-search nil)
 
 ;; (setq gc-cons-threshold (* 25 1024 1024))
-
-
-;; (require 'url-cache)
-;; (setq url-cache-directory (concat dap/user-data-directory "url/cache"))
-
 
 ;; (defmacro hook-into-modes (func modes)
 ;;   "Add a hook for function FUNC to the modes MODES."
