@@ -34,7 +34,13 @@
 (defmacro helm-with-gensyms (symbols &rest body)
   "Bind the SYMBOLS to fresh uninterned symbols and eval BODY."
   (declare (indent 1))
-  `(let ,(mapcar (lambda (s) `(,s (make-symbol (concat "--" (symbol-name ',s)))))
+  `(let ,(mapcar (lambda (s)
+                   ;; Use cl-gensym here instead of make-symbol
+                   ;; to ensure a symbol that have a live that go
+                   ;; beyond the live of its macro have different name.
+                   ;; i.e symbols created with `with-helm-temp-hook'
+                   ;; should have random names.
+                   `(,s (cl-gensym (symbol-name ',s))))
                  symbols)
      ,@body))
 
@@ -431,13 +437,13 @@ will reuse the same window scheme than the one of last session unless
 (defcustom helm-split-window-default-side 'below
   "The default side to display `helm-buffer'.
 Must be one acceptable arg for `split-window' SIDE,
-that is 'below, 'above, 'left or 'right.
+that is `below', `above', `left' or `right'.
 
-Other acceptable values are 'same which always display `helm-buffer'
-in current window and 'other that display `helm-buffer' below if only one
+Other acceptable values are `same' which always display `helm-buffer'
+in current window and `other' that display `helm-buffer' below if only one
 window or in `other-window-for-scrolling' if available.
 
-A nil value as same effect as 'below.
+A nil value as same effect as `below'.
 If `helm-full-frame' is non--nil, it take precedence on this.
 
 See also `helm-split-window-in-side-p' and `helm-always-two-windows' that
@@ -461,10 +467,15 @@ NOTE: this have no effect if `helm-split-window-preferred-function' is not
   "When non--nil helm will use two windows in this frame.
 That is one window to display `helm-buffer' and one to display
 `helm-current-buffer'.
+
 Note: this have no effect when `helm-split-window-in-side-p' is non--nil,
 or when `helm-split-window-default-side' is set to 'same.
+
 When `helm-autoresize-mode' is enabled, setting this to nil
-will have no effect until this mode will be disabled."
+will have no effect.
+
+Also when non-nil it overhides the effect of `helm-split-window-default-side'
+set to `other'."
   :group 'helm
   :type 'boolean)
 
@@ -880,7 +891,8 @@ Use :default arg of `helm' as input to update display.
 Note that if also :input is specified as `helm' arg, it will take
 precedence on :default.
 NOTE: Async sources are not supporting this.")
-
+(defvar helm--temp-hooks nil
+  "Store temporary hooks added by `with-helm-temp-hook'.")
 
 ;; Utility: logging
 (defun helm-log (format-string &rest args)
@@ -1107,13 +1119,15 @@ not `exit-minibuffer' or unwanted functions."
 (defmacro with-helm-temp-hook (hook &rest body)
   "Execute temporarily BODY as a function for HOOK."
   (declare (indent 1) (debug t))
-  (helm-with-gensyms (fun)
+  (helm-with-gensyms (helm--hook)
     `(progn
-       (defun ,fun ()
+       (defun ,helm--hook ()
          (unwind-protect
               (progn ,@body)
-           (remove-hook ,hook (quote ,fun))))
-       (add-hook ,hook (quote ,fun)))))
+           (remove-hook ,hook (quote ,helm--hook))
+           (fmakunbound (quote ,helm--hook))))
+       (push (cons ',helm--hook ,hook) helm--temp-hooks)
+       (add-hook ,hook (quote ,helm--hook)))))
 
 (defmacro with-helm-after-update-hook (&rest body)
   "Execute BODY at end of `helm-update'."
@@ -1705,6 +1719,27 @@ This is used in transformers to modify candidates list."
       str-or-sym
     (intern str-or-sym)))
 
+(defun helm-remove-if-not-match (regexp seq)
+  "Remove all elements of SEQ that don't match REGEXP."
+  (cl-loop for s in seq
+           for str = (cond ((symbolp s)
+                            (symbol-name s))
+                           ((consp s)
+                            (car s))
+                           (t s))
+           when (string-match-p regexp str)
+           collect s))
+
+(defun helm-remove-if-match (regexp seq)
+  "Remove all elements of SEQ that match REGEXP."
+  (cl-loop for s in seq
+           for str = (cond ((symbolp s)
+                            (symbol-name s))
+                           ((consp s)
+                            (car s))
+                           (t s))
+           unless (string-match-p regexp str)
+           collect s))
 
 ;; Core: entry point
 ;; `:allow-nest' is not in this list because it is treated before.
@@ -2393,10 +2428,13 @@ For ANY-PRESELECT ANY-RESUME ANY-KEYMAP ANY-DEFAULT ANY-HISTORY, See `helm'."
            (timer nil)
            blink-matching-paren
            (first-src (car helm-sources))
+           (first-src-val (if (symbolp first-src)
+                              (symbol-value first-src)
+                              first-src))
+           (source-process-p (or (assq 'candidates-process src)
+                                 (assq 'candidates-process first-src-val)))
            (source-delayed-p (or (assq 'delayed src)
-                                 (assq 'delayed (if (symbolp first-src)
-                                                    (symbol-value first-src)
-                                                  first-src)))))
+                                 (assq 'delayed first-src-val))))
       ;; Startup with the first keymap found either in current source
       ;; or helm arg, otherwise use global value of `helm-map'.
       ;; This map will be used as a `minibuffer-local-map'.
@@ -2424,16 +2462,22 @@ For ANY-PRESELECT ANY-RESUME ANY-KEYMAP ANY-DEFAULT ANY-HISTORY, See `helm'."
       ;; Don't force update with an empty pattern.
       ;; Reset also `helm--maybe-use-default-as-input' as this checking
       ;; happen only on startup.
-      (when (and helm--maybe-use-default-as-input (not source-delayed-p))
-        ;; Store value of default temporarily here waiting next update
-        ;; to allow action like helm-moccur-action matching pattern
+      (when helm--maybe-use-default-as-input
+        ;; Store value of `default' temporarily here waiting next update
+        ;; to allow actions like helm-moccur-action matching pattern
         ;; at the place it jump to.
         (setq helm-input helm-pattern)
-        (setq helm-pattern "")
-        (setq helm--maybe-use-default-as-input nil)
-        (and (helm-empty-buffer-p)
-             (null helm-quit-if-no-candidate)
-             (helm-force-update)))
+        (if (or source-delayed-p source-process-p)
+            ;; Reset pattern to next update.
+            (with-helm-after-update-hook
+              (setq helm-pattern "")
+              (setq helm--maybe-use-default-as-input nil))
+            ;; Reset pattern right now.
+            (setq helm-pattern "")
+            (setq helm--maybe-use-default-as-input nil)
+            (and (helm-empty-buffer-p)
+                 (null helm-quit-if-no-candidate)
+                 (helm-force-update))))
       ;; Handle `helm-execute-action-at-once-if-one' and
       ;; `helm-quit-if-no-candidate' now only for not--delayed sources.
       (cond ((and helm-execute-action-at-once-if-one
@@ -2600,6 +2644,12 @@ WARNING: Do not use this mode yourself, it is internal to helm."
     ;; Be sure we call this from helm-buffer.
     (helm-funcall-foreach 'cleanup))
   (helm-kill-async-processes)
+  ;; Remove the temporary hooks added
+  ;; by `with-helm-temp-hook' that
+  ;; may not have been consumed.
+  (when helm--temp-hooks
+    (cl-loop for (fn . hook) in helm--temp-hooks
+             do (set hook (delete fn (symbol-value hook)))))
   ;; When running helm from a dedicated frame
   ;; with no minibuffer, helm will run in the main frame
   ;; which have a minibuffer, so be sure to disable
@@ -2645,10 +2695,7 @@ WARNING: Do not use this mode yourself, it is internal to helm."
   ;; `helm--maybe-use-default-as-input' and ignore this.
   ;; This happen only when source is `delayed'.
   (when helm--maybe-use-default-as-input ; nil when non--delayed.
-    (setq input helm-pattern)
-    (with-helm-after-update-hook (setq helm-pattern ""))
-    (setq helm--maybe-use-default-as-input nil))
-  ;; In delayed sources `helm-pattern' have not been resat yet.
+    (setq input helm-pattern))
   (unless (equal input helm-pattern)
     (setq helm-pattern input)
     (unless (helm-action-window)

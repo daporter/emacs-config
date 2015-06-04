@@ -143,10 +143,28 @@ fuzzy matching is running its own sort function with a different algorithm."
     (with-helm-window
       (helm-display-mode-line (helm-get-current-source) 'force))))
 
-(defun helm-M-x-read-extended-command ()
+(defun helm-cmd--get-current-function-name ()
+  (save-excursion
+    (beginning-of-defun)
+    (cadr (split-string (buffer-substring-no-properties
+                         (point-at-bol) (point-at-eol))))))
+
+(defun helm-cmd--get-preconfigured-commands (helm-directory)
+  (cl-loop with results
+           for f in (directory-files helm-directory t ".*\\.el\\'")
+           do (with-current-buffer (find-file-noselect f)
+                (save-excursion
+                  (goto-char (point-min))
+                  (while (re-search-forward "Preconfigured helm" nil t)
+                    (push (helm-cmd--get-current-function-name) results))))
+           finally return results))
+
+(defun helm-M-x-read-extended-command (&optional collection history)
   "Read command name to invoke in `helm-M-x'.
 Helm completion is not provided when executing or defining
-kbd macros."
+kbd macros.
+Optional arg COLLECTION is to allow using another COLLECTION
+than the default which is OBARRAY."
   (if (or defining-kbd-macro executing-kbd-macro)
       (if helm-mode
           (unwind-protect
@@ -194,14 +212,14 @@ kbd macros."
                  (user-error msg))
                (setq current-prefix-arg nil)
                (helm-comp-read
-                "M-x " obarray
+                "M-x " (or collection obarray)
                 :test 'commandp
                 :requires-pattern helm-M-x-requires-pattern
                 :name "Emacs Commands"
                 :buffer "*helm M-x*"
                 :persistent-action pers-help
                 :persistent-help "Describe this command"
-                :history extended-command-history
+                :history (or history extended-command-history)
                 :reverse-history helm-M-x-reverse-history
                 :del-input nil
                 :mode-line helm-M-x-mode-line
