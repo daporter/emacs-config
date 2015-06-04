@@ -463,6 +463,11 @@
 (use-package server
   :config (unless (server-running-p) (server-start)))
 
+(use-package sx-load
+  :load-path "site-lisp/sx"
+  :commands sx-tab-all-questions
+  :init (setq sx-cache-directory (expand-file-name "sx" user-data-directory)))
+
 (use-package tramp
   :config (progn
             ;; Configure Tramp for use with the NCI cloud VMs.
@@ -827,9 +832,6 @@
 ;;   :disabled
 ;;   :config (progn
 ;;             (load-theme 'monokai t)))
-
-;; (use-package sx
-;;   :ensure t)
 
 ;; (use-package pretty-mode
 ;;   :ensure t
