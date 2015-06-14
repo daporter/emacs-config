@@ -28,6 +28,35 @@
   :group 'helm-id-utils
   :type 'string)
 
+(defun helm-gid-candidates-process ()
+  (let ((proc (start-process
+               "gid" nil "gid"
+               "-r" helm-pattern)))
+    (set (make-local-variable 'helm-grep-last-cmd-line)
+         (format "gid -r %s" helm-pattern))
+    (prog1 proc
+      (set-process-sentinel
+       proc (lambda (_process event)
+              (when (string= event "finished\n")
+                (with-helm-window
+                  (setq mode-line-format
+                        '(" " mode-line-buffer-identification " "
+                          (:eval (format "L%s" (helm-candidate-number-at-point))) " "
+                          (:eval (propertize
+                                  (format "[Helm Gid process finished - (%s results)]" 
+                                          (max (1- (count-lines
+                                                    (point-min) (point-max)))
+                                               0))
+                                  'face 'helm-locate-finish))))
+                  (force-mode-line-update))
+                (helm-log "Error: Gid %s"
+                          (replace-regexp-in-string "\n" "" event))))))))
+
+(defun helm-gid-filtered-candidate-transformer (candidates _source)
+  ;; "gid -r" may add dups in some rare cases.
+  (cl-loop for c in (helm-fast-remove-dups candidates :test 'equal)
+           collect (helm-grep--filter-candidate-1 c)))
+
 (defclass helm-gid-source (helm-source-async)
   ((header-name
     :initform
@@ -37,33 +66,11 @@
            :initform nil
            :custom string
            :documentation " Location of ID file.")
-   (candidates-process
-    :initform
-    (lambda ()
-      (let ((proc (start-process
-                   "gid" nil "gid"
-                   "-r" helm-pattern)))
-        (set (make-local-variable 'helm-grep-last-cmd-line)
-             (format "gid -r %s" helm-pattern))
-        (prog1 proc
-          (set-process-sentinel
-           proc (lambda (_process event)
-                  (when (string= event "finished\n")
-                    (with-helm-window
-                      (setq mode-line-format
-                            '(" " mode-line-buffer-identification " "
-                              (:eval (format "L%s" (helm-candidate-number-at-point))) " "
-                              (:eval (propertize
-                                      (format "[Helm Gid process finished - (%s results)]" 
-                                              (max (1- (count-lines
-                                                        (point-min) (point-max)))
-                                                   0))
-                                      'face 'helm-locate-finish))))
-                      (force-mode-line-update))
-                    (helm-log "Error: Gid %s"
-                              (replace-regexp-in-string "\n" "" event)))))))))
-   (filter-one-by-one :initform 'helm-grep-filter-one-by-one)
+   (candidates-process :initform #'helm-gid-candidates-process)
+   (filtered-candidate-transformer
+    :initform #'helm-gid-filtered-candidate-transformer)
    (candidate-number-limit :initform 99999)
+   (mode-line :initform helm-grep-mode-line-string)
    (action :initform (helm-make-actions
                       "Find File" 'helm-grep-action
                       "Find file other frame" 'helm-grep-other-frame
