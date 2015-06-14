@@ -208,6 +208,7 @@ and `projectile-buffers-with-file-or-process'."
     "build.gradle"       ; Gradle project file
     "Gemfile"            ; Bundler file
     "requirements.txt"   ; Pip file
+    "setup.py"           ; Setuptools file
     "tox.ini"            ; Tox file
     "package.json"       ; npm package file
     "gulpfile.js"        ; Gulp build file
@@ -217,16 +218,8 @@ and `projectile-buffers-with-file-or-process'."
     "Cargo.toml"         ; Cargo project file
     "mix.exs"            ; Elixir mix project file
     )
-  "A list of files considered to mark the root of a project."
-  :group 'projectile
-  :type '(repeat string))
-
-(defcustom projectile-project-root-files-top-down-recurring
-  '(".svn" ; Svn VCS root dir
-    "CVS"  ; Csv VCS root dir
-    "Makefile")
   "A list of files considered to mark the root of a project.
-This root files pattern stops at the parentmost match."
+The topmost match has precedence."
   :group 'projectile
   :type '(repeat string))
 
@@ -239,8 +232,19 @@ This root files pattern stops at the parentmost match."
     "_darcs"      ; Darcs VCS root dir
     )
   "A list of files considered to mark the root of a project.
-This root files pattern overrides discovery of any root files
-pattern that would have found a project root in a subdirectory."
+The bottommost (parentmost) match has precedence."
+  :group 'projectile
+  :type '(repeat string))
+
+(defcustom projectile-project-root-files-top-down-recurring
+  '(".svn" ; Svn VCS root dir
+    "CVS"  ; Csv VCS root dir
+    "Makefile")
+  "A list of files considered to mark the root of a project.
+The search starts at the top and descends down till a directory
+that contains a match file but its parent does not.  Thus, it's a
+bottommost match in the topmost sequence of directories
+containing a root file."
   :group 'projectile
   :type '(repeat string))
 
@@ -623,61 +627,55 @@ which we're looking."
             ((equal file (setq file (file-name-directory
                                      (directory-file-name file))))
              (setq file nil))))
-    (if root (file-name-as-directory root))))
-
-(defun projectile-root-bottom-up (dir &optional list)
-  "Identify a project root in DIR by looking at `projectile-project-root-files-bottom-up'.
-Returns a project root directory path or nil if not found."
-  (--reduce-from
-   (or acc
-       (projectile-locate-dominating-file dir it))
-   nil
-   (or list projectile-project-root-files-bottom-up)))
+    (and root (expand-file-name (file-name-as-directory root)))))
 
 (defun projectile-root-top-down (dir &optional list)
-  "Identify a project root in DIR by looking at `projectile-project-root-files'.
-Returns a project root directory path or nil if not found."
+  "Identify a project root in DIR by top-down search for files in LIST.
+If LIST is nil, use `projectile-project-root-files' instead.
+Return the first (topmost) matched directory or nil if not found."
   (projectile-locate-dominating-file
    dir
    (lambda (dir)
      (--first (projectile-file-exists-p (expand-file-name it dir))
               (or list projectile-project-root-files)))))
 
+(defun projectile-root-bottom-up (dir &optional list)
+  "Identify a project root in DIR by bottom-up search for files in LIST.
+If LIST is nil, use `projectile-project-root-files-bottom-up' instead.
+Return the first (bottommost) matched directory or nil if not found."
+  (--some (projectile-locate-dominating-file dir it)
+          (or list projectile-project-root-files-bottom-up)))
+
 (defun projectile-root-top-down-recurring (dir &optional list)
-  "Identify a project root in DIR by looking at `projectile-project-root-files-top-down-recurring'.
-Returns a project root directory path or nil if not found."
-  (--reduce-from
-   (or acc
-       (projectile-locate-dominating-file
-        dir
-        (lambda (dir)
-          (and (projectile-file-exists-p (expand-file-name it dir))
-               (or (string-match locate-dominating-stop-dir-regexp (projectile-parent dir))
-                   (not (projectile-file-exists-p (expand-file-name it (projectile-parent dir)))))))))
-   nil
-   (or list projectile-project-root-files-top-down-recurring)))
+  "Identify a project root in DIR by recurring top-down search for files in LIST.
+If LIST is nil, use `projectile-project-root-files-top-down-recurring'
+instead.  Return the last (bottommost) matched directory in the
+topmost sequence of matched directories.  Nil otherwise."
+  (--some (projectile-locate-dominating-file
+           dir
+           (lambda (dir)
+             (and (projectile-file-exists-p (expand-file-name it dir))
+                  (or (string-match locate-dominating-stop-dir-regexp (projectile-parent dir))
+                      (not (projectile-file-exists-p (expand-file-name it (projectile-parent dir))))))))
+          (or list projectile-project-root-files-top-down-recurring)))
 
 (defun projectile-project-root ()
   "Retrieves the root directory of a project if available.
 The current directory is assumed to be the project's root otherwise."
-  (file-truename
-   (let ((dir (file-truename default-directory)))
-     (or (--reduce-from
-          (or acc
-              (let* ((cache-key (format "%s-%s" it dir))
-                     (cache-value (gethash cache-key projectile-project-root-cache)))
-                (if cache-value
-                    (if (eq cache-value 'no-project-root)
-                        nil
-                      cache-value)
-                  (let ((value (funcall it dir)))
-                    (puthash cache-key (or value 'no-project-root) projectile-project-root-cache)
-                    value))))
-          nil
-          projectile-project-root-files-functions)
-         (if projectile-require-project-root
-             (error "You're not in a project")
-           default-directory)))))
+  (let ((dir default-directory))
+    (or (--some (let* ((cache-key (format "%s-%s" it dir))
+                       (cache-value (gethash cache-key projectile-project-root-cache)))
+                  (if cache-value
+                      (if (eq cache-value 'no-project-root)
+                          nil
+                        cache-value)
+                    (let ((value (funcall it (file-truename dir))))
+                      (puthash cache-key (or value 'no-project-root) projectile-project-root-cache)
+                      value)))
+                projectile-project-root-files-functions)
+        (if projectile-require-project-root
+            (error "You're not in a project")
+          default-directory))))
 
 (defun projectile-file-truename (file-name)
   "Return the truename of FILE-NAME.
@@ -1438,16 +1436,6 @@ With a prefix ARG invalidates the cache first."
                                           (projectile-current-project-test-files))))
     (find-file (expand-file-name file (projectile-project-root)))))
 
-(defcustom projectile-test-files-prefixes '("test_")
-  "Some common prefixes of test files."
-  :group 'projectile
-  :type '(repeat string))
-
-(defcustom projectile-test-files-suffices '("_test" "_spec" "Spec" "Test" "-test")
-  "Some common suffices of test files."
-  :group 'projectile
-  :type '(repeat string))
-
 (defun projectile-test-files (files)
   "Return only the test FILES."
   (-filter 'projectile-test-file-p files))
@@ -1455,9 +1443,9 @@ With a prefix ARG invalidates the cache first."
 (defun projectile-test-file-p (file)
   "Check if FILE is a test file."
   (or (--any? (string-prefix-p it (file-name-nondirectory file))
-              projectile-test-files-prefixes)
-      (--any? (string-suffix-p it (file-name-sans-extension file))
-              projectile-test-files-suffices)))
+              (-non-nil (list (funcall projectile-test-prefix-function (projectile-project-type)))))
+      (--any? (string-suffix-p it (file-name-nondirectory file))
+              (-non-nil (list (funcall projectile-test-suffix-function (projectile-project-type)))))))
 
 (defun projectile-current-project-test-files ()
   "Return a list of test files for the current project."
@@ -1470,13 +1458,14 @@ With a prefix ARG invalidates the cache first."
 (defvar projectile-ruby-test '("Gemfile" "lib" "test"))
 (defvar projectile-django '("manage.py"))
 (defvar projectile-python-pip '("requirements.txt"))
-(defvar projectile-python-egg '("setup.py"))
+(defvar projectile-python-pkg '("setup.py"))
 (defvar projectile-python-tox '("tox.ini"))
 (defvar projectile-scons '("SConstruct"))
 (defvar projectile-maven '("pom.xml"))
 (defvar projectile-gradle '("build.gradle"))
 (defvar projectile-grails '("application.properties" "grails-app"))
-(defvar projectile-lein '("project.clj"))
+(defvar projectile-lein-test '("project.clj"))
+(defvar projectile-lein-midje '("project.clj" ".midje.clj"))
 (defvar projectile-rebar '("rebar"))
 (defvar projectile-sbt '("build.sbt"))
 (defvar projectile-make '("Makefile"))
@@ -1487,17 +1476,24 @@ With a prefix ARG invalidates the cache first."
 (defvar projectile-r '("DESCRIPTION"))
 
 (defun projectile-go ()
+  "Check if a project contains Go source files."
   (-any? (lambda (file)
-           (string= (file-name-extension file) "go")) (projectile-current-project-files)))
+           (string= (file-name-extension file) "go"))
+         (projectile-current-project-files)))
 
 (defcustom projectile-go-function 'projectile-go
   "Function to determine if project's type is go."
   :group 'projectile
   :type 'function)
 
+(defvar-local projectile-project-type nil
+  "Buffer local var for overriding the auto-detected project type.
+Normally you'd set this from .dir-locals.el.")
+
 (defun projectile-project-type ()
   "Determine the project's type based on its structure."
   (cond
+   (projectile-project-type projectile-project-type)
    ((projectile-verify-files projectile-rails-rspec) 'rails-rspec)
    ((projectile-verify-files projectile-rails-test) 'rails-test)
    ((projectile-verify-files projectile-ruby-rspec) 'ruby-rspec)
@@ -1505,9 +1501,10 @@ With a prefix ARG invalidates the cache first."
    ((projectile-verify-files projectile-django) 'django)
    ((projectile-verify-files projectile-python-tox) 'python-tox)
    ((projectile-verify-files projectile-python-pip)'python)
-   ((projectile-verify-files projectile-python-egg) 'python)
+   ((projectile-verify-files projectile-python-pkg) 'python)
    ((projectile-verify-files projectile-symfony) 'symfony)
-   ((projectile-verify-files projectile-lein) 'lein)
+   ((projectile-verify-files projectile-lein-midje) 'lein-midje)
+   ((projectile-verify-files projectile-lein-test) 'lein-test)
    ((projectile-verify-files projectile-scons) 'scons)
    ((projectile-verify-files projectile-maven) 'maven)
    ((projectile-verify-files projectile-gradle) 'gradle)
@@ -1560,6 +1557,34 @@ PROJECT-ROOT is the targeted directory.  If nil, use
    ((projectile-locate-dominating-file project-root ".svn") 'svn)
    (t 'none)))
 
+(defun projectile--test-name-for-impl-name (impl-file-path)
+  (let* ((project-type (projectile-project-type))
+         (impl-file-name (file-name-sans-extension (file-name-nondirectory impl-file-path)))
+         (impl-file-ext (file-name-extension impl-file-path))
+         (test-prefix (funcall projectile-test-prefix-function project-type))
+         (test-suffix (funcall projectile-test-suffix-function project-type)))
+    (cond
+     (test-prefix (concat test-prefix impl-file-name "." impl-file-ext))
+     (test-suffix (concat impl-file-name test-suffix "." impl-file-ext))
+     (t (error "Project type not supported!")))))
+
+(defun projectile-create-test-file-for (impl-file-path)
+  (let* ((test-file (projectile--test-name-for-impl-name impl-file-path))
+         (test-dir (replace-regexp-in-string "src/" "test/" (file-name-directory impl-file-path))))
+    (unless (file-exists-p (expand-file-name test-file test-dir))
+      (progn (unless (file-exists-p test-dir)
+               (make-directory test-dir :create-parents))
+             (concat test-dir test-file)))))
+
+(defcustom projectile-create-missing-test-files nil
+  "During toggling, if non-nil enables creating test files if not found.
+
+When not-nil, every call to projectile-find-implementation-or-test-*
+creates test files if not found on the file system. Defaults to nil.
+It assumes the test/ folder is at the same level as src/."
+  :group 'projectile
+  :type 'boolean)
+
 (defun projectile-find-implementation-or-test (file-name)
   "Given a FILE-NAME return the matching implementation or test filename."
   (unless file-name (error "The current buffer is not visiting a file"))
@@ -1573,7 +1598,9 @@ PROJECT-ROOT is the targeted directory.  If nil, use
     (let ((test-file (projectile-find-matching-test file-name)))
       (if test-file
           (projectile-expand-root test-file)
-        (error "No matching test file found")))))
+        (if projectile-create-missing-test-files
+            (projectile-create-test-file-for file-name)
+          (error "No matching test file found"))))))
 
 ;;;###autoload
 (defun projectile-find-implementation-or-test-other-window ()
@@ -1608,13 +1635,14 @@ PROJECT-ROOT is the targeted directory.  If nil, use
 (defun projectile-test-prefix (project-type)
   "Find default test files prefix based on PROJECT-TYPE."
   (cond
-   ((member project-type '(django python)) "test_")))
+   ((member project-type '(django python)) "test_")
+   ((member project-type '(lein-midje)) "t_")))
 
 (defun projectile-test-suffix (project-type)
   "Find default test files suffix based on PROJECT-TYPE."
   (cond
    ((member project-type '(rails-rspec ruby-rspec)) "_spec")
-   ((member project-type '(rails-test ruby-test lein go)) "_test")
+   ((member project-type '(rails-test ruby-test lein-test go)) "_test")
    ((member project-type '(scons)) "test")
    ((member project-type '(maven symfony)) "Test")
    ((member project-type '(gradle grails)) "Spec")))
@@ -2000,6 +2028,7 @@ For git projects `magit-status-internal' is used if available."
 (defvar projectile-grails-test-cmd "grails test-app")
 (defvar projectile-lein-compile-cmd "lein compile")
 (defvar projectile-lein-test-cmd "lein test")
+(defvar projectile-lein-midje-test-cmd "lein midje")
 (defvar projectile-rebar-compile-cmd "rebar")
 (defvar projectile-rebar-test-cmd "rebar eunit")
 (defvar projectile-sbt-compile-cmd "sbt compile")
@@ -2037,6 +2066,7 @@ For git projects `magit-status-internal' is used if available."
           projectile-maven-test-cmd
           projectile-lein-compile-cmd
           projectile-lein-test-cmd
+          projectile-lein-midje-test-cmd
           projectile-rebar-compile-cmd
           projectile-rebar-test-cmd
           projectile-sbt-compile-cmd
@@ -2069,7 +2099,7 @@ For git projects `magit-status-internal' is used if available."
    ((eq project-type 'django) projectile-django-compile-cmd)
    ((eq project-type 'python) projectile-python-compile-cmd)
    ((eq project-type 'symfony) projectile-symfony-compile-cmd)
-   ((eq project-type 'lein) projectile-lein-compile-cmd)
+   ((member project-type '(lein-test lein-midje)) projectile-lein-compile-cmd)
    ((eq project-type 'make) projectile-make-compile-cmd)
    ((eq project-type 'rebar) projectile-rebar-compile-cmd)
    ((eq project-type 'scons) projectile-scons-compile-cmd)
@@ -2094,7 +2124,8 @@ For git projects `magit-status-internal' is used if available."
    ((eq project-type 'python-tox) projectile-python-tox-test-cmd)
    ((eq project-type 'python) projectile-python-test-cmd)
    ((eq project-type 'symfony) projectile-symfony-test-cmd)
-   ((eq project-type 'lein) projectile-lein-test-cmd)
+   ((eq project-type 'lein-test) projectile-lein-test-cmd)
+   ((eq project-type 'lein-midje) projectile-lein-midje-test-cmd)
    ((eq project-type 'make) projectile-make-test-cmd)
    ((eq project-type 'rebar) projectile-rebar-test-cmd)
    ((eq project-type 'scons) projectile-scons-test-cmd)
