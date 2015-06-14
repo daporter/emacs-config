@@ -868,8 +868,8 @@ Test point position upon removal and insertion."
   (markdown-test-string "abc"
    (goto-char (point-max))
    (call-interactively 'markdown-insert-list-item)
-   (should (string-equal (buffer-string) "abc\n* "))
-   (should (= (point) 7)))
+   (should (string-equal (buffer-string) "abc\n  * "))
+   (should (= (point) 9)))
   ;; Following a list item, on the same line
   (markdown-test-string "  * foo"
    (goto-char (point-max))
@@ -914,7 +914,32 @@ Test point position upon removal and insertion."
   (markdown-test-string "6. foo\n    1. bar"
    (goto-char (point-max))
    (call-interactively 'markdown-insert-list-item)
-   (should (string-equal (buffer-string) "6. foo\n    1. bar\n    2. "))))
+   (should (string-equal (buffer-string) "6. foo\n    1. bar\n    2. ")))
+  ;; Preceding an ordered list item
+  (markdown-test-string "\n1. foo\n2. bar"
+   (goto-char (point-min))
+   (call-interactively 'markdown-insert-list-item)
+   (should (string-equal (buffer-string) "1. \n1. foo\n2. bar")))
+  ;; Preserve previous spacing in ordered list
+  (markdown-test-string "1.        foo"
+   (goto-char (point-max))
+   (call-interactively 'markdown-insert-list-item)
+   (should (string-equal (buffer-string)  "1.        foo\n2.        ")))
+  ;; Adjust spacing for number width changes (e.g., 9 -> 10)
+  (markdown-test-string "9.  foo"
+   (goto-char (point-max))
+   (call-interactively 'markdown-insert-list-item)
+   (should (string-equal (buffer-string)  "9.  foo\n10. ")))
+  ;; Don't adjust spacing for number width changes if no extra whitespace
+  (markdown-test-string "99. foo"
+   (goto-char (point-max))
+   (call-interactively 'markdown-insert-list-item)
+   (should (string-equal (buffer-string)  "99. foo\n100. ")))
+  ;; Don't adjust spacing if tabs are used as whitespace
+  (markdown-test-string "9.\tfoo"
+   (goto-char (point-max))
+   (call-interactively 'markdown-insert-list-item)
+   (should (string-equal (buffer-string)  "9.\tfoo\n10.\t"))))
 
 (ert-deftest test-markdown-insertion/reference-link ()
   "Basic tests for `markdown-insert-reference-link'."
