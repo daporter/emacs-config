@@ -480,14 +480,15 @@ set to `other'."
   :type 'boolean)
 
 (defcustom helm-sources-using-default-as-input '(helm-source-imenu
+                                                 helm-source-imenu-all
                                                  helm-source-info-elisp
                                                  helm-source-etags-select
-                                                 helm-source-man-pages)
+                                                 helm-source-man-pages
+                                                 helm-source-occur
+                                                 helm-source-moccur)
   "List of helm sources that need to use `helm--maybe-use-default-as-input'.
 When a source is member of this list, default `thing-at-point'
-will be used as input.
-
-Note that async sources are not supporting this actually."
+will be used as input."
   :group 'helm
   :type '(repeat (choice symbol)))
 
@@ -508,12 +509,6 @@ you want this mode enabled definitely."
 
 (defcustom helm-prevent-escaping-from-minibuffer t
   "Prevent escaping from minibuffer during helm session."
-  :group 'helm
-  :type 'boolean)
-
-(defcustom helm-truncate-lines nil
-  "Truncate long lines when non--nil.
-See `truncate-lines'."
   :group 'helm
   :type 'boolean)
 
@@ -889,10 +884,12 @@ when `helm' is keyboard-quitted.")
 Use only in let-bindings.
 Use :default arg of `helm' as input to update display.
 Note that if also :input is specified as `helm' arg, it will take
-precedence on :default.
-NOTE: Async sources are not supporting this.")
+precedence on :default.")
 (defvar helm--temp-hooks nil
   "Store temporary hooks added by `with-helm-temp-hook'.")
+(defvar helm-truncate-lines nil
+  "[Internal] Don't set this globally, it is used as a local var.")
+
 
 ;; Utility: logging
 (defun helm-log (format-string &rest args)
@@ -2408,6 +2405,10 @@ Please don't use it.
   :keymap (and helm-alive-p helm-map)
   (unless helm-alive-p (setq helm--minor-mode nil)))
 
+(defun helm--reset-default-pattern ()
+  (setq helm-pattern "")
+  (setq helm--maybe-use-default-as-input nil))
+
 (defun helm-read-pattern-maybe (any-prompt any-input
                                 any-preselect any-resume any-keymap
                                 any-default any-history)
@@ -2470,14 +2471,14 @@ For ANY-PRESELECT ANY-RESUME ANY-KEYMAP ANY-DEFAULT ANY-HISTORY, See `helm'."
         (if (or source-delayed-p source-process-p)
             ;; Reset pattern to next update.
             (with-helm-after-update-hook
-              (setq helm-pattern "")
-              (setq helm--maybe-use-default-as-input nil))
+              (helm--reset-default-pattern))
             ;; Reset pattern right now.
-            (setq helm-pattern "")
-            (setq helm--maybe-use-default-as-input nil)
-            (and (helm-empty-buffer-p)
-                 (null helm-quit-if-no-candidate)
-                 (helm-force-update))))
+            (helm--reset-default-pattern))
+        ;; Ensure force-update when no candidates
+        ;; when we start with an empty pattern.
+        (and (helm-empty-buffer-p)
+             (null helm-quit-if-no-candidate)
+             (helm-force-update)))
       ;; Handle `helm-execute-action-at-once-if-one' and
       ;; `helm-quit-if-no-candidate' now only for not--delayed sources.
       (cond ((and helm-execute-action-at-once-if-one
@@ -2839,7 +2840,8 @@ ARGS is (cand1 cand2 ...) or ((disp1 . real1) (disp2 . real2) ...)
        (if (and (listp it)
                 (not (functionp it))) ;; Don't treat lambda's as list.
            (cl-loop for f in it
-                 do (setq ,candidate (funcall f ,candidate)))
+                 do (setq ,candidate (funcall f ,candidate))
+                 finally return ,candidate)
          (setq ,candidate (funcall it ,candidate)))))
 
 (defun helm--initialize-one-by-one-candidates (candidates source)
@@ -2847,9 +2849,8 @@ ARGS is (cand1 cand2 ...) or ((disp1 . real1) (disp2 . real2) ...)
 Return CANDIDATES when pattern is empty."
   (helm-aif (and (string= helm-pattern "")
                  (assoc-default 'filter-one-by-one source))
-      (cl-loop for cand in candidates
-            do (helm--maybe-process-filter-one-by-one-candidate cand source)
-            collect cand)
+      (cl-loop for cand in candidates collect
+               (helm--maybe-process-filter-one-by-one-candidate cand source))
     candidates))
 
 (defun helm-process-filtered-candidate-transformer-maybe
@@ -4499,6 +4500,7 @@ To customize `helm-candidates-in-buffer' behavior, use `search',
        (clrhash helm-cib-hash)
        (cl-dolist (searcher search-fns)
          (goto-char start-point)
+         (forward-line 1) ; >>>[1]
          (setq newmatches nil)
          (cl-loop with pos-lst
                   with item-count = 0
@@ -4553,13 +4555,22 @@ When using fuzzy matching and negation (i.e \"!\"), this function is always call
                      do (forward-line 1))))
 
 (defun helm--search-from-candidate-buffer-1 (search-fn)
-  ;; Previously we were adding a newline at bob and at eol
-  ;; and removing these newlines afterward, it seems it is no more
-  ;; needed, thus when searching for empty line ("^$")
-  ;; it was adding the first line as a matched line
-  ;; which is wrong.
+  ;; We are adding a newline at bob and at eol
+  ;; and removing these newlines afterward.
+  ;; This is a bad hack that should be removed.
+  ;; To avoid matching the empty line at first line
+  ;; when searching with e.g occur and "^$" just
+  ;; forward-line before searching (See >>>[1] above).
+  (goto-char (point-min))
+  (insert "\n")
+  (goto-char (point-max))
+  (insert "\n")
   (unwind-protect
        (funcall search-fn)
+    (goto-char (point-min))
+    (delete-char 1)
+    (goto-char (1- (point-max)))
+    (delete-char 1)
     (set-buffer-modified-p nil)))
 
 (defun helm-candidate-buffer (&optional create-or-buffer)

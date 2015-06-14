@@ -107,6 +107,15 @@ fuzzy completion is not available in `completion-at-point'."
   "Face used for showing info in `helm-lisp-completion'."
   :group 'helm-elisp-faces)
 
+(defcustom helm-elisp-help-function
+  'helm-elisp-show-doc-modeline
+  "Function for displaying help for lisp symbols."
+  :group 'helm-elisp
+  :type '(choice (function :tag "Open help for the symbol."
+                  helm-elisp-show-help)
+                 (function :tag "Show one liner in modeline."
+                  helm-elisp-show-doc-modeline)))
+
 
 ;;; Show completion.
 ;;
@@ -284,7 +293,8 @@ Return a cons \(beg . end\)."
                       :nomark t
                       :fuzzy-match helm-lisp-fuzzy-completion
                       :persistent-help "Show brief doc in mode-line"
-                      :filtered-candidate-transformer 'helm-lisp-completion-transformer
+                      :filtered-candidate-transformer
+                      'helm-lisp-completion-transformer
                       :action `(lambda (candidate)
                                  (with-helm-current-buffer
                                    (run-with-timer
@@ -299,6 +309,21 @@ Return a cons \(beg . end\)."
       (message "[No Match]"))))
 
 (defun helm-lisp-completion-persistent-action (candidate)
+  "Show documentation for the function.
+Documentation is shown briefly in mode-line or completely
+in other window according to the value of `helm-elisp-help-function'."
+  (funcall helm-elisp-help-function candidate))
+
+(defun helm-elisp-show-help (candidate)
+  "Show full help for the function."
+  (let ((sym (intern-soft candidate)))
+    (cl-typecase sym
+      (fbound   (describe-function sym))
+      (bound    (describe-variable sym))
+      (face     (describe-face sym)))))
+
+(defun helm-elisp-show-doc-modeline (candidate)
+  "Show brief documentation for the function in modeline."
   (let ((cursor-in-echo-area t)
         mode-line-in-non-selected-windows)
     (helm-show-info-in-mode-line
@@ -325,13 +350,10 @@ Return a cons \(beg . end\)."
 (defun helm-get-first-line-documentation (sym)
   "Return first line documentation of symbol SYM.
 If SYM is not documented, return \"Not documented\"."
-  (let ((doc (cond ((fboundp sym)
-                    (documentation sym t))
-                   ((boundp sym)
-                    (documentation-property sym 'variable-documentation t))
-                   ((facep sym)
-                    (face-documentation sym))
-                   (t nil))))
+  (let ((doc (cl-typecase sym
+                 (fbound  (documentation sym t))
+                 (bound   (documentation-property sym 'variable-documentation t))
+                 (face    (face-documentation sym)))))
     (if (and doc (not (string= doc ""))
              ;; `documentation' return "\n\n(args...)"
              ;; for CL-style functions.
@@ -653,53 +675,6 @@ Filename completion happen if string start after or between a double quote."
                                       (if (or (stringp val) (memq val '(nil t)))
                                           (prin1-to-string val)
                                           (format "'%s" (prin1-to-string val)))))))
-
-
-;;; Type attributes
-;;
-;;
-(let ((actions '(("Describe command" . describe-function)
-                 ("Add command to kill ring" . helm-kill-new)
-                 ("Go to command's definition" . find-function)
-                 ("Debug on entry" . debug-on-entry)
-                 ("Cancel debug on entry" . cancel-debug-on-entry)
-                 ("Trace function" . trace-function)
-                 ("Trace function (background)" . trace-function-background)
-                 ("Untrace function" . untrace-function))))
-  (define-helm-type-attribute 'command
-      `((action ("Call interactively" . helm-call-interactively)
-                ,@actions)
-        (coerce . helm-symbolify)
-        (persistent-action . describe-function))
-    "Command. (string or symbol)")
-
-  (define-helm-type-attribute 'function
-      `((action . ,actions)
-        (action-transformer helm-transform-function-call-interactively)
-        (candidate-transformer helm-mark-interactive-functions)
-        (coerce . helm-symbolify))
-    "Function. (string or symbol)"))
-
-(define-helm-type-attribute 'variable
-    '((action
-       ("Describe variable" . describe-variable)
-       ("Add variable to kill ring" . helm-kill-new)
-       ("Go to variable's definition" . find-variable)
-       ("Set variable" . helm-set-variable))
-      (coerce . helm-symbolify))
-  "Variable.")
-
-(define-helm-type-attribute 'timer
-    '((action
-       ("Cancel Timer" . (lambda (_timer)
-                           (let ((mkd (helm-marked-candidates)))
-                             (cl-loop for timer in mkd
-                                   do (cancel-timer timer)))))
-       ("Describe Function" . (lambda (tm) (describe-function (timer--function tm))))
-       ("Find Function" . (lambda (tm) (find-function (timer--function tm)))))
-      (persistent-action . (lambda (tm) (describe-function (timer--function tm))))
-      (persistent-help . "Describe Function"))
-  "Timer.")
 
 
 ;;; Elisp Timers.
