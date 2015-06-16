@@ -151,8 +151,12 @@
 
 (defun helm-imenu-candidates-in-all-buffers ()
   (cl-loop for b in (buffer-list)
-           when (eq (with-helm-current-buffer major-mode)
-                    (with-current-buffer b major-mode))
+           for mm = (with-current-buffer b major-mode)
+           for cmm = (with-helm-current-buffer major-mode)
+           when (or (with-helm-current-buffer
+                      (derived-mode-p mm))
+                    (with-current-buffer b
+                      (derived-mode-p cmm)))
            append (with-current-buffer b
                     (helm-imenu-candidates b))))
 
@@ -218,7 +222,6 @@
          helm-imenu-execute-action-at-once-if-one))
     (helm :sources 'helm-source-imenu
           :default (list (concat "\\_<" str "\\_>") str)
-          :candidate-number-limit 9999
           :buffer "*helm imenu*")))
 
 ;;;###autoload
@@ -236,7 +239,6 @@
          helm-imenu-execute-action-at-once-if-one))
     (helm :sources 'helm-source-imenu-all
           :default (list (concat "\\_<" str "\\_>") str)
-          :candidate-number-limit 9999
           :buffer "*helm imenu all*")))
 
 (provide 'helm-imenu)
