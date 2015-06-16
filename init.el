@@ -315,7 +315,7 @@
                     (:name "inbox"
                            :query "tag:inbox"
                            :key "i"
-                           :sort-order newest-first)
+                           :sort-order oldest-first)
                     (:name "flagged"
                            :query "tag:flagged"
                            :key "f"
