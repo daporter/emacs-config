@@ -409,8 +409,27 @@ synchronized with `projectile-known-projects-file'.")
 (defcustom projectile-ignored-projects nil
   "A list of projects not to be added to `projectile-known-projects'."
   :group 'projectile
-  :type 'list
+  :type '(repeat :tag "Project list" directory)
   :package-version '(projectile . "0.11.0"))
+
+(defcustom projectile-ignored-project-function nil
+  "Function to decide if a project is added to `projectile-known-projects`.
+
+Can be either nil, or a function that takes the truename of the
+project root as argument and returns non-nil if the project is to
+be ignored or nil otherwise.
+
+This function is only called if the project is not listed in
+`projectile-ignored-projects`.
+
+A suitable candidate would be `remote-file-p` to ignore remote
+projects."
+  :group 'projectile
+  :type '(choice
+          (const :tag "Nothing" nil)
+          (const :tag "Remote files" file-remote-p)
+          function)
+  :package-version '(projectile . "0.13.0"))
 
 
 ;;; Version information
@@ -553,10 +572,10 @@ The cache is created both in memory and on the hard drive."
 (defun projectile-cache-current-file ()
   "Add the currently visited file to the cache."
   (interactive)
-  (let* ((current-project (projectile-project-root))
-         (abs-current-file (buffer-file-name (current-buffer)))
-         (current-file (file-relative-name abs-current-file current-project)))
+  (let ((current-project (projectile-project-root)))
     (when (gethash (projectile-project-root) projectile-projects-cache)
+      (let* ((abs-current-file (file-truename (buffer-file-name (current-buffer))))
+            (current-file (file-relative-name abs-current-file current-project)))
       (unless (or (projectile-file-cached-p current-file current-project)
                   (projectile-ignored-directory-p (file-name-directory abs-current-file))
                   (projectile-ignored-file-p abs-current-file))
@@ -566,7 +585,7 @@ The cache is created both in memory and on the hard drive."
         (projectile-serialize-cache)
         (message "File %s added to project %s cache."
                  (propertize current-file 'face 'font-lock-keyword-face)
-                 (propertize current-project 'face 'font-lock-keyword-face))))))
+                 (propertize current-project 'face 'font-lock-keyword-face)))))))
 
 ;; cache opened files automatically to reduce the need for cache invalidation
 (defun projectile-cache-files-find-file-hook ()
@@ -733,12 +752,10 @@ Files are returned as relative paths to the project root."
 
 (defun projectile-dir-files-external (root directory)
   "Get the files for ROOT under DIRECTORY using external tools."
-  (let ((default-directory directory)
-        (files-list nil))
-    (setq files-list (-map (lambda (f)
-                             (file-relative-name (expand-file-name f directory) root))
-                           (projectile-get-repo-files)))
-    files-list))
+  (let ((default-directory directory))
+    (-map (lambda (file)
+            (file-relative-name (expand-file-name file directory) root))
+          (projectile-get-repo-files))))
 
 (defcustom projectile-git-command "git ls-files -zco --exclude-standard"
   "Command used by projectile to get the files in a git project."
@@ -852,7 +869,8 @@ function is executing."
                        '("." ".." ".svn" ".cvs")))
      (progress-reporter-update progress-reporter)
      (if (file-directory-p it)
-         (unless (projectile-ignored-directory-p it)
+         (unless (projectile-ignored-directory-p
+                  (file-name-as-directory it))
            (projectile-index-directory it patterns progress-reporter))
        (unless (projectile-ignored-file-p it)
          (list it))))
@@ -933,7 +951,7 @@ opened through use of recentf."
 
 (defun projectile-project-buffer-names ()
   "Get a list of project buffer names."
-  (-map 'buffer-name (projectile-project-buffers)))
+  (-map #'buffer-name (projectile-project-buffers)))
 
 (defun projectile-prepend-project-name (string)
   "Prepend the current project's name to STRING."
@@ -1005,7 +1023,7 @@ Only buffers not visible in windows are returned."
 (defun projectile-ignored-files ()
   "Return list of ignored files."
   (-map
-   'projectile-expand-root
+   #'projectile-expand-root
    (append
     projectile-globally-ignored-files
     (projectile-project-ignored-files))))
@@ -1013,9 +1031,9 @@ Only buffers not visible in windows are returned."
 (defun projectile-ignored-directories ()
   "Return list of ignored directories."
   (-map
-   'file-name-as-directory
+   #'file-name-as-directory
    (-map
-    'projectile-expand-root
+    #'projectile-expand-root
     (append
      projectile-globally-ignored-directories
      (projectile-project-ignored-directories)))))
@@ -1132,7 +1150,7 @@ https://github.com/abo-abo/swiper")))
                     (gethash (projectile-project-root) projectile-projects-cache))))
     ;; nothing is cached
     (unless files
-      (setq files (-mapcat 'projectile-dir-files
+      (setq files (-mapcat #'projectile-dir-files
                            (projectile-get-project-directories)))
       ;; cache the resulting list of files
       (when projectile-enable-caching
@@ -1148,8 +1166,8 @@ https://github.com/abo-abo/swiper")))
 
 (defun projectile-current-project-dirs ()
   "Return a list of dirs for the current project."
-  (-remove 'null (-distinct
-                  (-map 'file-name-directory
+  (-remove #'null (-distinct
+                  (-map #'file-name-directory
                         (projectile-current-project-files)))))
 
 (defun projectile-hash-keys (hash)
@@ -1713,7 +1731,7 @@ This is a subset of `grep-read-files', where either a matching entry from
                  (setq alias (car aliases)
                        aliases (cdr aliases))
                  (if (string-match (mapconcat
-                                    'wildcard-to-regexp
+                                    #'wildcard-to-regexp
                                     (split-string (cdr alias) nil t)
                                     "\\|")
                                    fn)
@@ -1836,7 +1854,7 @@ regular expression."
 
 (defun projectile--tags (completion-table)
   "Find tags using COMPLETION-TABLE."
-  (-reject 'null
+  (-reject #'null
            (-map (lambda (x)
                    (unless (integerp x)
                      (prin1-to-string x t)))
@@ -1917,8 +1935,8 @@ files in the project."
                                  " .")))))
         (projectile-files-from-cmd cmd directory))
     ;; we have to reject directories as a workaround to work with git submodules
-    (-reject 'file-directory-p
-             (-map 'projectile-expand-root (projectile-dir-files directory)))))
+    (-reject #'file-directory-p
+             (-map #'projectile-expand-root (projectile-dir-files directory)))))
 
 (defun projectile-replace (&optional arg)
   "Replace a string in the project using `tags-query-replace'.
@@ -1954,7 +1972,7 @@ to run the replacement."
                  (length buffers) name))
         ;; we take care not to kill indirect buffers directly
         ;; as we might encounter them after their base buffers are killed
-        (mapc 'kill-buffer (-remove 'buffer-base-buffer buffers)))))
+        (mapc #'kill-buffer (-remove 'buffer-base-buffer buffers)))))
 
 ;;;###autoload
 (defun projectile-save-project-buffers ()
@@ -2331,11 +2349,17 @@ It handles the case of remote files as well. See `projectile-cleanup-known-proje
 
 (defun projectile-ignored-projects ()
   "A list of projects that should not be save in `projectile-known-projects'."
-  (-map 'file-truename projectile-ignored-projects))
+  (-map #'file-truename projectile-ignored-projects))
+
+(defun projectile-ignored-project-p (project-root)
+  "Return t if PROJECT-ROOT should not be added to `projectile-known-projects`."
+  (or (member project-root (projectile-ignored-projects))
+      (and (functionp projectile-ignored-project-function)
+           (funcall projectile-ignored-project-function project-root))))
 
 (defun projectile-add-known-project (project-root)
   "Add PROJECT-ROOT to the list of known projects."
-  (unless (member project-root (projectile-ignored-projects))
+  (unless (projectile-ignored-project-p project-root)
     (setq projectile-known-projects
           (-distinct
            (cons (abbreviate-file-name project-root)
@@ -2525,43 +2549,43 @@ is chosen."
 ;;; Minor mode
 (defvar projectile-command-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "4 a") 'projectile-find-other-file-other-window)
-    (define-key map (kbd "4 b") 'projectile-switch-to-buffer-other-window)
-    (define-key map (kbd "4 C-o") 'projectile-display-buffer)
-    (define-key map (kbd "4 d") 'projectile-find-dir-other-window)
-    (define-key map (kbd "4 f") 'projectile-find-file-other-window)
-    (define-key map (kbd "4 g") 'projectile-find-file-dwim-other-window)
-    (define-key map (kbd "4 t") 'projectile-find-implementation-or-test-other-window)
-    (define-key map (kbd "!") 'projectile-run-shell-command-in-root)
-    (define-key map (kbd "&") 'projectile-run-async-shell-command-in-root)
-    (define-key map (kbd "a") 'projectile-find-other-file)
-    (define-key map (kbd "b") 'projectile-switch-to-buffer)
-    (define-key map (kbd "c") 'projectile-compile-project)
-    (define-key map (kbd "d") 'projectile-find-dir)
-    (define-key map (kbd "D") 'projectile-dired)
-    (define-key map (kbd "e") 'projectile-recentf)
-    (define-key map (kbd "f") 'projectile-find-file)
-    (define-key map (kbd "g") 'projectile-find-file-dwim)
-    (define-key map (kbd "F") 'projectile-find-file-in-known-projects)
-    (define-key map (kbd "i") 'projectile-invalidate-cache)
-    (define-key map (kbd "I") 'projectile-ibuffer)
-    (define-key map (kbd "j") 'projectile-find-tag)
-    (define-key map (kbd "k") 'projectile-kill-buffers)
-    (define-key map (kbd "l") 'projectile-find-file-in-directory)
-    (define-key map (kbd "m") 'projectile-commander)
-    (define-key map (kbd "o") 'projectile-multi-occur)
-    (define-key map (kbd "p") 'projectile-switch-project)
-    (define-key map (kbd "P") 'projectile-test-project)
-    (define-key map (kbd "r") 'projectile-replace)
-    (define-key map (kbd "R") 'projectile-regenerate-tags)
-    (define-key map (kbd "s g") 'projectile-grep)
-    (define-key map (kbd "s s") 'projectile-ag)
-    (define-key map (kbd "S") 'projectile-save-project-buffers)
-    (define-key map (kbd "t") 'projectile-toggle-between-implementation-and-test)
-    (define-key map (kbd "T") 'projectile-find-test-file)
-    (define-key map (kbd "v") 'projectile-vc)
-    (define-key map (kbd "z") 'projectile-cache-current-file)
-    (define-key map (kbd "ESC") 'projectile-project-buffers-other-buffer)
+    (define-key map (kbd "4 a") #'projectile-find-other-file-other-window)
+    (define-key map (kbd "4 b") #'projectile-switch-to-buffer-other-window)
+    (define-key map (kbd "4 C-o") #'projectile-display-buffer)
+    (define-key map (kbd "4 d") #'projectile-find-dir-other-window)
+    (define-key map (kbd "4 f") #'projectile-find-file-other-window)
+    (define-key map (kbd "4 g") #'projectile-find-file-dwim-other-window)
+    (define-key map (kbd "4 t") #'projectile-find-implementation-or-test-other-window)
+    (define-key map (kbd "!") #'projectile-run-shell-command-in-root)
+    (define-key map (kbd "&") #'projectile-run-async-shell-command-in-root)
+    (define-key map (kbd "a") #'projectile-find-other-file)
+    (define-key map (kbd "b") #'projectile-switch-to-buffer)
+    (define-key map (kbd "c") #'projectile-compile-project)
+    (define-key map (kbd "d") #'projectile-find-dir)
+    (define-key map (kbd "D") #'projectile-dired)
+    (define-key map (kbd "e") #'projectile-recentf)
+    (define-key map (kbd "f") #'projectile-find-file)
+    (define-key map (kbd "g") #'projectile-find-file-dwim)
+    (define-key map (kbd "F") #'projectile-find-file-in-known-projects)
+    (define-key map (kbd "i") #'projectile-invalidate-cache)
+    (define-key map (kbd "I") #'projectile-ibuffer)
+    (define-key map (kbd "j") #'projectile-find-tag)
+    (define-key map (kbd "k") #'projectile-kill-buffers)
+    (define-key map (kbd "l") #'projectile-find-file-in-directory)
+    (define-key map (kbd "m") #'projectile-commander)
+    (define-key map (kbd "o") #'projectile-multi-occur)
+    (define-key map (kbd "p") #'projectile-switch-project)
+    (define-key map (kbd "P") #'projectile-test-project)
+    (define-key map (kbd "r") #'projectile-replace)
+    (define-key map (kbd "R") #'projectile-regenerate-tags)
+    (define-key map (kbd "s g") #'projectile-grep)
+    (define-key map (kbd "s s") #'projectile-ag)
+    (define-key map (kbd "S") #'projectile-save-project-buffers)
+    (define-key map (kbd "t") #'projectile-toggle-between-implementation-and-test)
+    (define-key map (kbd "T") #'projectile-find-test-file)
+    (define-key map (kbd "v") #'projectile-vc)
+    (define-key map (kbd "z") #'projectile-cache-current-file)
+    (define-key map (kbd "ESC") #'projectile-project-buffers-other-buffer)
     map)
   "Keymap for Projectile commands after `projectile-keymap-prefix'.")
 (fset 'projectile-command-map projectile-command-map)
@@ -2647,18 +2671,18 @@ Otherwise behave as if called interactively.
       (setq projectile-projects-cache
             (or (projectile-unserialize projectile-cache-file)
                 (make-hash-table :test 'equal))))
-    (add-hook 'find-file-hook 'projectile-cache-files-find-file-hook t t)
-    (add-hook 'find-file-hook 'projectile-cache-projects-find-file-hook t t)
-    (add-hook 'projectile-find-dir-hook 'projectile-cache-projects-find-file-hook)
-    (add-hook 'find-file-hook 'projectile-visit-project-tags-table t t)
-    (add-hook 'dired-before-readin-hook 'projectile-cache-projects-find-file-hook t t)
+    (add-hook 'find-file-hook #'projectile-cache-files-find-file-hook t t)
+    (add-hook 'find-file-hook #'projectile-cache-projects-find-file-hook t t)
+    (add-hook 'projectile-find-dir-hook #'projectile-cache-projects-find-file-hook)
+    (add-hook 'find-file-hook #'projectile-visit-project-tags-table t t)
+    (add-hook 'dired-before-readin-hook #'projectile-cache-projects-find-file-hook t t)
     (ad-activate 'compilation-find-file)
     (ad-activate 'delete-file))
    (t
-    (remove-hook 'find-file-hook 'projectile-cache-files-find-file-hook t)
-    (remove-hook 'find-file-hook 'projectile-cache-projects-find-file-hook t)
-    (remove-hook 'find-file-hook 'projectile-visit-project-tags-table t)
-    (remove-hook 'dired-before-readin-hook 'projectile-cache-projects-find-file-hook t)
+    (remove-hook 'find-file-hook #'projectile-cache-files-find-file-hook t)
+    (remove-hook 'find-file-hook #'projectile-cache-projects-find-file-hook t)
+    (remove-hook 'find-file-hook #'projectile-visit-project-tags-table t)
+    (remove-hook 'dired-before-readin-hook #'projectile-cache-projects-find-file-hook t)
     (ad-deactivate 'compilation-find-file)
     (ad-deactivate 'delete-file))))
 

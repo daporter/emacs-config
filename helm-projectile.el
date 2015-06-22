@@ -494,13 +494,15 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
               ("Add files to Dired buffer `C-c a'" . helm-projectile-dired-files-add-action)))
   "Helm source for listing project directories.")
 
+(defvar helm-projectile-buffers-list-cache nil)
+
 (defclass helm-source-projectile-buffer (helm-source-sync helm-type-buffer)
   ((init :initform (lambda ()
                      ;; Issue #51 Create the list before `helm-buffer' creation.
-                     (setq helm-buffers-list-cache (condition-case nil
-                                                       (cdr (projectile-project-buffer-names))
-                                                     (error nil)))
-                     (let ((result (cl-loop for b in helm-buffers-list-cache
+                     (setq helm-projectile-buffers-list-cache (condition-case nil
+                                                                  (cdr (projectile-project-buffer-names))
+                                                                (error nil)))
+                     (let ((result (cl-loop for b in helm-projectile-buffers-list-cache
                                             maximize (length b) into len-buf
                                             maximize (length (with-current-buffer b
                                                                (symbol-name major-mode)))
@@ -512,7 +514,7 @@ CANDIDATE is the selected file.  Used when no file is explicitly marked."
                          ;; If a new buffer is longer that this value
                          ;; this value will be updated
                          (setq helm-buffer-max-len-mode (cdr result))))))
-   (candidates :initform helm-buffers-list-cache)
+   (candidates :initform helm-projectile-buffers-list-cache)
    (matchplugin :initform nil)
    (match :initform 'helm-buffers-match-function)
    (persistent-action :initform 'helm-buffers-list-persistent-action)
@@ -718,10 +720,10 @@ If it is nil, or ack/ack-grep not found then use default grep command."
                           'identity
                           (-union (-map (lambda (path)
                                           (concat "--ignore-dir=" (file-name-nondirectory (directory-file-name path))))
-                                        projectile-ignored-directories)
+                                        (projectile-ignored-directories))
                                   (-map (lambda (path)
                                           (concat "--ignore-file=match:" (shell-quote-argument path)))
-                                        projectile-ignored-files)) " "))
+                                        (projectile-ignored-files))) " "))
             (helm-ack-grep-executable (cond
                                        ((executable-find "ack") "ack")
                                        ((executable-find "ack-grep") "ack-grep")
@@ -734,8 +736,6 @@ If it is nil, or ack/ack-grep not found then use default grep command."
 (defun helm-projectile-ag (&optional options)
   "Helm version of projectile-ag."
   (interactive (if current-prefix-arg (list (read-string "option: " "" 'helm-ag-command-history))))
-  (unless (executable-find "ag")
-    (error "ag not available"))
   (if (require 'helm-ag nil  'noerror)
       (if (projectile-project-p)
           (let* ((grep-find-ignored-files (-union (projectile-ignored-files-rel)  grep-find-ignored-files))
