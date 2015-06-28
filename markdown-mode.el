@@ -1346,6 +1346,10 @@ on the value of `markdown-wiki-link-alias-first'.")
 
 (defvar markdown-mode-font-lock-keywords-basic
   (list
+   (cons 'markdown-match-gfm-code-blocks '((1 markdown-pre-face)
+                                           (2 markdown-language-keyword-face t t)
+                                           (3 markdown-pre-face)
+                                           (4 markdown-pre-face)))
    (cons 'markdown-match-fenced-code-blocks '((0 markdown-pre-face)))
    (cons 'markdown-match-pre-blocks '((0 markdown-pre-face)))
    (cons markdown-regex-blockquote 'markdown-blockquote-face)
@@ -1929,8 +1933,8 @@ because `thing-at-point-looking-at' does not work reliably with
 (defun markdown-match-gfm-code-blocks (last)
   "Match GFM quoted code blocks from point to LAST."
   (let (open lang body close all)
-    (cond ((and (eq major-mode 'gfm-mode)
-                (search-forward-regexp "^\\(```\\)\\([^[:space:]]+[[:space:]]*\\)?$" last t))
+    (cond ((search-forward-regexp
+            "^\\(```\\)\\([^[:space:]]+[[:space:]]*\\)?$" last t)
            (beginning-of-line)
            (setq open (list (match-beginning 1) (match-end 1))
                  lang (list (match-beginning 2) (match-end 2)))
@@ -2254,9 +2258,10 @@ example, when a reference label is already defined)."
 (defun markdown-insert-reference-link-dwim ()
   "Insert a reference link of the form [text][label] at point.
 If there is an active region, the text in the region will be used
-as the link text.  If the point is at a word, it will be used as
-the link text.  Otherwise, the link text will be read from the
-minibuffer.  The link label will be read from the minibuffer in
+as the link text.  If the point is at an inline link, it will be
+converted to a reference link.  If the point is at a word, it will
+be used as the link text.  Otherwise, the link text will be read from
+the minibuffer.  The link label will be read from the minibuffer in
 both cases, with completion from the set of currently defined
 references.  To create an implicit reference link, press RET to
 accept the default, an empty label.  If the entered referenced
@@ -2266,20 +2271,31 @@ location determined by `markdown-reference-location'."
   (interactive)
   (let* ((defined-labels (mapcar (lambda (x) (substring x 1 -1))
                                  (markdown-get-defined-references)))
-         (bounds (or (and (markdown-use-region-p)
-                          (cons (region-beginning) (region-end)))
-                     (markdown-bounds-of-thing-at-point 'word)))
-         (text (if bounds
-                   (buffer-substring (car bounds) (cdr bounds))
-                 (read-string "Link Text: ")))
+         (switch (thing-at-point-looking-at markdown-regex-link-inline))
+         (bounds (cond ((markdown-use-region-p)
+                        (cons (region-beginning) (region-end)))
+                       (switch
+                        (cons (match-beginning 0) (match-end 0)))
+                       (t
+                        (markdown-bounds-of-thing-at-point 'word))))
+         (text (cond (switch (match-string 3))
+                     (bounds (buffer-substring (car bounds) (cdr bounds)))
+                     (t (read-string "Link Text: "))))
          (label (completing-read
                  "Link Label (default: none): " defined-labels
                  nil nil nil 'markdown-reference-label-history nil))
-         (ref (markdown-reference-definition
-               (concat "[" (if (> (length label) 0) label text) "]")))
-         (url (unless ref (read-string "Link URL: ")))
-         (title (when (> (length url) 0)
-                  (read-string "Link Title (optional): "))))
+         (ref (save-match-data
+                (markdown-reference-definition
+                 (concat "[" (if (> (length label) 0) label text) "]"))))
+         (url (cond (ref nil)
+                    (switch (match-string 5))
+                    (t (read-string "Link URL: "))))
+         (title (cond
+                 ((= (length url) 0) nil)
+                 (switch (if (> (length (match-string 6)) 2)
+                             (substring (match-string 6) 1 -1)
+                           nil))
+                 (t (read-string "Link Title (optional): ")))))
     (when bounds (delete-region (car bounds) (cdr bounds)))
     (markdown-insert-reference-link text label url title)))
 
@@ -4846,10 +4862,6 @@ if ARG is omitted or nil."
   (append
    ;; GFM features to match first
    (list
-    (cons 'markdown-match-gfm-code-blocks '((1 markdown-pre-face)
-                                            (2 markdown-language-keyword-face t t)
-                                            (3 markdown-pre-face)
-                                            (4 markdown-pre-face)))
     (cons markdown-regex-strike-through '(2 markdown-strike-through-face)))
    ;; Basic Markdown features (excluding possibly overridden ones)
    markdown-mode-font-lock-keywords-basic
