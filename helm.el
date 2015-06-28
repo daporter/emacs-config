@@ -666,6 +666,11 @@ input method with `toggle-input-method'."
   "Face used to highlight matches."
   :group 'helm)
 
+(defface helm-header-line-left-margin
+  '((t (:foreground "black" :background "yellow")))
+  "Face used to highlight helm-header sign in left-margin."
+  :group 'helm)
+
 
 ;;; Variables.
 ;;
@@ -796,6 +801,23 @@ first arg is a string that will be used as name for candidates number,
 second arg any string to display in mode line.
 If nil, use default `mode-line-format'.")
 
+(defvar helm-minibuffer-set-up-hook nil
+  "Hook that run at initialization of minibuffer.
+Useful for modifying the settings of minibuffer in helm.
+
+Here an example to hide minibuffer when using
+`helm-echo-input-in-header-line':
+
+      (add-hook 'helm-minibuffer-set-up-hook
+                (lambda ()
+                  (when (with-helm-buffer helm-echo-input-in-header-line)
+                    (text-scale-set -12)
+                    (window--resize-mini-window
+                     (selected-window) -15))))
+
+Note that we check `helm-echo-input-in-header-line' value
+from `helm-buffer' which allow detecting possible local
+value of this var.")
 
 ;;; Internal Variables
 ;;
@@ -895,6 +917,7 @@ precedence on :default.")
   "Store temporary hooks added by `with-helm-temp-hook'.")
 (defvar helm-truncate-lines nil
   "[Internal] Don't set this globally, it is used as a local var.")
+(defvar helm--prompt nil)
 
 
 ;; Utility: logging
@@ -1914,7 +1937,6 @@ in source.
            unless (memq key helm-argument-keys)
            collect (cons sym value)))
 
-(defvar helm--prompt nil)
 ;;; Core: entry point helper
 (defun helm-internal (&optional
                         any-sources any-input
@@ -2079,6 +2101,7 @@ Arguments SAME-AS-HELM are the same as `helm', which see."
   (with-helm-window
     (let ((orig-helm-current-buffer helm-current-buffer)
           (orig-helm-buffer helm-buffer)
+          (orig-helm--prompt helm--prompt)
           (orig-helm--in-fuzzy helm--in-fuzzy)
           (orig-helm-last-frame-or-window-configuration
            helm-last-frame-or-window-configuration)
@@ -2098,6 +2121,7 @@ Arguments SAME-AS-HELM are the same as `helm', which see."
         (with-current-buffer orig-helm-buffer
           (setq helm-alive-p t) ; Nested session set this to nil on exit.
           (setq helm-buffer orig-helm-buffer)
+          (setq helm--prompt orig-helm--prompt)
           (setq helm--in-fuzzy orig-helm--in-fuzzy)
           (helm-initialize-overlays helm-buffer)
           (unless (helm-empty-buffer-p) (helm-mark-current-line t))
@@ -2105,7 +2129,23 @@ Arguments SAME-AS-HELM are the same as `helm', which see."
                 orig-helm-last-frame-or-window-configuration)
           (setq cursor-type nil)
           (setq helm-current-buffer orig-helm-current-buffer)
-          (setq helm-onewindow-p orig-one-window-p))))))
+          (setq helm-onewindow-p orig-one-window-p)
+          ;; Be sure advices, hooks, and local modes keep running.
+          (if (fboundp 'advice-add)
+              (progn
+                (advice-add 'tramp-read-passwd
+                            :around #'helm--advice-tramp-read-passwd)
+                (advice-add 'ange-ftp-get-passwd
+                            :around #'helm--advice-ange-ftp-get-passwd))
+              (ad-activate 'tramp-read-passwd)
+              (ad-activate 'ange-ftp-get-passwd))
+          (when helm-prevent-escaping-from-minibuffer
+            (helm--remap-mouse-mode 1))
+          (unless (cl-loop for h in post-command-hook
+                           thereis (memq h '(helm--maybe-update-keymap
+                                             helm--update-header-line)))
+            (add-hook 'post-command-hook 'helm--maybe-update-keymap)
+            (add-hook 'post-command-hook 'helm--update-header-line)))))))
 
 
 ;;; Core: Accessors
@@ -2438,6 +2478,8 @@ For ANY-PRESELECT ANY-RESUME ANY-KEYMAP ANY-DEFAULT ANY-HISTORY, See `helm'."
                            (assoc-default 'history src)))
            (timer nil)
            blink-matching-paren
+           (resize-mini-windows (and (null helm-echo-input-in-header-line)
+                                     resize-mini-windows))
            (first-src (car helm-sources))
            (first-src-val (if (symbolp first-src)
                               (symbol-value first-src)
@@ -2510,6 +2552,7 @@ For ANY-PRESELECT ANY-RESUME ANY-KEYMAP ANY-DEFAULT ANY-HISTORY, See `helm'."
                             ;; - Or fallback to the global value of helm-map.
                             (helm--maybe-update-keymap
                              (or src-keymap any-keymap helm-map))
+                            (helm-log-run-hook 'helm-minibuffer-set-up-hook)
                             (setq timer
                                   (run-with-idle-timer
                                    (max helm-input-idle-delay 0.001) 'repeat
@@ -2521,7 +2564,8 @@ For ANY-PRESELECT ANY-RESUME ANY-KEYMAP ANY-DEFAULT ANY-HISTORY, See `helm'."
                                                    helm-suspend-update-flag)
                                          (save-selected-window
                                            (helm-check-minibuffer-input)
-                                           (helm-print-error-messages)))))))
+                                           (helm-print-error-messages))))))
+                            (helm--update-header-line)) ; minibuffer has already been filled here
                       (read-from-minibuffer (or any-prompt "pattern: ")
                                             any-input helm-map
                                             nil hist tap
@@ -2607,16 +2651,17 @@ It will override `helm-map' with the local map of current source.
 If no map is found in current source do nothing (keep previous map)."
   (with-helm-buffer
     (helm-aif (or map (assoc-default 'keymap (helm-get-current-source)))
-        ;; We need the timer to leave enough time
-        ;; to helm to setup its buffer when changing source
-        ;; from a recursive minibuffer.
+        ;; We used a timer in the past to leave
+        ;; enough time to helm to setup its keymap
+        ;; when changing source from a recursive minibuffer.
         ;; e.g C-x C-f M-y C-g
         ;; => *find-files have now the bindings of *kill-ring.
-        (run-with-idle-timer
-         0.01 nil
-         (lambda ()
-           (with-current-buffer (window-buffer (minibuffer-window))
-             (setq minor-mode-overriding-map-alist `((helm--minor-mode . ,it)))))))))
+        ;; It is no more true now we are using `minor-mode-overriding-map-alist'
+        ;; and `helm--minor-mode' thus it fix issue #1076 for emacs-24.3
+        ;; where concurrent timers are not supported.
+        ;; i.e update keymap+check input.
+        (with-current-buffer (window-buffer (minibuffer-window))
+          (setq minor-mode-overriding-map-alist `((helm--minor-mode . ,it)))))))
 
 ;;; Prevent loosing focus when using mouse.
 ;;
@@ -3801,48 +3846,38 @@ Possible value of DIRECTION are 'next or 'previous."
                           (and (listp source)
                                (assoc-default 'header-line source))
                           source))
-                  (hlend (make-string (max 0 (- (window-width) (length hlstr))) ? )))
+                  (hlend (make-string (max 0 (- (window-width)
+                                                (length hlstr))) ? )))
              (setq header-line-format
                    (propertize (concat " " hlstr hlend) 'face 'helm-header))))))
   (when force (force-mode-line-update)))
 
 (defun helm--set-header-line (&optional update)
-  (with-helm-window
-    (let* ((comp (with-current-buffer (window-buffer (minibuffer-window))
-                   (if (get-text-property (point) 'read-only)
-                       "" (helm-minibuffer-completion-contents))))
-           (prt (propertize helm--prompt
-                            'face 'minibuffer-prompt))
-           (pos (+ (length prt) (length comp))))
-      (setq header-line-format
-            (concat (propertize " " 'display '(space :width left-fringe)) ; [1]
-                    prt
-                    (substring-no-properties comp)
-                    (condition-case _err
-                        (substring-no-properties helm-pattern
-                                                 (if (string= helm-pattern "")
-                                                     0 (length comp)))
-                      ;; Sometimes the value of the input
-                      ;; is not yet the same as helm-pattern.
-                      ;; Generally it is one more char than helm-pattern
-                      ;; until update (grep).
-                      (args-out-of-range nil))
-                    " "))
-      ;; Increment pos to handle the space before prompt [1].
-      (put-text-property (1+ pos) (+ pos 2)
-                         'face 'cursor header-line-format))
-    (when update (force-mode-line-update))))
+  (with-selected-window (minibuffer-window)
+    (let* ((beg  (save-excursion (vertical-motion 0) (point))) 
+           (end  (save-excursion (end-of-visual-line) (point)))
+           ;; The visual line where the cursor is.
+           (cont (buffer-substring beg end))
+           (pref (propertize
+                  " "
+                  'display (if (string-match helm--prompt cont)
+                               '(space :width left-fringe)
+                               (propertize
+                                "->"
+                                'face 'helm-header-line-left-margin))))
+           (pos  (- (point) beg)))
+      (with-helm-buffer
+        (setq header-line-format (concat pref cont " "))
+        (put-text-property
+         ;; Increment pos to handle the space before prompt (i.e `pref').
+         (1+ pos) (+ 2 pos)
+         'face 'cursor header-line-format)
+        (when update (force-mode-line-update))))))
 
 (defun helm--update-header-line ()
   ;; This should be used in `post-command-hook',
   ;; nowhere else.
-  (when (and helm-echo-input-in-header-line
-             ;; Ensure we don't update when pattern
-             ;; is empty from post-command-hook, otherwise
-             ;; we loose default-as-input.
-             ;; This will be done after update
-             ;; in helm-display-mode-line.
-             (not (string= helm-pattern "")))
+  (when (with-helm-buffer helm-echo-input-in-header-line)
     (helm--set-header-line t)))
 
 (defun helm-show-candidate-number (&optional name)

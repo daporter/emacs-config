@@ -346,9 +346,7 @@ I.e use the -path/ipath arguments of find instead of -name/iname."
     ;; Next 2 have no effect if candidate is not an image file.
     (define-key map (kbd "M-l")           'helm-ff-rotate-left-persistent)
     (define-key map (kbd "M-r")           'helm-ff-rotate-right-persistent)
-    (define-key map (kbd "C-.")           'helm-find-files-up-one-level)
     (define-key map (kbd "C-l")           'helm-find-files-up-one-level)
-    (define-key map (kbd "C-h C-b")       'helm-send-bug-report-from-helm)
     (define-key map (kbd "C-c r")         'helm-ff-run-find-file-as-root)
     (define-key map (kbd "C-c @")         'helm-ff-run-insert-org-link)
     (helm-define-key-with-subkeys map (kbd "DEL") ?\d 'helm-ff-delete-char-backward
@@ -1886,7 +1884,11 @@ Note that only existing directories are saved here."
       (with-helm-buffer
         (setq helm-marked-candidates nil
               helm-visible-mark-overlays nil))
-      (helm-force-update))))
+      (helm-force-update
+       (let ((presel (helm-get-selection)))
+         (regexp-quote (if (and helm-ff-transformer-show-only-basename
+                                (not (helm-ff-dot-file-p presel)))
+                           (helm-basename presel) presel)))))))
 
 (defun helm-ff-kill-buffer-fname (candidate)
   (let ((buf (get-file-buffer candidate)))
