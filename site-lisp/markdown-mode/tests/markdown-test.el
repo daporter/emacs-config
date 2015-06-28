@@ -38,50 +38,49 @@
    (expand-file-name (file-name-directory
                       (or load-file-name buffer-file-name))))
 
-(defmacro markdown-test-string (string &rest body)
-  "Run body in a temporary buffer containing STRING."
-  `(with-temp-buffer
-    (markdown-mode)
-    (setq-default indent-tabs-mode nil)
-    (insert ,string)
-    (goto-char (point-min))
-    (font-lock-fontify-buffer)
-    (prog1 ,@body (kill-buffer))))
-(def-edebug-spec markdown-test-string (form body))
+(defmacro markdown-test-string-mode (mode string &rest body)
+  "Run BODY in a temporary buffer containing STRING in MODE."
+  `(let ((win (selected-window)))
+     (unwind-protect
+         (with-temp-buffer
+           (set-window-buffer win (current-buffer) t)
+           (erase-buffer)
+           (funcall ,mode)
+           (setq-default indent-tabs-mode nil)
+           (insert ,string)
+           (goto-char (point-min))
+           (font-lock-fontify-buffer)
+           (prog1 ,@body (kill-buffer))))))
 
-(defmacro markdown-test-file (file &rest body)
-  "Open FILE from `markdown-test-dir' and execute body."
+(defmacro markdown-test-file-mode (mode file &rest body)
+  "Open FILE from `markdown-test-dir' in MODE and execute BODY."
   `(let ((fn (concat markdown-test-dir ,file)))
      (save-window-excursion
        (with-temp-buffer
          (insert-file-contents fn)
-         (markdown-mode)
+         (funcall ,mode)
          (goto-char (point-min))
          (font-lock-fontify-buffer)
          ,@body))))
+
+(defmacro markdown-test-string (string &rest body)
+  "Run body in a temporary buffer containing STRING in `markdown-mode'."
+  `(markdown-test-string-mode 'markdown-mode ,string ,@body))
+(def-edebug-spec markdown-test-string (form body))
+
+(defmacro markdown-test-file (file &rest body)
+  "Open FILE from `markdown-test-dir' in `markdown-mode' and execute BODY."
+  `(markdown-test-file-mode 'markdown-mode ,file ,@body))
 (def-edebug-spec markdown-test-file (form body))
 
 (defmacro markdown-test-string-gfm (string &rest body)
   "Run body in a temporary buffer containing STRING in `gfm-mode'."
-  `(with-temp-buffer
-    (gfm-mode)
-    (setq-default indent-tabs-mode nil)
-    (insert ,string)
-    (goto-char (point-min))
-    (font-lock-fontify-buffer)
-    (prog1 ,@body (kill-buffer))))
+  `(markdown-test-string-mode 'gfm-mode ,string ,@body))
 (def-edebug-spec markdown-test-string-gfm (form body))
 
 (defmacro markdown-test-file-gfm (file &rest body)
-  "Open FILE from `markdown-test-dir' and execute body."
-  `(let ((fn (concat markdown-test-dir ,file)))
-     (save-window-excursion
-       (with-temp-buffer
-         (insert-file-contents fn)
-         (gfm-mode)
-         (goto-char (point-min))
-         (font-lock-fontify-buffer)
-         ,@body))))
+  "Open FILE from `markdown-test-dir' in `gfm-mode' and execute BODY."
+  `(markdown-test-file-mode 'gfm-mode ,file ,@body))
 (def-edebug-spec markdown-test-file-gfm (form body))
 
 (defmacro markdown-test-temp-file (file &rest body)
@@ -995,6 +994,15 @@ Test point position upon removal and insertion."
      (should (= (point) 35))
      (should (looking-back "\\[link\\]: ")))))
 
+(ert-deftest test-markdown-insertion/inline-to-reference-link ()
+  "Inline link to reference link conversion."
+  (markdown-test-string "[text](http://jblevins.org/ \"title\")"
+   (execute-kbd-macro (read-kbd-macro "M-x markdown-insert-reference-link-dwim RET 1 RET"))
+   (should (string-equal (buffer-string) "[text][1]\n\n[1]: http://jblevins.org/ \"title\"\n")))
+  (markdown-test-string "[text](http://jblevins.org/)"
+   (execute-kbd-macro (read-kbd-macro "M-x markdown-insert-reference-link-dwim RET 1 RET"))
+   (should (string-equal (buffer-string) "[text][1]\n\n[1]: http://jblevins.org/\n"))))
+
 (ert-deftest test-markdown-insertion/inline-link ()
   "Basic tests for `markdown-insert-link'."
    ;; Test empty markup insertion (leave point in square brackets)
@@ -1785,6 +1793,14 @@ body"
   (markdown-test-string "    \nasdf  \n"
    (markdown-test-range-has-face 1 9 nil)
    (markdown-test-range-has-face 10 11 markdown-line-break-face)))
+
+(ert-deftest test-markdown-font-lock/gfm-code-block-font-lock ()
+  "GFM code block font lock test. Now in base markdown-mode as well!"
+  (markdown-test-file "gfm.text"
+    (markdown-test-range-has-face 2639 2641 markdown-pre-face) ; ```
+    (markdown-test-range-has-face 2642 2645 markdown-language-keyword-face) ; lang
+    (markdown-test-range-has-face 2647 2728 markdown-pre-face) ; code
+    (markdown-test-range-has-face 2730 2732 markdown-pre-face))) ; ```
 
 ;;; Markdown Parsing Functions:
 
