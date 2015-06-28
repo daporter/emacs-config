@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/org-journal
-;; Version: 1.8.1
+;; Version: 1.9.0
 
 ;; Adapted from http://www.emacswiki.org/PersonalDiary
 
@@ -57,8 +57,9 @@
 (defun org-journal-update-auto-mode-alist ()
   "Update auto-mode-alist to open journal files in
   org-journal-mode"
-  (let ((name (concat (expand-file-name org-journal-dir)
-                      (substring org-journal-file-pattern 1))))
+  (let ((name (expand-file-name
+               (substring org-journal-file-pattern 1)
+               org-journal-dir)))
     (add-to-list 'auto-mode-alist
                  (cons name 'org-journal-mode))))
 
@@ -129,9 +130,29 @@ string if you want to disable timestamps."
   "String that is put before every time entry in a journal file.
   By default, this is an org-mode sub-heading."
   :type 'string :group 'org-journal)
+
 (defcustom org-journal-hide-entries-p t
   "If true, org-journal-mode will hide all but the current entry
    when creating a new one.")
+
+(require 'org-crypt nil 'noerror)
+
+(defcustom org-journal-enable-encryption nil
+  "If non-nil, New journal entries will have a
+`org-crypt-tag-matcher' tag for encrypting. Whenever a user
+saves/opens these journal entries, emacs asks a user passphrase
+to encrypt/decrypt it."
+  :type 'boolean :group 'org-journal)
+
+(defcustom org-journal-encrypt-on 'before-save-hook
+  "Hook on which to encrypt entries. It can be set to other hooks
+  like kill-buffer-hook. ")
+
+;; Automatically switch to journal mode when opening a journal entry file
+(add-to-list 'auto-mode-alist
+             (cons (concat (file-truename org-journal-dir)
+                           org-journal-file-pattern)
+                   'org-journal-mode))
 
 (require 'calendar)
 ;;;###autoload
@@ -171,6 +192,13 @@ string if you want to disable timestamps."
 ;;;###autoload
 (global-set-key (kbd "C-c C-j") 'org-journal-new-entry)
 
+(defun org-journal-get-entry-path (&optional time)
+  "Return the path to an entry given a TIME.
+If no TIME is given, uses the current time."
+  (expand-file-name
+   (format-time-string org-journal-file-format time)
+   org-journal-dir))
+
 (defun org-journal-dir-check-or-create ()
   "Check existence of `org-journal-dir'. If it doesn't exist, try to make directory."
   (unless (file-exists-p org-journal-dir)
@@ -187,11 +215,11 @@ Giving the command a prefix arg will just open a today's file,
 without adding an entry."
   (interactive "P")
   (org-journal-dir-check-or-create)
-  (let* ((entry-path (concat org-journal-dir
-                             (format-time-string org-journal-file-format)))
+  (let* ((entry-path (org-journal-get-entry-path))
          (entry-path-exists-p (file-exists-p entry-path))
          (should-add-entry-p (not prefix)))
     (find-file entry-path)
+    (org-journal-decrypt)
     (goto-char (point-max))
     (let ((unsaved (buffer-modified-p)))
 
@@ -199,6 +227,13 @@ without adding an entry."
       (when (equal (point-max) 1)
         (insert org-journal-date-prefix
                 (format-time-string org-journal-date-format)))
+
+      ;; add crypt tag if encryption is enabled and tag is not present
+      (when org-journal-enable-encryption
+        (goto-char (point-min))
+        (unless (member org-crypt-tag-matcher (org-get-tags))
+          (org-set-tags-to org-crypt-tag-matcher))
+        (goto-char (point-max)))
 
       ;; skip adding entry if a prefix is given
       (when should-add-entry-p
@@ -262,8 +297,7 @@ If the date is not today, it won't be given a time."
   (let* ((time (org-journal-calendar-date->time
                 (calendar-cursor-to-date t event))))
     (org-journal-dir-check-or-create)
-    (find-file-other-window (concat org-journal-dir
-                                    (format-time-string org-journal-file-format time)))
+    (find-file-other-window (org-journal-get-entry-path time))
     (goto-char (point-max))
     (let ((unsaved (buffer-modified-p)))
       (if (equal (point-max) 1)
@@ -290,10 +324,9 @@ If the date is not today, it won't be given a time."
     (calendar-exit)
     (if dates
         (let* ((time (org-journal-calendar-date->time (car dates)))
-               (filename (concat org-journal-dir
-                                 (format-time-string
-                                  org-journal-file-format time))))
+               (filename (org-journal-get-entry-path time)))
           (find-file filename)
+          (org-journal-decrypt)
           (view-mode (if view-mode-p 1 -1))
           (org-show-subtree))
       (message "No next journal entry after this one"))))
@@ -311,10 +344,9 @@ If the date is not today, it won't be given a time."
     (calendar-exit)
     (if (and dates (cadr dates))
         (let* ((time (org-journal-calendar-date->time (cadr dates)))
-               (filename (concat org-journal-dir
-                                 (format-time-string
-                                  org-journal-file-format time))))
+               (filename (org-journal-get-entry-path time)))
           (find-file filename)
+          (org-journal-decrypt)
           (view-mode (if view-mode-p 1 -1))
           (org-show-subtree))
       (message "No previous journal entry before this one"))))
@@ -365,8 +397,7 @@ If the date is not today, it won't be given a time."
   "Read an entry for the TIME and either select the new
   window (NOSELECT is nil) or avoid switching (NOSELECT is
   non-nil."
-  (let ((org-journal-file (concat org-journal-dir
-                                  (format-time-string org-journal-file-format time))))
+  (let ((org-journal-file (org-journal-get-entry-path time)))
     (if (file-exists-p org-journal-file)
         (progn
           ;; open file in view-mode if not opened already
@@ -379,6 +410,7 @@ If the date is not today, it won't be given a time."
                 (view-mode)
                 (setq view-exit-action 'kill-buffer))
               (set (make-local-variable 'org-hide-emphasis-markers) t)
+              (org-journal-decrypt)
               (org-show-subtree))
             (if (not noselect)
                 (find-file-other-window org-journal-file)
@@ -598,6 +630,26 @@ org-journal-time-prefix."
     (goto-char (point-min))
     (forward-line (1- lnum))))
 
+(defun org-journal-decrypt ()
+  (when (fboundp 'org-decrypt-entries)
+    (let ((buffer-read-only nil))
+      (org-decrypt-entries))))
+
+(defun org-journal-encryption-hook ()
+  "The function added to the hook specified by
+  `org-journal-encrypt-on'."
+  (when org-journal-enable-encryption
+    (org-encrypt-entries)
+    (unless (equal org-journal-encrypt-on
+                   'before-save-hook)
+      (save-buffer))))
+
+;; Setup encryption by default
+;;;###autoload
+(add-hook 'org-journal-mode-hook
+          (lambda () (org-add-hook org-journal-encrypt-on
+                                   'org-journal-encryption-hook
+                                   nil t)))
 
 (provide 'org-journal)
 
