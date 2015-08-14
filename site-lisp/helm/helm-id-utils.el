@@ -18,6 +18,7 @@
 ;;; Code:
 
 (require 'helm-grep)
+(require 'helm-help)
 
 (defgroup helm-id-utils nil
   "ID-Utils related Applications and libraries for Helm."
@@ -70,7 +71,6 @@
    (filtered-candidate-transformer
     :initform #'helm-gid-filtered-candidate-transformer)
    (candidate-number-limit :initform 99999)
-   (mode-line :initform helm-grep-mode-line-string)
    (action :initform (helm-make-actions
                       "Find File" 'helm-grep-action
                       "Find file other frame" 'helm-grep-other-frame
@@ -82,6 +82,7 @@
    (persistent-action :initform 'helm-grep-persistent-action)
    (history :initform 'helm-grep-history)
    (nohighlight :initform t)
+   (help-message :initform 'helm-grep-help-message)
    (requires-pattern :initform 2)))
 
 ;;;###autoload

@@ -19,6 +19,7 @@
 
 (require 'cl-lib)
 (require 'helm)
+(require 'helm-help)
 (require 'helm-utils)
 (require 'helm-plugin)
 
@@ -50,6 +51,14 @@ Any other non--nil value update after confirmation."
           (const :tag "Don't update but signal buffer needs update" nil)
           (const :tag "Update after confirmation" t)))
 
+(defcustom helm-source-multi-occur-actions
+  '(("Go to Line" . helm-moccur-goto-line)
+    ("Goto line other window" . helm-moccur-goto-line-ow)
+    ("Goto line new frame" . helm-moccur-goto-line-of))
+  "Actions for helm-occur and helm-moccur."
+  :group 'helm-regexp
+  :type '(alist :key-type string :value-type function))
+
 
 (defface helm-moccur-buffer
     '((t (:foreground "DarkTurquoise" :underline t)))
@@ -68,7 +77,6 @@ Any other non--nil value update after confirmation."
     (define-key map (kbd "M-<down>") 'helm-goto-next-file)
     (define-key map (kbd "M-<up>")   'helm-goto-precedent-file)
     (define-key map (kbd "C-w")      'helm-yank-text-at-point)
-    (define-key map (kbd "C-c ?")    'helm-moccur-help)
     (define-key map (kbd "C-c o")    'helm-moccur-run-goto-line-ow)
     (define-key map (kbd "C-c C-o")  'helm-moccur-run-goto-line-of)
     (define-key map (kbd "C-x C-s")  'helm-moccur-run-save-buffer)
@@ -79,7 +87,10 @@ Any other non--nil value update after confirmation."
   "Keymap used in Moccur source.")
 
 
+;; History vars
 (defvar helm-build-regexp-history nil)
+(defvar helm-occur-history nil)
+
 (defun helm-query-replace-regexp (_candidate)
   "Query replace regexp from `helm-regexp'.
 With a prefix arg replace only matches surrounded by word boundaries,
@@ -293,16 +304,14 @@ Same as `helm-moccur-goto-line' but go in new frame."
    (get-line :initform helm-moccur-get-line)
    (nohighlight :initform t)
    (migemo :initform t)
-   (action :initform '(("Go to Line" . helm-moccur-goto-line)
-                       ("Goto line other window" . helm-moccur-goto-line-ow)
-                       ("Goto line new frame" . helm-moccur-goto-line-of)))
+   (action :initform 'helm-source-multi-occur-actions)
    (persistent-action :initform 'helm-moccur-persistent-action)
    (persistent-help :initform "Go to line")
    (resume :initform 'helm-moccur-resume-fn)
    (candidate-number-limit :initform 9999)
-   (mode-line :initform helm-moccur-mode-line)
+   (help-message :initform 'helm-moccur-help-message)
    (keymap :initform helm-moccur-map)
-   (history :initform 'helm-grep-history)
+   (history :initform 'helm-occur-history)
    (requires-pattern :initform 2)))
 
 (defun helm-moccur-resume-fn ()
@@ -389,7 +398,8 @@ Same as `helm-moccur-goto-line' but go in new frame."
               collect (buffer-chars-modified-tick (get-buffer b)))))
   (helm :sources 'helm-source-moccur
         :buffer "*helm multi occur*"
-        :history 'helm-grep-history
+        :history 'helm-occur-history
+        :keymap helm-moccur-map
         :input input
         :truncate-lines t))
 
@@ -557,7 +567,7 @@ Special commands:
               collect (buffer-chars-modified-tick (get-buffer b)))))
   (helm :sources 'helm-source-occur
         :buffer "*helm occur*"
-        :history 'helm-grep-history
+        :history 'helm-occur-history
         :preselect (and (memq 'helm-source-occur helm-sources-using-default-as-input)
                         (format "%s:%d:" (regexp-quote (buffer-name))
                                 (line-number-at-pos (point))))
@@ -581,7 +591,7 @@ Special commands:
               collect (buffer-chars-modified-tick (get-buffer b))))
     (helm :sources 'helm-source-occur
           :buffer "*helm occur*"
-          :history 'helm-grep-history
+          :history 'helm-occur-history
           :input input
           :truncate-lines t)))
 

@@ -19,6 +19,7 @@
 
 (require 'cl-lib)
 (require 'helm)
+(require 'helm-types)
 (require 'helm-utils)
 (require 'helm-elscreen)
 (require 'helm-grep)
@@ -85,8 +86,13 @@ Only buffer names are fuzzy matched when this is enabled,
                                        helm-source-recentf
                                        helm-source-buffer-not-found)
   "Default sources list used in `helm-mini'."
-  :group 'helm-misc
+  :group 'helm-buffers
   :type '(repeat (choice symbol)))
+
+(defcustom helm-buffers-end-truncated-string "..."
+  "The string to display at end of truncated buffer names."
+  :type 'string
+  :group 'helm-buffers)
 
 
 ;;; Faces
@@ -135,7 +141,6 @@ Only buffer names are fuzzy matched when this is enabled,
 (defvar helm-buffer-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map helm-map)
-    (define-key map (kbd "C-c ?")     'helm-buffer-help)
     ;; No need to have separate command for grep and zgrep
     ;; as we don't use recursivity for buffers.
     ;; So use zgrep for both as it is capable to handle non--compressed files.
@@ -163,7 +168,6 @@ Only buffer names are fuzzy matched when this is enabled,
 (defvar helm-buffers-ido-virtual-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map helm-map)
-    (define-key map (kbd "C-c ?")   'helm-buffers-ido-virtual-help)
     (define-key map (kbd "C-c o")   'helm-ff-run-switch-other-window)
     (define-key map (kbd "C-c C-o") 'helm-ff-run-switch-other-frame)
     (define-key map (kbd "M-g s")   'helm-ff-run-grep)
@@ -209,7 +213,7 @@ Only buffer names are fuzzy matched when this is enabled,
                                     (helm-force-update))))))
    (keymap :initform helm-buffer-map)
    (volatile :initform t)
-   (mode-line :initform helm-buffer-mode-line-string)
+   (help-message :initform 'helm-buffer-help-message)
    (persistent-help
     :initform
     "Show this buffer / C-u \\[helm-execute-persistent-action]: Kill this buffer")))
@@ -252,7 +256,7 @@ Only buffer names are fuzzy matched when this is enabled,
                       ido-virtual-buffers)))
     :fuzzy-match helm-buffers-fuzzy-matching
     :keymap helm-buffers-ido-virtual-map
-    :mode-line helm-buffers-ido-virtual-mode-line-string
+    :help-message 'helm-buffers-ido-virtual-help-message
     :action '(("Find file" . helm-find-many-files)
               ("Find file other window" . find-file-other-window)
               ("Find file other frame" . find-file-other-frame)
@@ -363,9 +367,12 @@ Should be called after others transformers i.e (boring buffers)."
                                       (helm-buffer--details i))
         for truncbuf = (if (> (string-width name) helm-buffer-max-length)
                            (helm-substring-by-width
-                            name helm-buffer-max-length)
-                         (concat name (make-string
-                                       (- (+ helm-buffer-max-length 3)
+                            name helm-buffer-max-length
+                            helm-buffers-end-truncated-string)
+                         (concat name
+                                 (make-string
+                                       (- (+ helm-buffer-max-length
+                                             (length helm-buffers-end-truncated-string))
                                           (string-width name)) ? )))
         for len = (length mode)
         when (> len helm-buffer-max-len-mode)
@@ -391,7 +398,8 @@ Should be called after others transformers i.e (boring buffers)."
                         helm-buffer-max-length))
                 (regexp-quote
                  (helm-substring-by-width
-                  bufname helm-buffer-max-length))
+                  bufname helm-buffer-max-length
+                  helm-buffers-end-truncated-string))
                 (concat (regexp-quote bufname)
                         (if helm-buffer-details-flag
                             "$" "[[:blank:]]+"))))))
@@ -539,24 +547,21 @@ i.e same color."
 (defun helm-buffer-query-replace-1 (&optional regexp-flag buffers)
   "Query replace in marked buffers.
 If REGEXP-FLAG is given use `query-replace-regexp'."
-  (let ((fn     (if regexp-flag 'query-replace-regexp 'query-replace))
-        (prompt (if regexp-flag "Query replace regexp" "Query replace"))
+  (let ((prompt (if regexp-flag "Query replace regexp" "Query replace"))
         (bufs   (or buffers (helm-marked-candidates)))
         (helm--reading-passwd-or-string t))
-    (cl-loop with replace = (query-replace-read-from prompt regexp-flag)
-          with tostring = (unless (consp replace)
-                            (query-replace-read-to
-                             replace prompt regexp-flag))
-          for buf in bufs
-          do
-          (save-window-excursion
-            (switch-to-buffer buf)
-            (save-excursion
-              (let ((case-fold-search t))
-                (goto-char (point-min))
-                (if (consp replace)
-                    (apply fn (list (car replace) (cdr replace)))
-                  (apply fn (list replace tostring)))))))))
+    (cl-loop with args = (query-replace-read-args prompt regexp-flag t)
+             for buf in bufs
+             do
+             (save-window-excursion
+               (switch-to-buffer buf)
+               (save-excursion
+                 (let ((case-fold-search t))
+                   (goto-char (point-min))
+                   (apply #'perform-replace
+                          (list (nth 0 args) (nth 1 args)
+                                t regexp-flag (nth 2 args) nil
+                                multi-query-replace-map))))))))
 
 (defun helm-buffer-query-replace-regexp (_candidate)
   (helm-buffer-query-replace-1 'regexp))

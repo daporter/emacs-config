@@ -18,7 +18,7 @@
 ;;; Code:
 (require 'cl-lib)
 (require 'helm)
-(require 'grep)
+(require 'helm-help)
 (require 'helm-regexp)
 
 ;;; load wgrep proxy if it's available
@@ -158,6 +158,26 @@ If set to nil `doc-view-mode' will be used instead of an external command."
   :group 'helm-grep
   :type  'string)
 
+(defcustom helm-grep-save-buffer-name-no-confirm nil
+  "when *hgrep* already exists,auto append suffix."
+  :group 'helm-grep
+  :type 'boolean)
+
+(defcustom helm-grep-ignored-files
+  (cons ".#*" (delq nil (mapcar (lambda (s)
+				  (unless (string-match-p "/\\'" s)
+				    (concat "*" s)))
+				completion-ignored-extensions)))
+  "List of file names which `helm-grep' shall exclude."
+  :group 'helm-grep
+  :type '(repeat string))
+
+(defcustom helm-grep-ignored-directories
+  helm-walk-ignore-directories
+  "List of names of sub-directories which `helm-grep' shall not recurse into."
+  :group 'helm-grep
+  :type '(repeat string))
+
 
 ;;; Faces
 ;;
@@ -216,7 +236,6 @@ If set to nil `doc-view-mode' will be used instead of an external command."
     (when helm-grep-use-ioccur-style-keys
       (define-key map (kbd "<right>")  'helm-execute-persistent-action)
       (define-key map (kbd "<left>")  'helm-grep-run-default-action))
-    (define-key map (kbd "C-c ?")    'helm-grep-help)
     (delq nil map))
   "Keymap used in Grep sources.")
 
@@ -226,7 +245,6 @@ If set to nil `doc-view-mode' will be used instead of an external command."
     (define-key map (kbd "M-<down>") 'helm-goto-next-file)
     (define-key map (kbd "M-<up>")   'helm-goto-precedent-file)
     (define-key map (kbd "C-w")      'helm-yank-text-at-point)
-    (define-key map (kbd "C-c ?")    'helm-pdfgrep-help)
     map)
   "Keymap used in pdfgrep.")
 
@@ -353,7 +371,7 @@ It is intended to use as a let-bound variable, DON'T set this globaly.")
                                #'(lambda (x)
                                    (concat "--exclude="
                                            (shell-quote-argument x)))
-                               grep-find-ignored-files " ")))
+                               helm-grep-ignored-files " ")))
          (ignored-dirs      (unless (helm-grep-use-ack-p)
                               (mapconcat
                                ;; Need grep version >=2.5.4
@@ -361,7 +379,7 @@ It is intended to use as a let-bound variable, DON'T set this globaly.")
                                #'(lambda (x)
                                    (concat "--exclude-dir="
                                            (shell-quote-argument x)))
-                               grep-find-ignored-directories " ")))
+                               helm-grep-ignored-directories " ")))
          (exclude           (unless (helm-grep-use-ack-p)
                               (if helm-grep-in-recurse
                                   (concat (or include ignored-files)
@@ -637,13 +655,16 @@ If N is positive go forward otherwise go backward."
   (let ((buf "*hgrep*")
         new-buf)
     (when (get-buffer buf)
-      (setq new-buf (helm-read-string "GrepBufferName: " buf))
-      (cl-loop for b in (helm-buffer-list)
-            when (and (string= new-buf b)
-                      (not (y-or-n-p
-                            (format "Buffer `%s' already exists overwrite? "
-                                    new-buf))))
-            do (setq new-buf (helm-read-string "GrepBufferName: " "*hgrep ")))
+      (if helm-grep-save-buffer-name-no-confirm
+          (setq new-buf  (format "*hgrep|%s|-%s" helm-pattern
+                                 (format-time-string "%H-%M-%S*")))
+          (setq new-buf (helm-read-string "GrepBufferName: " buf))
+          (cl-loop for b in (helm-buffer-list)
+                   when (and (string= new-buf b)
+                             (not (y-or-n-p
+                                   (format "Buffer `%s' already exists overwrite? "
+                                           new-buf))))
+                   do (setq new-buf (helm-read-string "GrepBufferName: " "*hgrep "))))
       (setq buf new-buf))
     (with-current-buffer (get-buffer-create buf)
       (setq buffer-read-only t)
@@ -803,7 +824,7 @@ These extensions will be added to command line with --include arg of grep."
         unless (or (not glob)
                    (and glob-list (member glob glob-list))
                    (and glob-list (member glob ext-list))
-                   (and glob-list (member glob grep-find-ignored-files)))
+                   (and glob-list (member glob helm-grep-ignored-files)))
         collect glob into glob-list
         finally return (delq nil (append ext-list glob-list))))
 
@@ -838,7 +859,7 @@ e.g *.el *.py *.tex.
 From lisp use the EXTS argument as a list of extensions as above.
 If you are using ack-grep, you will be prompted for --type
 instead and EXTS will be ignored.
-If prompt is empty `grep-find-ignored-files' are added to --exclude.
+If prompt is empty `helm-grep-ignored-files' are added to --exclude.
 Argument DEFAULT-INPUT is use as `default' arg of `helm' and INPUT
 is used as `input' arg of `helm', See `helm' docstring.
 ZGREP when non--nil use zgrep instead, without prompting for a choice
@@ -905,7 +926,7 @@ in recurse, and ignoring EXTS, search being made on
             :filter-one-by-one 'helm-grep-filter-one-by-one
             :nohighlight t
             :candidate-number-limit 9999
-            :mode-line helm-grep-mode-line-string
+            :help-message 'helm-grep-help-message
             :history 'helm-grep-history
             :action (helm-make-actions
                      "Find File" 'helm-grep-action
@@ -997,7 +1018,8 @@ in recurse, and ignoring EXTS, search being made on
                             default-directory)))))
     (if (consp candidate)
         (helm-grep--filter-candidate-1 (cdr candidate))
-        (helm-grep--filter-candidate-1 candidate))))
+        (and (stringp candidate)
+             (helm-grep--filter-candidate-1 candidate)))))
 
 (defun helm-grep-highlight-match (str &optional multi-match)
   "Highlight in string STR all occurences matching `helm-pattern'."
@@ -1140,7 +1162,7 @@ If a prefix arg is given run grep on all buffers ignoring non--file-buffers."
                 :candidate-number-limit 9999
                 :history 'helm-grep-history
                 :keymap helm-pdfgrep-map
-                :mode-line helm-pdfgrep-mode-line-string
+                :help-message 'helm-pdfgrep-help-message
                 :action #'helm-pdfgrep-action
                 :persistent-help "Jump to PDF Page"
                 :requires-pattern 2)

@@ -19,6 +19,7 @@
 
 (require 'cl-lib)
 (require 'helm)
+(require 'helm-help)
 (require 'helm-utils)
 
 
@@ -88,7 +89,6 @@ one match."
     (define-key map (kbd "M-<down>") 'helm-goto-next-file)
     (define-key map (kbd "M-<up>")   'helm-goto-precedent-file)
     (define-key map (kbd "C-w")      'helm-yank-text-at-point)
-    (define-key map (kbd "C-c ?")    'helm-etags-help)
     (define-key map (kbd "C-c o")    'helm-etags-run-switch-other-window)
     (define-key map (kbd "C-c C-o")  'helm-etags-run-switch-other-frame)
     map)
@@ -221,7 +221,7 @@ If no entry in cache, create one."
                       (cadr (split-string
                              (cadr (helm-etags-split-line candidate))))
                       candidate))
-    :mode-line helm-etags-mode-line-string
+    :help-message 'helm-etags-help-message
     :keymap helm-etags-map
     :action '(("Go to tag" . (lambda (c)
                                (helm-etags-action-goto 'find-file c)))
