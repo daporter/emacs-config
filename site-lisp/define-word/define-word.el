@@ -36,8 +36,17 @@
 (require 'url-parse)
 (require 'url-http)
 
+(defgroup define-word nil
+  "Define word at point using an online dictionary."
+  :group 'convenience
+  :prefix "define-word-")
+
 (defconst define-word-limit 10
   "Maximum amount of results to display.")
+
+(defcustom define-word-unpluralize t
+  "When non-nil, change the word to singular when appropriate.
+The rule is that all definitions must contain \"Plural of\".")
 
 ;;;###autoload
 (defun define-word (word)
@@ -64,11 +73,16 @@
                                (buffer-substring-no-properties beg (match-beginning 0)))
                        results)))
              (setq results (nreverse results))
-             (when (> (length results) define-word-limit)
-               (setq results (cl-subseq results 0 define-word-limit)))
-             (if results
-                 (message (mapconcat #'identity results "\n"))
-               (message "0 definitions found")))))
+             (cond ((= 0 (length results))
+                    (message "0 definitions found"))
+                   ((and define-word-unpluralize
+                         (cl-every (lambda (x) (string-match "[Pp]\\(?:lural\\|l\\.\\).*of \\(.*\\)\\." x))
+                                   results))
+                    (define-word (match-string 1 (car (last results)))))
+                   (t
+                    (when (> (length results) define-word-limit)
+                      (setq results (cl-subseq results 0 define-word-limit)))
+                    (message (mapconcat #'identity results "\n")))))))
        nil
        t t))))
 
@@ -77,7 +91,7 @@
   "Use `define-word' to define word at point.
 When the region is active, define the marked phrase."
   (interactive)
-  (if (region-active-p)
+  (if (use-region-p)
       (define-word
         (buffer-substring-no-properties
          (region-beginning)
