@@ -56,9 +56,11 @@ NOTMUCH_BEGIN_DECLS
  * version in Makefile.local.
  */
 #define LIBNOTMUCH_MAJOR_VERSION	4
-#define LIBNOTMUCH_MINOR_VERSION	2
+#define LIBNOTMUCH_MINOR_VERSION	3
 #define LIBNOTMUCH_MICRO_VERSION	0
 
+#define NOTMUCH_DEPRECATED(major,minor) \
+    __attribute__ ((deprecated ("function deprecated as of libnotmuch " #major "." #minor)))
 #endif /* __DOXYGEN__ */
 
 /**
@@ -711,6 +713,12 @@ const char *
 notmuch_query_get_query_string (notmuch_query_t *query);
 
 /**
+ * Return the notmuch database of this query. See notmuch_query_create.
+ */
+notmuch_database_t *
+notmuch_query_get_database (notmuch_query_t *query);
+
+/**
  * Exclude values for notmuch_query_set_omit_excluded. The strange
  * order is to maintain backward compatibility: the old FALSE/TRUE
  * options correspond to the new
@@ -812,18 +820,23 @@ notmuch_query_add_tag_exclude (notmuch_query_t *query, const char *tag);
  * notmuch_threads_destroy function, but there's no good reason
  * to call it if the query is about to be destroyed).
  *
- * If a Xapian exception occurs this function will return NULL.
- * For better error reporting, use the _st variant.
- */
-notmuch_threads_t *
-notmuch_query_search_threads (notmuch_query_t *query);
-
-/**
- * Like notmuch_query_search_threads, but with a status return.
  */
 notmuch_status_t
 notmuch_query_search_threads_st (notmuch_query_t *query,
 				 notmuch_threads_t **out);
+
+/**
+ * Like notmuch_query_search_threads_st, but without a status return.
+ *
+ * If a Xapian exception occurs this function will return NULL.
+ *
+ * @deprecated Deprecated as of libnotmuch 4.3 (notmuch 0.21). Please
+ * use notmuch_query_search_threads_st instead.
+ *
+ */
+NOTMUCH_DEPRECATED(4,3)
+notmuch_threads_t *
+notmuch_query_search_threads (notmuch_query_t *query);
 
 /**
  * Execute a query for messages, returning a notmuch_messages_t object
@@ -863,17 +876,23 @@ notmuch_query_search_threads_st (notmuch_query_t *query,
  * reason to call it if the query is about to be destroyed).
  *
  * If a Xapian exception occurs this function will return NULL.
- * For better error reporting, use the _st variant.
- */
-notmuch_messages_t *
-notmuch_query_search_messages (notmuch_query_t *query);
-
-/**
- * Like notmuch_query_search_messages, but with a status return.
+ *
  */
 notmuch_status_t
 notmuch_query_search_messages_st (notmuch_query_t *query,
 				  notmuch_messages_t **out);
+/**
+ * Like notmuch_query_search_messages, but without a status return.
+ *
+ * If a Xapian exception occurs this function will return NULL.
+ *
+ * @deprecated Deprecated as of libnotmuch 4.3 (notmuch 0.21). Please use
+ * notmuch_query_search_messages_st instead.
+ *
+ */
+NOTMUCH_DEPRECATED(4,3)
+notmuch_messages_t *
+notmuch_query_search_messages (notmuch_query_t *query);
 
 /**
  * Destroy a notmuch_query_t along with any associated resources.
