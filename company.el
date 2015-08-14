@@ -1574,6 +1574,7 @@ from the rest of the back-ends in the group, if any, will be left at the end."
           (if company-candidates
               (company-call-frontends 'post-command)
             (and (numberp company-idle-delay)
+                 (not defining-kbd-macro)
                  (company--should-begin)
                  (setq company-timer
                        (run-with-timer company-idle-delay nil
@@ -1954,6 +1955,20 @@ With ARG, move by that many elements."
         (let ((company-selection-wrap-around t)
               (current-prefix-arg arg))
           (call-interactively 'company-select-next))))))
+
+(defun company-indent-or-complete-common ()
+  "Indent the current line or region, or complete the common part."
+  (interactive)
+  (cond
+   ((use-region-p)
+    (indent-region (region-beginning) (region-end)))
+   ((let ((old-point (point))
+          (old-tick (buffer-chars-modified-tick))
+          (tab-always-indent t))
+      (call-interactively #'indent-for-tab-command)
+      (when (and (eq old-point (point))
+                 (eq old-tick (buffer-chars-modified-tick)))
+        (company-complete-common))))))
 
 (defun company-complete ()
   "Insert the common part of all candidates or the current selection.
@@ -2398,7 +2413,7 @@ If SHOW-VERSION is non-nil, show the version in the echo area."
                     (or (cdr margins) 0)))))
     (when (and word-wrap
                (version< emacs-version "24.4.51.5"))
-      ;; http://debbugs.gnu.org/18384
+      ;; http://debbugs.gnu.org/19300
       (cl-decf ww))
     ;; whitespace-mode with newline-mark
     (when (and buffer-display-table
@@ -2438,8 +2453,7 @@ If SHOW-VERSION is non-nil, show the version in the echo area."
                     (company--offset-line (pop lines) offset))
             new))
 
-    (let ((str (concat (when nl " ")
-                       "\n"
+    (let ((str (concat (when nl " \n")
                        (mapconcat 'identity (nreverse new) "\n")
                        "\n")))
       (font-lock-append-text-property 0 (length str) 'face 'default str)
@@ -2591,7 +2605,7 @@ Returns a negative number if the tooltip should be displayed above point."
              (end (save-excursion
                     (move-to-window-line (+ row (abs height)))
                     (point)))
-             (ov (make-overlay (if nl beg (1- beg)) end nil t))
+             (ov (make-overlay beg end nil t))
              (args (list (mapcar 'company-plainify
                                  (company-buffer-lines beg end))
                          column nl above)))
@@ -2632,7 +2646,8 @@ Returns a negative number if the tooltip should be displayed above point."
 (defun company-pseudo-tooltip-hide-temporarily ()
   (when (overlayp company-pseudo-tooltip-overlay)
     (overlay-put company-pseudo-tooltip-overlay 'invisible nil)
-    (overlay-put company-pseudo-tooltip-overlay 'after-string nil)))
+    (overlay-put company-pseudo-tooltip-overlay 'after-string nil)
+    (overlay-put company-pseudo-tooltip-overlay 'display nil)))
 
 (defun company-pseudo-tooltip-unhide ()
   (when company-pseudo-tooltip-overlay
@@ -2640,12 +2655,13 @@ Returns a negative number if the tooltip should be displayed above point."
            (disp (overlay-get ov 'company-display)))
       ;; Beat outline's folding overlays, at least.
       (overlay-put ov 'priority 1)
-      ;; `display' could be better (http://debbugs.gnu.org/18285), but it
-      ;; doesn't work when the overlay is empty, which is what happens at eob.
-      ;; It also seems to interact badly with `cursor'.
-      ;; We deal with priorities by having the overlay start before the newline.
-      (overlay-put ov 'after-string disp)
-      (overlay-put ov 'invisible t)
+      ;; `display' is better
+      ;; (http://debbugs.gnu.org/18285, http://debbugs.gnu.org/20847),
+      ;; but it doesn't work on 0-length overlays.
+      (if (< (overlay-start ov) (overlay-end ov))
+          (overlay-put ov 'display disp)
+        (overlay-put ov 'after-string disp)
+        (overlay-put ov 'invisible t))
       (overlay-put ov 'window (selected-window)))))
 
 (defun company-pseudo-tooltip-guard ()
