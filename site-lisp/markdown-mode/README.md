@@ -297,6 +297,20 @@ keybindings by pressing <kbd>C-c C-h</kbd>.
     Existing list items can be moved up or down with <kbd>M-UP</kbd> or
     <kbd>M-DOWN</kbd> and indented or exdented with <kbd>M-RIGHT</kbd> or <kbd>M-LEFT</kbd>.
 
+  * Editing Subtrees: <kbd>M-S-UP</kbd>, <kbd>M-S-DOWN</kbd>, <kbd>M-S-LEFT</kbd>, and <kbd>M-S-RIGHT</kbd>
+
+    Entire subtrees of ATX headings can be promoted and demoted
+    with <kbd>M-S-LEFT</kbd> and <kbd>M-S-RIGHT</kbd>, which mirror the bindings
+    for promotion and demotion of list items. Similarly, subtrees
+    can be moved up and down with <kbd>M-S-UP</kbd> and <kbd>M-S-DOWN</kbd>.
+
+    Please note the following "boundary" behavior for promotion and
+    demotion.  Any level-six headings will not be demoted further
+    (i.e., they remain at level six, since Markdown and HTML define
+    only six levels) and any level-one headings will promoted away
+    entirely (i.e., heading markup will be removed, since a
+    level-zero heading is not defined).
+
   * Shifting the Region: <kbd>C-c <</kbd> and <kbd>C-c ></kbd>
 
     Text in the region can be indented or exdented as a group using
@@ -491,6 +505,15 @@ provides an interface to all of the possible customizations:
     (default: `end`).  The set of location options is the same as
     for `markdown-reference-location`.
 
+  * `markdown-font-lock-support-mode` - the variable
+    `font-lock-support-mode` is made buffer-local and set to
+    `markdown-font-lock-support-mode`, which is `jit-mode` by
+    default. This is currently the default support mode in Emacs as
+    well.  However, if fontification of multi-line constructs such
+    as preformatted code blocks, nested lists, and so on is
+    inaccurate, setting this to `nil` will allow more aggressive
+    fontification at the expense of some performance.
+
   * `comment-auto-fill-only-comments` - variable is made
     buffer-local and set to `nil` by default.  In programming
     language modes, when this variable is non-nil, only comments
@@ -661,6 +684,8 @@ following people:
   * Matt McClure for a patch to prevent
     overwriting source files with .html extensions upon export.
   * Roger Bolsius for ordered list improvements.
+  * Google's Open Source Programs Office for recognizing the project with
+    a monetary contribution in June 2015.
 
 ## Bugs
 
@@ -669,7 +694,9 @@ GNU Emacs 24, compatibility with earlier Emacsen is also a
 priority.
 
 If you find any bugs in markdown-mode, please construct a test case
-or a patch and email me at <jrblevin@sdf.org>.
+or a patch and open a ticket on the [GitHub issue tracker][issues].
+
+ [issues]: https://github.com/jrblevin/markdown-mode/issues
 
 ## History
 

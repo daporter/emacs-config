@@ -1205,6 +1205,31 @@ the opening bracket of [^2], and then subsequent functions would kill [^2])."
      (markdown-footnote-kill)
      (should (string-equal (current-kill 0) "foo\n")))))
 
+(ert-deftest test-markdown-footnote-reference/jump ()
+  "Test `markdown-jump' for footnotes and reference links."
+  (markdown-test-string "body[^1], [link 1][ref],
+[link 2][ref]
+
+[^1]: footnote
+
+[ref]: https://duckduckgo.com/"
+   (goto-char 5) ; start of [^1]
+   (markdown-jump) ; markdown-footnote-goto-text
+   (should (looking-at "footnote"))
+   (markdown-jump) ; markdown-footnote-return
+   (should (= (point) 9)) ; just after [^1]
+   (markdown-next-link) ; beginning of [link 1][]
+   (markdown-jump)
+   (should (looking-at "https://duckduckgo.com/"))
+   (should (equal (markdown-reference-find-links "[ref]")
+                  (list (list "link 2" 26 2) (list "link 1" 11 1))))
+   (markdown-jump) ; opens a reference link buffer
+   (should (string= (buffer-string) "Links using reference [ref]:\n\nlink 1 (line 1)\nlink 2 (line 2)\n"))
+   (should (looking-at "link 1")) ; in reference link popop buffer
+   (execute-kbd-macro (read-kbd-macro "RET")) ; jump to "link 1"
+   (should (looking-at "\\[link 1\\]")) ; back in main buffer
+   (should (= (point) 11))))
+
 ;;; Element removal tests:
 
 (ert-deftest test-markdown-kill/simple ()
@@ -1407,6 +1432,70 @@ the opening bracket of [^2], and then subsequent functions would kill [^2])."
   (markdown-test-string "*italic*"
   (call-interactively 'markdown-promote)
   (should (string-equal (buffer-string) "_italic_"))))
+
+;;; Subtree editing tests:
+
+(ert-deftest test-markdown-subtree/promote ()
+  "Test `markdown-promote-subtree'."
+  (markdown-test-string "# h1 #\n\n## h2 ##\n\n### h3 ###\n\n## h2 ##\n\n# h1 #\n"
+                        ;; The first h1 should get promoted away.
+                        ;; The second h1 should not be promoted.
+                        (markdown-promote-subtree)
+                        (should (string-equal (buffer-string) "h1\n\n# h2 #\n\n## h3 ##\n\n# h2 #\n\n# h1 #\n"))
+                        ;; Second call should do nothing since point is no longer at a heading.
+                        (markdown-promote-subtree)
+                        (should (string-equal (buffer-string) "h1\n\n# h2 #\n\n## h3 ##\n\n# h2 #\n\n# h1 #\n"))
+                        ;; Move to h2 and promote again.
+                        (forward-line 2)
+                        (markdown-promote-subtree)
+                        (should (string-equal (buffer-string) "h1\n\nh2\n\n# h3 #\n\n# h2 #\n\n# h1 #\n"))))
+
+(ert-deftest test-markdown-subtree/demote ()
+  "Test `markdown-demote-subtree'."
+  (markdown-test-string "# h1 #\n\n## h2 ##\n\n### h3 ###\n\n## h2 ##\n\n# h1 #\n"
+                        ;; The second h1 should not be demoted
+                        (markdown-demote-subtree)
+                        (should (string-equal (buffer-string) "## h1 ##\n\n### h2 ###\n\n#### h3 ####\n\n### h2 ###\n\n# h1 #\n"))
+                        (markdown-demote-subtree)
+                        (should (string-equal (buffer-string) "### h1 ###\n\n#### h2 ####\n\n##### h3 #####\n\n#### h2 ####\n\n# h1 #\n"))
+                        (markdown-demote-subtree)
+                        (should (string-equal (buffer-string) "#### h1 ####\n\n##### h2 #####\n\n###### h3 ######\n\n##### h2 #####\n\n# h1 #\n"))
+                        ;; Stop demoting at level six
+                        (markdown-demote-subtree)
+                        (should (string-equal (buffer-string) "##### h1 #####\n\n###### h2 ######\n\n###### h3 ######\n\n###### h2 ######\n\n# h1 #\n"))
+                        (markdown-demote-subtree)
+                        (should (string-equal (buffer-string) "###### h1 ######\n\n###### h2 ######\n\n###### h3 ######\n\n###### h2 ######\n\n# h1 #\n"))))
+
+(ert-deftest test-markdown-subtree/move-up ()
+  "Test `markdown-move-subtree-up'."
+  ;; Note that prior to Emacs 24.5, this does not work for the last subtree in
+  ;; the buffer due to Emacs bug #19102:
+  ;; https://debbugs.gnu.org/cgi/bugreport.cgi?bug=19102
+  ;; https://github.com/emacs-mirror/emacs/commit/b3910f
+  ;; That also corrects the type of the "Cannot move pase superior level" error
+  ;; from 'error to 'user-error.
+  (markdown-test-string "# 1 #\n\n## 1.1 ##\n\n### 1.1.1 ###\n\n## 1.2 ##\n\n### 1.2.1 ###\n\n# 2 #\n# Extra\n"
+                        (re-search-forward "^# 2")
+                        (markdown-move-subtree-up)
+                        (should (string-equal (buffer-string) "# 2 #\n# 1 #\n\n## 1.1 ##\n\n### 1.1.1 ###\n\n## 1.2 ##\n\n### 1.2.1 ###\n\n# Extra\n"))
+                        ;; Second attempt should fail, leaving buffer unchanged.
+                        ;; (This way of asserting the contents of the error
+                        ;; message is a bit convoluted and more fragile than
+                        ;; ideal. But prior to Emacs 24.5, the type of this
+                        ;; error is just 'error, and a bare "should-error" is
+                        ;; really overly broad.)
+                        (should (string-equal
+                                 "Cannot move past superior level"
+                                 (second (should-error (markdown-move-subtree-up)))))))
+
+(ert-deftest test-markdown-subtree/move-down ()
+  "Test `markdown-move-subtree-down'."
+  (markdown-test-string "# 1 #\n\n## 1.1 ##\n\n### 1.1.1 ###\n\n## 1.2 ##\n\n### 1.2.1 ###\n\n# 2 #\n"
+                        (re-search-forward "^## 1\.1")
+                        (markdown-move-subtree-down)
+                        (should (string-equal (buffer-string) "# 1 #\n\n## 1.2 ##\n\n### 1.2.1 ###\n\n## 1.1 ##\n\n### 1.1.1 ###\n\n# 2 #\n"))))
+
+;(ert-deftest test-markdown-subtree/move-down ()
 
 ;;; Cycling:
 
@@ -1642,6 +1731,15 @@ the opening bracket of [^2], and then subsequent functions would kill [^2])."
    (markdown-test-range-has-face 14 18 markdown-inline-code-face)
    (markdown-test-range-has-face 19 19 nil)))
 
+(ert-deftest test-markdown-font-lock/kbd ()
+  "Test font lock for <kbd> tags."
+  (markdown-test-string "<kbd>C-c <</kbd>"
+   (markdown-test-range-has-face 1 16 markdown-inline-code-face))
+  (markdown-test-string "To quit Emacs, press <kbd>C-x C-c</kbd>."
+   (markdown-test-range-has-face 1 21 nil)
+   (markdown-test-range-has-face 22 39 markdown-inline-code-face)
+   (markdown-test-range-has-face 40 40 nil)))
+
 (ert-deftest test-markdown-font-lock/lists-1 ()
   "A simple list marker font lock test."
   (markdown-test-file "lists.text"
@@ -1669,7 +1767,8 @@ the opening bracket of [^2], and then subsequent functions would kill [^2])."
 
 (ert-deftest test-markdown-font-lock/pre-2 ()
   (markdown-test-string "* item\n\nreset baseline\n\n    pre block\n"
-   (markdown-test-range-has-face 2 24 nil)
+   (markdown-test-range-has-face 1 1 markdown-list-face)
+   (markdown-test-range-has-face 2 23 nil)
    (markdown-test-range-has-face 29 37 markdown-pre-face)))
 
 (ert-deftest test-markdown-font-lock/pre-3 ()
@@ -1680,6 +1779,14 @@ the opening bracket of [^2], and then subsequent functions would kill [^2])."
 
     social upheaval subClassOf"
    (markdown-test-range-has-face 160 190 nil)))
+
+(ert-deftest test-markdown-font-lock/pre-4 ()
+  "Pre blocks must be preceded by a blank line"
+  (markdown-test-string "Paragraph
+    for (var i = 0; i < 10; i++) {
+        console.log(i);
+    }"
+    (markdown-test-range-has-face (point-min) (point-max) nil)))
 
 (ert-deftest test-markdown-font-lock/fenced-1 ()
   "Test fenced code blocks containing four-space indents."
@@ -1695,6 +1802,34 @@ if (y)
 "
    (markdown-test-range-has-face 1 19 nil)
    (markdown-test-range-has-face 20 63 markdown-pre-face)))
+
+(ert-deftest test-markdown-font-lock/gfm-fenced ()
+  "Test GFM-style fenced code blocks."
+  (markdown-test-string "```ruby
+require 'redcarpet'
+markdown = Redcarpet.new('Hello World!')
+puts markdown.to_html
+```"
+   (markdown-test-range-has-face 1 3 markdown-pre-face) ; ```
+   (markdown-test-range-has-face 4 7 markdown-language-keyword-face) ; ruby
+   (markdown-test-range-has-face 9 90 markdown-pre-face) ; code
+   (markdown-test-range-has-face 92 94 markdown-pre-face)) ; ```
+  (markdown-test-string "```{r sum}\n2+2\n```"
+   (markdown-test-range-has-face 1 3 markdown-pre-face) ; ```
+   (markdown-test-range-has-face 4 10 markdown-language-keyword-face) ; {r sum}
+   (markdown-test-range-has-face 12 14 markdown-pre-face) ; 2+2
+   (markdown-test-range-has-face 16 18 markdown-pre-face))) ; ```
+
+(ert-deftest test-markdown-font-lock/gfm-fenced-2 ()
+  "GFM-style code blocks must be preceded by a blank line."
+  (markdown-test-string "Paragraph
+```js
+for (var i = 0; i < 10; i++) {
+    console.log(i);
+}
+```"
+    (markdown-test-range-has-face 1 10 nil)
+    (markdown-test-range-has-face 11 72 markdown-inline-code-face)))
 
 (ert-deftest test-markdown-font-lock/atx-no-spaces ()
   "Test font-lock for atx headers with no spaces."
@@ -1733,6 +1868,11 @@ if (y)
   "Test comments inside of a pre block."
   (markdown-test-string "    <!-- pre, not comment -->"
    (markdown-test-range-has-face (point-min) (1- (point-max)) markdown-pre-face)))
+
+(ert-deftest test-markdown-font-lock/comment-hanging-indent ()
+  "Test comments with hanging indentation."
+  (markdown-test-string "<!-- This comment has\n    hanging indentation -->"
+   (markdown-test-range-has-face (point-min) (1- (point-max)) markdown-comment-face)))
 
 (ert-deftest test-markdown-font-lock/footnote-markers-links ()
   "Test an edge case involving footnote markers and inline reference links."
@@ -1801,6 +1941,20 @@ body"
     (markdown-test-range-has-face 2642 2645 markdown-language-keyword-face) ; lang
     (markdown-test-range-has-face 2647 2728 markdown-pre-face) ; code
     (markdown-test-range-has-face 2730 2732 markdown-pre-face))) ; ```
+
+(ert-deftest test-markdown-font-lock/reference-definition ()
+  "Reference definitions should not include ]."
+  (markdown-test-string "[1]: http://daringfireball.net/ \"title\""
+    (markdown-test-range-has-face 2 2 markdown-reference-face) ; 1
+    (markdown-test-range-has-face 6 31 markdown-url-face) ; URL
+    (markdown-test-range-has-face 34 38 markdown-link-title-face)) ; title
+  (markdown-test-string "[foo][1] and [bar][2]: not a reference definition"
+    (markdown-test-range-has-face 2 4 markdown-link-face) ; foo
+    (markdown-test-range-has-face 7 7 markdown-reference-face) ; 1
+    (markdown-test-range-has-face 9 13 nil) ; [ ]and[ ]
+    (markdown-test-range-has-face 15 17 markdown-link-face) ; bar
+    (markdown-test-range-has-face 20 20 markdown-reference-face) ; 2
+    (markdown-test-range-has-face 22 49 nil))) ; [ ]and[ ]
 
 ;;; Markdown Parsing Functions:
 
@@ -2554,6 +2708,22 @@ See `paragraph-separate'."
     (markdown-test-range-has-face 20 22 markdown-pre-face)
     (markdown-test-range-has-face 24 26 markdown-pre-face)
     (markdown-test-range-has-face 28 30 markdown-pre-face)))
+
+;;; Tests for other extensions:
+
+(ert-deftest test-markdown-ext/pandoc-fancy-lists ()
+  "Test basic support for font lock and filling of Pandoc 'fancy lists'."
+  (markdown-test-string " #. abc\ndef\n"
+    ;; font lock
+    (markdown-test-range-has-face 1 1 nil)
+    (markdown-test-range-has-face 2 3 markdown-list-face)
+    (markdown-test-range-has-face 4 11 nil)
+    ;; filling
+    (forward-line)
+    (markdown-indent-region (line-beginning-position) (line-end-position) nil)
+    (should (string-equal (buffer-string) " #. abc\n def\n"))
+    (markdown-indent-region (line-beginning-position) (line-end-position) nil)
+    (should (string-equal (buffer-string) " #. abc\n    def\n"))))
 
 (provide 'markdown-test)
 
