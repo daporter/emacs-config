@@ -34,7 +34,7 @@ it. Some of Projectile's features:
 * jump to a project buffer
 * jump to a test in project
 * toggle between files with same names but different extensions (e.g. `.h` <-> `.c/.cpp`, `Gemfile` <-> `Gemfile.lock`)
-* toggle between code and its test
+* toggle between code and its test (e.g. `main.service.js` <-> `main.service.spec.js`)
 * jump to recently visited files in the project
 * switch between projects you have worked on
 * kill all project buffers
@@ -394,8 +394,12 @@ It is also possible to add additional commands to
 commands. Here's an example that adds `super-p` as the extra prefix:
 
 ```el
-(define-key some-keymap (kbd "s-p") 'projectile-command-map)
+(define-key projectile-mode-map (kbd "s-p") 'projectile-command-map)
 ```
+
+You can also bind the `projectile-command-map` to any other map you'd
+like (including the global keymap).  Prelude does this for its
+[prelude-mode-map](https://github.com/bbatsov/prelude/blob/master/core/prelude-mode.el#L68).
 
 For some common commands you might want to take a little shortcut and
 leverage the fairly unused `Super` key (by default `Command` on Mac
@@ -418,7 +422,7 @@ If you'd like to instruct Projectile to ignore certain files in a
 project, when indexing it you can do so in the `.projectile` file by
 adding each path to ignore, where the paths all are relative to the
 root directory and start with a slash. Everything ignored should be
-preceded with a - sign. Alternatively, not having any prefix at all
+preceded with a `-` sign. Alternatively, not having any prefix at all
 also means to ignore the directory or file pattern that follows.
 Here's an example for a typical Rails application:
 
@@ -525,40 +529,17 @@ the files in you repository, you could do:
 ((nil . ((projectile-git-command . "/path/to/other/git ls-files -zco --exclude-standard"))))
 ```
 
-#### Configure Project's Compilation Command
+#### Configure a Project's Compilation, Test and Run commands
 
-Overriding pieces of Projectile might require some hacking on your
-part -- reading the source, advising functions, etc.
+There are a few variables that are intended to be customized via `.dir-locals.el`.
 
-For example, by reading Projectile's source, you could discover that
-a project's compilation command can be specified with this code:
+* for compilation - `projectile-project-compilation-cmd`
+* for testing - `projectile-project-test-cmd`
+* for running - `projectile-project-run-cmd`
 
-```
-((nil . ((eval . (progn
-                   ;; require projectile; the following code will fail
-                   ;; without it.
-                   (require 'projectile)
-                   ;; provide a fake "recent" compilation cmd
-                   ;; which will be returned by the function
-                   ;; `projectile-compilation-command`
-                   (puthash (projectile-project-root)
-                            "./command-to-compile-your-project.sh"
-                            projectile-compilation-cmd-map))))))
-```
+They're all set to `nil` by default, but by setting them you'll override the
+default commands per each supported project type.
 
-#### Configure Project's Test Command
-
-Altering the test command works in the same way as altering the
-compilation command. Comments are left out in this example for
-brevity and clarity:
-
-```
-((nil . ((eval . (progn
-                   (require 'projectile)
-                   (puthash (projectile-project-root)
-                            "./test-project.sh"
-                            projectile-test-cmd-map))))))
-```
 
 ### Helm Integration
 
@@ -587,7 +568,7 @@ vc-dir or magit", "Switch to Eshell" and "Grep project files". We will add more
 and more actions in the future.
 
 `helm-projectile` is capable of opening multiple files by marking the files with
-<kbd>C-SPC</kbd> or mark all files with <kdb>M-a</kbd>. Then, press <kdb>RET</kbd>,
+<kbd>C-SPC</kbd> or mark all files with <kbd>M-a</kbd>. Then, press <kbd>RET</kbd>,
 all the selected files will be opened.
 
 Note that the helm grep is different from `projectile-grep` because the helm
