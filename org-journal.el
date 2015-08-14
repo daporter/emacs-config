@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/org-journal
-;; Version: 1.9.0
+;; Version: 1.9.6
 
 ;; Adapted from http://www.emacswiki.org/PersonalDiary
 
@@ -51,6 +51,12 @@
 ;; When viewing a journal entry: C-c C-b to view previous entry
 ;;                               C-c C-f to view next entry
 
+(defvar org-journal-file-pattern
+  "^\\(?1:[0-9]\\{4\\}\\)\\(?2:[0-9][0-9]\\)\\(?3:[0-9][0-9]\\)\\'"
+  "This matches journal files in your journal directory.
+This variable is created and updated automatically by
+org-journal. Use org-journal-file-format instead.")
+
 ;; use this function to update auto-mode-alist whenever
 ;; org-journal-dir or org-journal-file-pattern change.
 ;;;###autoload
@@ -66,9 +72,8 @@
 ;;;###autoload
 (add-hook 'org-mode-hook 'org-journal-update-auto-mode-alist)
 
-(defvar org-journal-date-list nil)
-(defvar org-journal-file-pattern
-  "^\\(?1:[0-9]\\{4\\}\\)\\(?2:[0-9][0-9]\\)\\(?3:[0-9][0-9]\\)$")
+;; Automatically switch to journal mode when opening a journal entry file
+(org-journal-update-auto-mode-alist)
 
 ;;;###autoload
 (defun org-journal-format-string->regex (format-string)
@@ -82,12 +87,14 @@
      "%m" "\\\\(?2:[0-9][0-9]\\\\)"
      (replace-regexp-in-string
       "%Y" "\\\\(?1:[0-9]\\\\{4\\\\}\\\\)" format-string)))
-   "$"))
+   "\\'"))
 
 ; Customizable variables
 (defgroup org-journal nil
   "Settings for the personal journal"
+  :version "1.9.6"
   :group 'applications)
+
 ;;;###autoload
 (defcustom org-journal-dir "~/Documents/journal/"
   "Directory containing journal entries.
@@ -97,6 +104,7 @@
   :set (lambda (symbol value)
          (set-default symbol value)
          (org-journal-update-auto-mode-alist)))
+
 ;;;###autoload
 (defcustom org-journal-file-format "%Y%m%d"
   "Format string for journal file names, by default \"YYYYMMDD\".
@@ -112,20 +120,24 @@
          (setq org-journal-file-pattern
                (org-journal-format-string->regex value))
          (org-journal-update-auto-mode-alist)))
+
 (defcustom org-journal-date-format "%A, %x"
   "Format string for date, by default \"WEEKDAY, DATE\", where
   DATE is what Emacs thinks is an appropriate way to format days
   in your language."
   :type 'string :group 'org-journal)
+
 (defcustom org-journal-date-prefix "* "
   "String that is put before every date at the top of a journal
   file. By default, this is a org-mode heading. Another good idea
   would be \"#+TITLE: \" for org titles."
   :type 'string :group 'org-journal)
+
 (defcustom org-journal-time-format "%R "
   "Format string for time, by default HH:MM. Set it to a blank
 string if you want to disable timestamps."
   :type 'string :group 'org-journal)
+
 (defcustom org-journal-time-prefix "** "
   "String that is put before every time entry in a journal file.
   By default, this is an org-mode sub-heading."
@@ -148,15 +160,7 @@ to encrypt/decrypt it."
   "Hook on which to encrypt entries. It can be set to other hooks
   like kill-buffer-hook. ")
 
-;; Automatically switch to journal mode when opening a journal entry file
-(add-to-list 'auto-mode-alist
-             (cons (concat (file-truename org-journal-dir)
-                           org-journal-file-pattern)
-                   'org-journal-mode))
-
 (require 'calendar)
-;;;###autoload
-(add-hook 'calendar-initial-window-hook 'org-journal-get-list)
 ;;;###autoload
 (add-hook 'calendar-today-visible-hook 'org-journal-mark-entries)
 ;;;###autoload
@@ -208,17 +212,18 @@ If no TIME is given, uses the current time."
   t)
 
 ;;;###autoload
-(defun org-journal-new-entry (prefix)
+(defun org-journal-new-entry (prefix &optional time)
   "Open today's journal file and start a new entry.
-
 Giving the command a prefix arg will just open a today's file,
-without adding an entry."
+without adding an entry. If given a time, create an entry for
+the time's day."
   (interactive "P")
   (org-journal-dir-check-or-create)
-  (let* ((entry-path (org-journal-get-entry-path))
-         (entry-path-exists-p (file-exists-p entry-path))
+  (let* ((entry-path (org-journal-get-entry-path time))
          (should-add-entry-p (not prefix)))
-    (find-file entry-path)
+
+    ;; open journal file
+    (find-file-other-window entry-path)
     (org-journal-decrypt)
     (goto-char (point-max))
     (let ((unsaved (buffer-modified-p)))
@@ -226,7 +231,7 @@ without adding an entry."
       ;; empty file? Add a date timestamp
       (when (equal (point-max) 1)
         (insert org-journal-date-prefix
-                (format-time-string org-journal-date-format)))
+                (format-time-string org-journal-date-format time)))
 
       ;; add crypt tag if encryption is enabled and tag is not present
       (when org-journal-enable-encryption
@@ -239,7 +244,9 @@ without adding an entry."
       (when should-add-entry-p
         (unless (eq (current-column) 0) (insert "\n"))
         (insert "\n" org-journal-time-prefix
-                (format-time-string org-journal-time-format)))
+                (if (= (time-to-days (current-time)) (time-to-days time))
+                    (format-time-string org-journal-time-format)
+                  "")))
 
       ;; switch to the outline, hide subtrees
       (org-journal-mode)
@@ -289,27 +296,15 @@ Return nil when it's impossible to figure out the level."
           (string-to-number (substring file-name 0 4)))))
 
 ;;;###autoload
-(defun org-journal-new-date-entry (arg &optional event)
+(defun org-journal-new-date-entry (prefix &optional event)
   "Open the journal for the date indicated by point and start a new entry.
-If the date is not today, it won't be given a time."
+If the date is not today, it won't be given a time heading. If a
+prefix is given, don't add a new heading."
   (interactive
    (list current-prefix-arg last-nonmenu-event))
   (let* ((time (org-journal-calendar-date->time
                 (calendar-cursor-to-date t event))))
-    (org-journal-dir-check-or-create)
-    (find-file-other-window (org-journal-get-entry-path time))
-    (goto-char (point-max))
-    (let ((unsaved (buffer-modified-p)))
-      (if (equal (point-max) 1)
-          (insert org-journal-date-prefix
-                  (format-time-string org-journal-date-format time)))
-      (unless (eq (current-column) 0) (insert "\n"))
-      (insert "\n" org-journal-time-prefix
-              (if (= (time-to-days (current-time)) (time-to-days time))
-                  (format-time-string org-journal-time-format)
-                ""))
-      (hide-sublevels 2)
-      (set-buffer-modified-p unsaved))))
+    (org-journal-new-entry prefix time)))
 
 (defun org-journal-open-next-entry ()
   "Open the next journal entry starting from a currently displayed one"
@@ -317,7 +312,7 @@ If the date is not today, it won't be given a time."
   (let ((calendar-date (org-journal-file-name->calendar-date
                         (file-name-nondirectory (buffer-file-name))))
         (view-mode-p view-mode)
-        (dates org-journal-date-list))
+        (dates (org-journal-list-dates)))
     (calendar-basic-setup nil t)
     (while (and dates (not (calendar-date-compare (list calendar-date) dates)))
       (setq dates (cdr dates)))
@@ -337,7 +332,7 @@ If the date is not today, it won't be given a time."
   (let ((calendar-date (org-journal-file-name->calendar-date
                         (file-name-nondirectory (buffer-file-name))))
         (view-mode-p view-mode)
-        (dates (reverse org-journal-date-list)))
+        (dates (reverse (org-journal-list-dates))))
     (calendar-basic-setup nil t)
     (while (and dates (calendar-date-compare (list calendar-date) dates))
       (setq dates (cdr dates)))
@@ -356,19 +351,17 @@ If the date is not today, it won't be given a time."
 ;;
 
 ;;;###autoload
-(defun org-journal-get-list ()
+(defun org-journal-list-dates ()
   "Loads the list of files in the journal directory, and converts
   it into a list of calendar DATE elements"
   (org-journal-dir-check-or-create)
-  (setq org-journal-date-list
-	(mapcar #'org-journal-file-name->calendar-date
-            (directory-files org-journal-dir nil org-journal-file-pattern nil)))
-  (calendar-redraw))
+  (mapcar #'org-journal-file-name->calendar-date
+          (directory-files org-journal-dir nil org-journal-file-pattern nil)))
 
 ;;;###autoload
 (defun org-journal-mark-entries ()
   "Mark days in the calendar for which a diary entry is present"
-  (dolist (journal-entry org-journal-date-list)
+  (dolist (journal-entry (org-journal-list-dates))
     (if (calendar-date-is-visible-p journal-entry)
         (calendar-mark-visible-date journal-entry))))
 
@@ -391,6 +384,9 @@ If the date is not today, it won't be given a time."
   (let* ((time (org-journal-calendar-date->time
                 (calendar-cursor-to-date t event))))
     (org-journal-read-or-display-entry time t)))
+
+;; silence compiler warning.
+(defvar view-exit-action)
 
 ;;;###autoload
 (defun org-journal-read-or-display-entry (time &optional noselect)
@@ -421,7 +417,7 @@ If the date is not today, it won't be given a time."
 (defun org-journal-next-entry ()
   "Go to the next date with a journal entry"
   (interactive)
-  (let ((dates org-journal-date-list))
+  (let ((dates (org-journal-list-dates)))
     (while (and dates (not (calendar-date-compare
                             (list (calendar-cursor-to-date)) dates)))
       (setq dates (cdr dates)))
@@ -431,7 +427,7 @@ If the date is not today, it won't be given a time."
 (defun org-journal-previous-entry ()
   "Go to the previous date with a journal entry"
   (interactive)
-  (let ((dates (reverse org-journal-date-list)))
+  (let ((dates (reverse (org-journal-list-dates))))
     (while (and dates
                 (not (calendar-date-compare dates (list (calendar-cursor-to-date)))))
       (setq dates (cdr dates)))
