@@ -18,6 +18,7 @@
 ;;; Code:
 (require 'cl-lib)
 (require 'helm)
+(require 'helm-help)
 (require 'package)
 
 (defgroup helm-el-package nil
@@ -30,6 +31,7 @@
   :type '(radio :tag "Initial filter for elisp packages"
           (const :tag "Show all packages" all)
           (const :tag "Show installed packages" installed)
+          (const :tag "Show not installed packages" uninstalled)
           (const :tag "Show upgradable packages" upgrade)))
 
 ;; internals vars
@@ -56,8 +58,13 @@
       (buffer-string)))
   (setq helm-el-package--upgrades (helm-el-package-menu--find-upgrades))
   (if helm-force-updating-p
-      (message "Refreshing packages list done")
-      (setq helm-el-package--show-only helm-el-package-initial-filter))
+      (if helm-el-package--upgrades
+          (message "Refreshing packages list done, %d package(s) to upgrade available"
+                   (length helm-el-package--upgrades))
+          (message "Refreshing packages list done"))
+      (setq helm-el-package--show-only (if helm-el-package--upgrades
+                                           'upgrade
+                                           helm-el-package-initial-filter)))
   (kill-buffer "*Packages*"))
 
 (defun helm-el-package-describe (candidate)
@@ -226,13 +233,13 @@
           (helm-el-package-upgrade-1 helm-el-package--tabulated-list)))
       (message "No packages to upgrade actually!")))
 
+(defun helm-el-package-upgrade-all-action (_candidate)
+  (helm-el-package-upgrade-all))
+
 (defun helm-el-run-package-upgrade-all ()
   (interactive)
   (with-helm-alive-p
-    (helm-quit-and-execute-action 'helm-el-package-upgrade-all)))
-
-(defun helm-el-package-upgrade-all-action (_candidate)
-  (helm-el-package-upgrade-all))
+    (helm-quit-and-execute-action 'helm-el-package-upgrade-all-action)))
 
 (defun helm-el-package--transformer (candidates _source)
   (cl-loop for c in candidates
@@ -297,7 +304,6 @@
     (define-key map (kbd "C-c u") 'helm-el-run-package-upgrade)
     (define-key map (kbd "C-c U") 'helm-el-run-package-upgrade-all)
     (define-key map (kbd "C-c @") 'helm-el-run-visit-homepage)
-    (define-key map (kbd "C-c ?") 'helm-el-package-help)
     map))
 
 (defvar helm-source-list-el-package nil)
@@ -314,14 +320,19 @@
                       (append actions '(("Upgrade all packages"
                                          . helm-el-package-upgrade-all-action)))
                       actions)))
-        (cond ((cdr (assq (package-desc-name pkg-desc)
+        (cond ((and (package-installed-p (package-desc-name pkg-desc))
+                    (cdr (assq (package-desc-name pkg-desc)
+                          helm-el-package--upgrades)))
+               (append '(("Upgrade package(s)" . helm-el-package-upgrade)
+                         ("Uninstall package(s)" . helm-el-package-uninstall)) acts))
+              ((cdr (assq (package-desc-name pkg-desc)
                           helm-el-package--upgrades))
                (append '(("Upgrade package(s)" . helm-el-package-upgrade)) acts))
               ((package-installed-p (package-desc-name pkg-desc))
                (append acts '(("Reinstall package(s)" . helm-el-package-reinstall)
                               ("Uninstall package(s)" . helm-el-package-uninstall))))
               (t (append acts '(("Install packages(s)" . helm-el-package-install))))))))
-   (mode-line :initform helm-el-package-mode-line)
+   (help-message :initform 'helm-el-package-help-message)
    (keymap :initform helm-el-package-map)
    (update :initform 'helm-el-package--update)
    (candidate-number-limit :initform 9999)

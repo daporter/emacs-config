@@ -48,7 +48,6 @@
 (defvar helm-imenu-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map helm-map)
-    (define-key map (kbd "C-c ?")    'helm-imenu-help)
     (define-key map (kbd "M-<down>") 'helm-imenu-next-section)
     (define-key map (kbd "M-<up>")   'helm-imenu-previous-section)
     (when helm-imenu-lynx-style-map
@@ -101,7 +100,7 @@
    (persistent-action :initform 'helm-imenu-persistent-action)
    (persistent-help :initform "Show this entry")
    (keymap :initform helm-imenu-map)
-   (mode-line :initform helm-imenu-mode-line)
+   (help-message :initform 'helm-imenu-help-message)
    (action :initform 'helm-imenu-action)))
 
 (defcustom helm-imenu-fuzzy-match nil
@@ -116,8 +115,7 @@
 
 (defun helm-imenu--maybe-switch-to-buffer (candidate)
   (helm-aif (marker-buffer (cdr candidate))
-      (unless (eql it (get-buffer helm-current-buffer))
-        (switch-to-buffer it))))
+      (switch-to-buffer it)))
 
 (defun helm-imenu-action (candidate)
   "Default action for `helm-source-imenu'."

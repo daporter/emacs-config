@@ -20,6 +20,7 @@
 (require 'cl-lib)
 (require 'helm)
 (require 'helm-utils)
+(require 'helm-help)
 (require 'helm-elisp)
 
 (declare-function undo-tree-restore-state-from-register "ext:undo-tree.el" (register))
@@ -231,6 +232,9 @@ replace with STR as yanked string."
     (set-mark (mark t)))
   nil)
 
+(defadvice push-mark (around helm-push-mark-mode)
+  (helm--push-mark location nomsg activate))
+
 ;;;###autoload
 (define-minor-mode helm-push-mark-mode
     "Provide an improved version of `push-mark'.
@@ -239,8 +243,12 @@ the `global-mark-ring' after each new visit."
   :group 'helm-ring
   :global t
   (if helm-push-mark-mode
-      (advice-add 'push-mark :override #'helm--push-mark)
-      (advice-remove 'push-mark #'helm--push-mark)))
+      (if (fboundp 'advice-add)
+          (advice-add 'push-mark :override #'helm--push-mark)
+          (ad-activate 'push-mark))
+      (if (fboundp 'advice-remove)
+          (advice-remove 'push-mark #'helm--push-mark)
+          (ad-deactivate 'push-mark))))
 
 ;;;; <Register>
 ;;; Insert from register
@@ -314,9 +322,8 @@ the `global-mark-ring' after each new visit."
                         "[...]" ""))
             'insert-register
             'append-to-register
-            'prepend-to-register))
-          (t
-           "GARBAGE!"))
+            'prepend-to-register)))
+        unless (null string-actions) ; Fix Issue #1107.
         collect (cons (format "Register %3s:\n %s" key (car string-actions))
                       (cons char (cdr string-actions)))))
 
@@ -397,12 +404,6 @@ First call open the kill-ring browser, next calls move to next line."
           :resume 'noresume
           :allow-nest t)))
 
-(defvar helm-kmacro-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map helm-map)
-    (define-key map (kbd "C-c ?") 'helm-kmacro-help)
-    map))
-
 ;;;###autoload
 (defun helm-execute-kmacro ()
   "Preconfigured helm for keyboard macros.
@@ -418,13 +419,13 @@ This command is useful when used with persistent action."
                                kmacro-ring)
                          :test 'equal))
           :multiline t
-          :keymap helm-kmacro-map
           :candidate-transformer
           (lambda (candidates)
             (cl-loop for c in candidates collect
                      (propertize (help-key-description (car c) nil)
                                  'helm-realvalue c)))
           :persistent-help "Execute kmacro"
+          :help-message 'helm-kmacro-help-message
           :action
           (helm-make-actions
            "Execute kmacro (`C-u <n>' to execute <n> times)"

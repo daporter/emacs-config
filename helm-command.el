@@ -19,6 +19,7 @@
 
 (require 'cl-lib)
 (require 'helm)
+(require 'helm-help)
 (require 'helm-mode)
 (require 'helm-elisp)
 
@@ -63,20 +64,14 @@ Show all candidates on startup when 0 (default)."
 
 (defvar helm-M-x-input-history nil)
 
-(defvar helm-M-x-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map helm-map)
-    (define-key map (kbd "C-c ?") 'helm-M-x-help)
-    map)
-  "Keymap for `helm-M-x'.")
-
 
 (cl-defun helm-M-x-get-major-mode-command-alist (mode-map)
   "Return alist of MODE-MAP."
-  (cl-loop for key being the key-seqs of mode-map using (key-bindings com)
-        for str-key  = (key-description key)
-        for ismenu   = (string-match "<menu-bar>" str-key)
-        unless ismenu collect (cons str-key com)))
+  (when mode-map
+    (cl-loop for key being the key-seqs of mode-map using (key-bindings com)
+             for str-key  = (key-description key)
+             for ismenu   = (string-match "<menu-bar>" str-key)
+             unless ismenu collect (cons str-key com))))
 
 (defun helm-get-mode-map-from-mode (mode)
   "Guess the mode-map name according to MODE.
@@ -97,9 +92,9 @@ Return nil if no mode-map found."
 
 (defun helm-M-x-current-mode-map-alist ()
   "Return mode-map alist of current `major-mode'."
-  (let ((map (helm-get-mode-map-from-mode major-mode)))
-    (when (and map (boundp map))
-      (helm-M-x-get-major-mode-command-alist (symbol-value map)))))
+  (let ((map-sym (helm-get-mode-map-from-mode major-mode)))
+    (when (and map-sym (boundp map-sym))
+      (helm-M-x-get-major-mode-command-alist (symbol-value map-sym)))))
 
 
 (defun helm-M-x-transformer-1 (candidates &optional sort)
@@ -149,15 +144,16 @@ fuzzy matching is running its own sort function with a different algorithm."
     (cadr (split-string (buffer-substring-no-properties
                          (point-at-bol) (point-at-eol))))))
 
-(defun helm-cmd--get-preconfigured-commands (helm-directory)
-  (cl-loop with results
-           for f in (directory-files helm-directory t ".*\\.el\\'")
-           do (with-current-buffer (find-file-noselect f)
-                (save-excursion
-                  (goto-char (point-min))
-                  (while (re-search-forward "Preconfigured helm" nil t)
-                    (push (helm-cmd--get-current-function-name) results))))
-           finally return results))
+(defun helm-cmd--get-preconfigured-commands (&optional dir)
+  (let* ((helm-dir (or dir (helm-basedir (locate-library "helm"))))
+         (helm-autoload-file (expand-file-name "helm-autoloads.el" helm-dir))
+         results)
+    (when (file-exists-p helm-autoload-file)
+      (with-temp-buffer
+        (insert-file-contents helm-autoload-file)
+        (while (re-search-forward "Preconfigured" nil t)
+          (push (substring (helm-cmd--get-current-function-name) 1) results))))
+    results))
 
 (defun helm-M-x-read-extended-command (&optional collection history)
   "Read command name to invoke in `helm-M-x'.
@@ -198,10 +194,10 @@ than the default which is OBARRAY."
                     (setq help-cand candidate))))
              (tm (run-at-time 1 0.1 'helm-M-x--notify-prefix-arg)))
         (setq extended-command-history
-              (cl-loop for i in extended-command-history
-                       when (commandp (intern i))
-                       do (set-text-properties 0 (length i) nil i)
-                       and collect i))
+              (cl-loop for c in extended-command-history
+                       when (and c (commandp (intern c)))
+                       do (set-text-properties 0 (length c) nil c)
+                       and collect c))
         (unwind-protect
              (let ((msg "Error: Specifying a prefix arg before calling `helm-M-x'"))
                (when current-prefix-arg
@@ -222,11 +218,10 @@ than the default which is OBARRAY."
                 :history (or history extended-command-history)
                 :reverse-history helm-M-x-reverse-history
                 :del-input nil
-                :mode-line helm-M-x-mode-line
+                :help-message 'helm-M-x-help-message
                 :must-match t
                 :fuzzy helm-M-x-fuzzy-match
                 :nomark t
-                :keymap helm-M-x-map
                 :candidates-in-buffer t
                 :fc-transformer 'helm-M-x-transformer
                 :hist-fc-transformer 'helm-M-x-transformer-hist))
