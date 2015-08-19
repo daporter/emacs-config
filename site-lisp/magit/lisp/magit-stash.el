@@ -48,7 +48,7 @@
               (?W "Snapshot worktree"  magit-snapshot-worktree)
               (?l "List"               magit-stash-list)
               (?x "Save keeping index" magit-stash-keep-index)
-              (?r "Snapshot to wipref" magit-wip-save)
+              (?r "Snapshot to wipref" magit-wip-commit)
               (?v "Show"               magit-stash-show)
               (?b "Branch"             magit-stash-branch)
               (?k "Drop"               magit-stash-drop))
@@ -381,6 +381,7 @@ The following `format'-like specs are supported:
                (magit-rev-format "%s" stash) "\n")))))
 
 (defmacro magit-stash-insert-section (subtype format &optional files)
+  (declare (debug (sexp form &optional form)))
   `(let ((stash (car magit-refresh-args)))
      (magit-insert-section (,(intern (format "stashed-%s" subtype)))
        (magit-insert-heading (format "%s %s:" (capitalize stash) ',subtype))
