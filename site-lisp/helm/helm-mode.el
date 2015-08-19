@@ -135,7 +135,7 @@ To fuzzy match `completion-at-point' and friends see
   "Return empty string."
   (interactive)
   (with-helm-alive-p
-    (helm-quit-and-execute-action
+    (helm-exit-and-execute-action
      #'(lambda (_candidate)
          (identity "")))))
 
@@ -282,7 +282,8 @@ If COLLECTION is an `obarray', a TEST should be needed. See `obarray'."
                             hist-fc-transformer
                             marked-candidates
                             nomark
-                            (alistp t))
+                            (alistp t)
+                            (candidate-number-limit helm-candidate-number-limit))
   "Read a string in the minibuffer, with helm completion.
 
 It is helm `completing-read' equivalent.
@@ -495,6 +496,7 @@ that use `helm-comp-read' See `helm-M-x' for example."
                          :preselect preselect
                          :prompt prompt
                          :resume 'noresume
+                         :candidate-number-limit candidate-number-limit
                          :case-fold-search case-fold
                          :keymap loc-map
                          :history (and (symbolp input-history) input-history)
@@ -745,6 +747,7 @@ See documentation of `completing-read' and `all-completions' for details."
        must-match
        default
        marked-candidates
+       (candidate-number-limit helm-ff-candidate-number-limit)
        nomark
        (alistp t)
        (persistent-action 'helm-find-files-persistent-action)
@@ -861,7 +864,6 @@ Keys description:
              :filtered-candidate-transformer 'helm-ff-sort-candidates
              :filter-one-by-one 'helm-ff-filter-candidate-one-by-one
              :persistent-action persistent-action
-             :candidate-number-limit 9999
              :persistent-help persistent-help
              :volatile t
              :nomark nomark
@@ -872,6 +874,7 @@ Keys description:
                   :input (expand-file-name initial-input)
                   :prompt prompt
                   :keymap cmap
+                  :candidate-number-limit candidate-number-limit
                   :resume 'noresume
                   :case-fold-search case-fold
                   :default default
