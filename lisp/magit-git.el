@@ -271,6 +271,7 @@ the buffer to the inserted text, move to its beginning, and then
 call function WASHER with no argument."
   (declare (indent 1))
   (let ((beg (point)))
+    (setq args (-flatten args))
     (magit-git-insert args)
     (if (= (point) beg)
         (magit-cancel-section)
@@ -290,10 +291,9 @@ call function WASHER with no argument."
   (declare (indent 1) (debug (form body)))
   `(catch 'unsafe-default-dir
      (let ((default-directory
-             (let ((file ,file))
-               (file-name-as-directory (if file
-                                           (expand-file-name file)
-                                         default-directory)))))
+             (file-name-as-directory (--if-let ,file
+                                         (expand-file-name it)
+                                       default-directory))))
        (while (not (file-accessible-directory-p default-directory))
          (when (string-equal default-directory "/")
            (throw 'unsafe-default-dir nil))
@@ -303,9 +303,11 @@ call function WASHER with no argument."
        ,@body)))
 
 (defun magit-git-dir (&optional path)
-  "Return absolute path to the GIT_DIR for the current repository.
-If optional PATH is non-nil it has to be a path relative to the
-GIT_DIR and its absolute path is returned."
+  "Return absolute path to the control directory of the current repository.
+
+All symlinks are followed.  If optional PATH is non-nil, then
+it has to be a path relative to the control directory and its
+absolute path is returned."
   (magit--with-safe-default-directory nil
     (--when-let (magit-rev-parse-safe "--git-dir")
       (setq it (file-name-as-directory (magit-expand-git-file-name it)))
@@ -361,16 +363,21 @@ a bare repositories."
 (put 'magit-buffer-refname   'permanent-local t)
 (put 'magit-buffer-file-name 'permanent-local t)
 
-(defun magit-file-relative-name (&optional file)
+(defun magit-file-relative-name (&optional file tracked)
   "Return the path of FILE relative to the repository root.
+
 If optional FILE is nil or omitted return the relative path of
 the file being visited in the current buffer, if any, else nil.
-If the file is not inside a Git repository then return nil."
+If the file is not inside a Git repository then return nil.
+
+If TRACKED is non-nil, return the path only if it matches a
+tracked file."
   (unless file
     (with-current-buffer (or (buffer-base-buffer)
                              (current-buffer))
       (setq file (or magit-buffer-file-name buffer-file-name))))
-  (when file
+  (when (and file (or (not tracked)
+                      (magit-file-tracked-p (file-relative-name file))))
     (--when-let (magit-toplevel file)
       (file-relative-name file it))))
 
@@ -830,7 +837,7 @@ Return a list of two integers: (A>B B>A)."
   (save-match-data
     (let ((regexp "\\(, \\|tag: \\| -> \\|[()]\\)") head names)
       (if (and (derived-mode-p 'magit-log-mode)
-               (member "--simplify-by-decoration" (nth 2 magit-refresh-args)))
+               (member "--simplify-by-decoration" (cadr magit-refresh-args)))
           (let ((branches (magit-list-local-branch-names))
                 (re (format "^%s/.+" (regexp-opt (magit-list-remotes)))))
             (setq names

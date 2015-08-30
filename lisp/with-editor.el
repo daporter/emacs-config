@@ -126,7 +126,7 @@ please see https://github.com/magit/magit/wiki/Emacsclient."))
           (lambda (v) (cl-mapcar (lambda (e) (concat v e)) exec-suffixes))
           (nconc (cl-mapcon (lambda (v)
                               (setq v (mapconcat #'identity (reverse v) "."))
-                              (list v (concat "-" v)))
+                              (list v (concat "-" v) (concat ".emacs" v)))
                             (reverse version-lst))
                  (list "")))
          (lambda (exec)
@@ -295,7 +295,11 @@ not a good idea to change such entries.")
              (kill-buffer)))
           (t
            (save-buffer)
-           (if clients (server-edit) (kill-buffer))))
+           (if clients
+               ;; Don't use `server-edit' because we do not want to show
+               ;; another buffer belonging to another client.  See #2197.
+               (server-done)
+             (kill-buffer))))
     (when pid
       (let ((default-directory dir))
         (process-file "kill" nil nil nil
@@ -446,6 +450,8 @@ which may or may not insert the text into the PROCESS' buffer."
           (,filter proc str)
           (with-editor-process-filter proc str t))
      filter)))
+
+(defvar with-editor-filter-visit-hook nil)
 
 (defun with-editor-output-filter (string)
   (save-match-data
