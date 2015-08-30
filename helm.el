@@ -31,7 +31,7 @@
 (require 'cl-lib)
 (require 'advice) ; Shutup byte compiler about ad-deactivate.
 (require 'helm-lib)
-(require 'helm-match-plugin)
+(require 'helm-multi-match)
 (require 'helm-source)
 
 
@@ -223,7 +223,8 @@ so don't use strings, vectors or whatever to define them."
     (define-key map (kbd "C-c C-k")    'helm-kill-selection-and-quit)
     (define-key map (kbd "C-c C-i")    'helm-copy-to-buffer)
     (define-key map (kbd "C-c C-f")    'helm-follow-mode)
-    (define-key map (kbd "C-c C-u")    'helm-force-update)
+    (define-key map (kbd "C-c C-u")    'helm-refresh)
+    (define-key map (kbd "C-c >")      'helm-toggle-truncate-line)
     (define-key map (kbd "M-p")        'previous-history-element)
     (define-key map (kbd "M-n")        'next-history-element)
     (define-key map (kbd "C-!")        'helm-toggle-suspend-update)
@@ -727,7 +728,8 @@ and before performing action.")
   "Variables which are restored after `helm' invocation.")
 
 (defvar helm-execute-action-at-once-if-one nil
-  "Execute default action and exit when only one candidate is remaining.")
+  "Execute default action and exit when only one candidate is remaining.
+It can be also a function called with no args returning a boolean value.")
 
 (defvar helm-quit-if-no-candidate nil
   "Quit when there is no candidates when non--nil.
@@ -2461,7 +2463,9 @@ For ANY-PRESELECT ANY-RESUME ANY-KEYMAP ANY-DEFAULT ANY-HISTORY, See `helm'."
              (helm-force-update)))
       ;; Handle `helm-execute-action-at-once-if-one' and
       ;; `helm-quit-if-no-candidate' now only for not--delayed sources.
-      (cond ((and helm-execute-action-at-once-if-one
+      (cond ((and (if (functionp helm-execute-action-at-once-if-one)
+                      (funcall helm-execute-action-at-once-if-one)
+                      helm-execute-action-at-once-if-one)
                   (not source-delayed-p)
                   (= (helm-get-candidate-number) 1))
              (ignore))              ; Don't enter the minibuffer loop.
@@ -2513,7 +2517,9 @@ For ANY-PRESELECT ANY-RESUME ANY-KEYMAP ANY-DEFAULT ANY-HISTORY, See `helm'."
 This function is handling `helm-execute-action-at-once-if-one' and
 `helm-quit-if-no-candidate' in delayed sources."
   (with-helm-window
-    (cond ((and helm-execute-action-at-once-if-one
+    (cond ((and (if (functionp helm-execute-action-at-once-if-one)
+                    (funcall helm-execute-action-at-once-if-one)
+                    helm-execute-action-at-once-if-one)
                 (= (helm-get-candidate-number) 1))
            (helm-exit-minibuffer))
           ((and helm-quit-if-no-candidate
@@ -2935,7 +2941,7 @@ Default function to match candidates according to `helm-pattern'."
 This function is used with sources build with `helm-source-sync'."
   (unless (string-match " " helm-pattern)
     ;; When pattern have one or more spaces, let
-    ;; match-plugin doing the job with no fuzzy matching.[1]
+    ;; multi-match doing the job with no fuzzy matching.[1]
     (let ((regexp (cadr (gethash 'helm-pattern helm--fuzzy-regexp-cache))))
       (if (string-match "\\`!" helm-pattern)
           (not (string-match regexp candidate))
@@ -3330,7 +3336,7 @@ is done on whole `helm-buffer' and not on current source."
               (if (or (assoc 'matchplugin source)
                       (null (assoc 'no-matchplugin source)))
                   ;; Don't count spaces entered when using
-                  ;; match-plugin.
+                  ;; multi-match.
                   (replace-regexp-in-string " " "" helm-pattern)
                 helm-pattern))))
     (and (or (not helm-source-filter)
@@ -3339,7 +3345,7 @@ is done on whole `helm-buffer' and not on current source."
              (helm-aif (assoc 'requires-pattern source) (or (cdr it) 1) 0))
          ;; These incomplete regexps hang helm forever
          ;; so defer update. Maybe replace spaces quoted when using
-         ;; match-plugin-mode.
+         ;; multi-match.
          (not (member (replace-regexp-in-string "\\s\\ " " " helm-pattern)
                       helm-update-blacklist-regexps)))))
 
@@ -3360,12 +3366,16 @@ is done on whole `helm-buffer' and not on current source."
 
 (defun helm-force-update (&optional preselect)
   "Force recalculation and update of candidates.
+
 The difference with `helm-update' is this function is reevaling
 the `init' and `update' attributes functions when present
-before updating candidates according to pattern i.e calling `helm-update'.
+before running `helm-update', also `helm-candidate-cache',
+if some (async candidates are not cached)
+is not reinitialized so that candidates are not recomputed
+unless pattern have changed.
+
 Selection is preserved to current candidate or moved to PRESELECT
 if specified."
-  (interactive)
   (let ((source    (helm-get-current-source))
         (selection (helm-get-selection nil t))
         ;; `helm-goto-source' need to have all sources displayed
@@ -3377,6 +3387,12 @@ if specified."
             (helm-get-sources)))
     (helm-update (or preselect selection) source)
     (with-helm-window (recenter))))
+
+(defun helm-refresh ()
+  "Force recalculation and update of candidates."
+  (interactive)
+  (with-helm-alive-p
+    (helm-force-update)))
 
 (defun helm-force-update--reinit (source)
   "Reinit SOURCE by calling his update and/or init functions."
@@ -3745,19 +3761,19 @@ Possible value of DIRECTION are 'next or 'previous."
            (setq force t)
            (helm--set-header-line))
           (helm-display-header-line
-           (let* ((hlstr (helm-interpret-value
+           (let ((hlstr (helm-interpret-value
                           (and (listp source)
                                (assoc-default 'header-line source))
                           source))
-                  (hlend (make-string (max 0 (- (window-width)
-                                                (length hlstr))) ? )))
+                 (endstr (make-string (window-width) ? )))
              (setq header-line-format
-                   (propertize (concat " " hlstr hlend) 'face 'helm-header))))))
+                   (propertize (concat " " hlstr endstr)
+                               'face 'helm-header))))))
   (when force (force-mode-line-update)))
 
 (defun helm--set-header-line (&optional update)
   (with-selected-window (minibuffer-window)
-    (let* ((beg  (save-excursion (vertical-motion 0) (point))) 
+    (let* ((beg  (save-excursion (vertical-motion 0 (helm-window)) (point)))
            (end  (save-excursion (end-of-visual-line) (point)))
            ;; The visual line where the cursor is.
            (cont (buffer-substring beg end))
@@ -4360,14 +4376,14 @@ When at end of minibuffer delete all."
 ;;
 ;; i.e Inherit instead of helm-type-* classes in your own classes.
 
-;; [DEPRECATED] Enable match-plugin by default in old sources.
+;; [DEPRECATED] Enable multi-match by default in old sources.
 ;; This is deprecated and will not run in sources
 ;; created by helm-source.
 ;; Keep it for backward compatibility with old sources.
-(defun helm-compile-source--match-plugin (source)
+(defun helm-compile-source--multi-match (source)
   (if (assoc 'no-matchplugin source)
       source
-    (let* ((searchers        helm-mp-default-search-functions)
+    (let* ((searchers        helm-mm-default-search-functions)
            (defmatch         (helm-aif (assoc-default 'match source)
                                  (helm-mklist it)))
            (defmatch-strict  (helm-aif (assoc-default 'match-strict source)
@@ -4378,8 +4394,8 @@ When at end of minibuffer delete all."
                                  (helm-mklist it)))
            (matchfns         (cond (defmatch-strict)
                                    (defmatch
-                                    (append helm-mp-default-match-functions defmatch))
-                                   (t helm-mp-default-match-functions)))
+                                    (append helm-mm-default-match-functions defmatch))
+                                   (t helm-mm-default-match-functions)))
            (searchfns        (cond (defsearch-strict)
                                    (defsearch
                                     (append searchers defsearch))
@@ -4388,7 +4404,7 @@ When at end of minibuffer delete all."
              `(search ,@searchfns) `(match ,@matchfns))
          ,@source))))
 
-(add-to-list 'helm-compile-source-functions 'helm-compile-source--match-plugin)
+(add-to-list 'helm-compile-source-functions 'helm-compile-source--multi-match)
 
 (defun helm-compile-source--type (source)
   (helm-aif (assoc-default 'type source)
@@ -5390,6 +5406,14 @@ See `fit-window-to-buffer' for more infos."
 It may appear after next update if provided.\ni.e After first results popup in helm buffer."
             (substitute-command-keys
              (helm-interpret-value helm-help-message)))))))))
+
+(defun helm-toggle-truncate-line ()
+  "Toggle `truncate-lines' value in `helm-buffer'"
+  (interactive)
+  (with-helm-alive-p
+    (with-helm-buffer
+      (setq truncate-lines (not truncate-lines))
+      (helm-update (regexp-quote (helm-get-selection nil t))))))
 
 (provide 'helm)
 
