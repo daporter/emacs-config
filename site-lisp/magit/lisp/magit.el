@@ -14,7 +14,7 @@
 ;;	Rémi Vanicat      <vanicat@debian.org>
 ;;	Yann Hodique      <yann.hodique@gmail.com>
 
-;; Package-Requires: ((emacs "24.4") (async "20150812") (dash "2.11.0") (with-editor "20150816") (git-commit "20150816") (magit-popup "20150816"))
+;; Package-Requires: ((emacs "24.4") (async "20150812") (dash "2.11.0") (with-editor "20150824") (git-commit "20150824") (magit-popup "20150824"))
 ;; Keywords: git tools vc
 ;; Homepage: https://github.com/magit/magit
 
@@ -1004,6 +1004,8 @@ existing one."
 (defun magit-get-revision-buffer-create (rev file)
   (magit-get-revision-buffer rev file t))
 
+(defvar magit-find-file-hook nil)
+
 (defun magit-find-file-noselect (rev file)
   "Read FILE from REV into a buffer and return the buffer.
 FILE must be relative to the top directory of the repository."
@@ -1022,6 +1024,8 @@ FILE must be relative to the top directory of the repository."
         (goto-char (point-min))
         (run-hooks 'magit-find-file-hook)
         (current-buffer))))
+
+(defvar magit-find-index-hook nil)
 
 (defun magit-find-file-index-noselect (file &optional revert)
   "Read FILE from the index into a buffer and return the buffer.
@@ -1570,7 +1574,8 @@ If FILE isn't tracked in Git fallback to using `delete-file'."
                         (unless tracked-only (magit-untracked-files)))))
     (magit-completing-read prompt choices nil t nil nil
                            (car (member (or (magit-section-when (file))
-                                            (magit-file-relative-name))
+                                            (magit-file-relative-name
+                                             nil tracked-only))
                                         choices)))))
 
 (defun magit-read-files (prompt initial-contents)
@@ -2126,20 +2131,19 @@ When the region is active, then behave like `kill-ring-save'."
   (interactive)
   (if (region-active-p)
       (copy-region-as-kill (mark) (point) 'region)
-    (-when-let (section (magit-current-section))
-      (let ((value (magit-section-value section)))
-        (magit-section-case
-          (branch (when current-prefix-arg
-                    (setq value (magit-rev-parse value))))
-          (commit (setq value (magit-rev-parse value)))
-          (module-commit (let ((default-directory
-                                 (file-name-as-directory
-                                  (expand-file-name
-                                   (magit-section-parent-value section)
-                                   (magit-toplevel)))))
-                           (setq value (magit-rev-parse value))))
-          (t value))
-        (kill-new (message "%s" value))))))
+    (-when-let* ((section (magit-current-section))
+                 (value (magit-section-value section)))
+      (magit-section-case
+        (branch (when current-prefix-arg
+                  (setq value (magit-rev-parse value))))
+        (commit (setq value (magit-rev-parse value)))
+        (module-commit (let ((default-directory
+                               (file-name-as-directory
+                                (expand-file-name
+                                 (magit-section-parent-value section)
+                                 (magit-toplevel)))))
+                         (setq value (magit-rev-parse value)))))
+      (kill-new (message "%s" value)))))
 
 (defun magit-copy-buffer-thing-as-kill ()
   "Save the thing displayed in the current buffer to the kill ring.
@@ -2257,7 +2261,8 @@ Git, and Emacs in the echo area."
     (when version
       (when (string-match "^\\([0-9]+\\.[0-9]+\\.[0-9]+\\)" version)
         (setq version (match-string 1 version)))
-      (when (version< version "1.9.4")
+      (when (and (not (equal (getenv "TRAVIS") "true"))
+                 (version< version "1.9.4"))
         (display-warning 'magit (format "\
 Magit requires Git >= 1.9.4, you are using %s.
 

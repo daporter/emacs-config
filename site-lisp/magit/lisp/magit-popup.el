@@ -117,8 +117,8 @@ that without users being aware of it could lead to tears.
 `nil'      Ignore prefix arguments."
   :group 'magit-popup
   :type '(choice
-          (const :tag "Use default action, else show popup" default)
-          (const :tag "Show popup, else use default action" popup)
+          (const :tag "Call default action instead of showing popup" default)
+          (const :tag "Show popup instead of calling default action" popup)
           (const :tag "Ignore prefix argument" nil)
           (const :tag "Abort and show usage information" disabled)))
 
@@ -950,6 +950,12 @@ in the popup."
     (switch-to-buffer buffer)
     (funcall mode)
     (setq magit-popup-previous-winconf winconf)))
+
+(defvar magit-refresh-popup-buffer-hook nil
+  "Hook run by `magit-refresh-popup-buffer'.
+The hook is run right after inserting the representation of the
+popup events but before optionally inserting the representation
+of events shared by all popups and before point is adjusted.")
 
 (defun magit-refresh-popup-buffer ()
   (let* ((inhibit-read-only t)
