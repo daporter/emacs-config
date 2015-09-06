@@ -29,6 +29,8 @@
 (declare-function View-quit "view")
 (declare-function doc-view-goto-page "doc-view" (page))
 (declare-function helm-mm-split-pattern "helm-multi-match")
+(declare-function helm--ansi-color-apply "helm-lib")
+(defvar helm--ansi-color-regexp)
 
 
 (defgroup helm-grep nil
@@ -36,7 +38,7 @@
   :group 'helm)
 
 (defcustom helm-grep-default-command
-  "grep --color=never -a -d skip %e -n%cH -e %p %f"
+  "grep --color=always -a -d skip %e -n%cH -e %p %f"
   "Default grep format command for `helm-do-grep-1'.
 Where:
 '%e' format spec is for --exclude or --include grep options or
@@ -63,18 +65,17 @@ don't specify the '%e' format spec.
 Helm also support ack-grep and git-grep ,
 here a default command example for ack-grep:
 
-\(setq helm-grep-default-command \"ack-grep -Hn --no-group --no-color %e %p %f\"
-       helm-grep-default-recurse-command \"ack-grep -H --no-group --no-color %e %p %f\")
+\(setq helm-grep-default-command \"ack-grep -Hn --smart-case --no-group %e %p %f\"
+       helm-grep-default-recurse-command \"ack-grep -H --smart-case --no-group %e %p %f\")
 
 You can ommit the %e spec if you don't want to be prompted for types.
 
 NOTE: Helm for ack-grep support ANSI sequences, so you can remove
 the \"--no-color\" option safely (recommended).
 
-To enable ANSI in grep it is a little more difficult:
-    1) Modify env var
-      \(setenv \"GREP_COLORS\" \"ms=01;31:mc=01;31:sl=01;37:cx=:fn=35:ln=32:bn=32:se=36\")
-    2) Add the option \"--color=always\".
+Same for grep you can use safely the option \"--color=always\" (default).
+You can customize the color of matches using GREP_COLORS env var.
+e.g: \(setenv \"GREP_COLORS\" \"ms=30;43:mc=30;43:sl=01;37:cx=:fn=35:ln=32:bn=32:se=36\")
 
 To enable ANSI color in git-grep just add \"--color=always\".
 To customize the ANSI color in git-grep, GREP_COLORS have no effect,
@@ -98,14 +99,14 @@ NOTE: Remote grepping is not available with ack-grep,
   :type  'string)
 
 (defcustom helm-grep-default-recurse-command
-  "grep --color=never -a -d recurse %e -n%cH -e %p %f"
+  "grep --color=always -a -d recurse %e -n%cH -e %p %f"
   "Default recursive grep format command for `helm-do-grep-1'.
 See `helm-grep-default-command' for format specs and infos about ack-grep."
   :group 'helm-grep
   :type  'string)
 
 (defcustom helm-default-zgrep-command
-  "zgrep -a -n%cH -e %p %f"
+  "zgrep --color=always -a -n%cH -e %p %f"
   "Default command for Zgrep.
 See `helm-grep-default-command' for infos on format specs.
 Option --color=always is supported and can be used safely
@@ -115,10 +116,10 @@ see `helm-grep-default-command' for more infos."
   :type  'string)
 
 (defcustom helm-pdfgrep-default-command
-  "pdfgrep --color never -niH %s %s"
+  "pdfgrep --color always -niH %s %s"
   "Default command for pdfgrep.
-Option --color always is not supported, expect
-errors when executing actions."
+Option \"--color always\" is supported starting helm version 1.7.8,
+when used matchs will be highlighted according to GREP_COLORS env var."
   :group 'helm-grep
   :type  'string)
 
@@ -430,7 +431,7 @@ It is intended to use as a let-bound variable, DON'T set this globaly.")
            (let ((noresult (= (process-exit-status process) 1)))
              (unless noresult
                (helm-process-deferred-sentinel-hook
-                process event helm-ff-default-directory))
+                process event (helm-default-directory)))
              (cond ((and noresult
                          ;; [FIXME] This is a workaround for zgrep
                          ;; that exit with code 1
@@ -921,10 +922,9 @@ in recurse, and ignoring EXTS, search being made on
            (if zgrep "Zgrep" (capitalize (if recurse
                                              (helm-grep-command t)
                                              (helm-grep-command))))
-            :header-name (lambda (name)
-                           (concat name "(C-c ? Help)"))
             :candidates-process 'helm-grep-collect-candidates
             :filter-one-by-one 'helm-grep-filter-one-by-one
+            :keymap helm-grep-map
             :nohighlight t
             :candidate-number-limit 9999
             :help-message 'helm-grep-help-message
@@ -991,9 +991,8 @@ in recurse, and ignoring EXTS, search being made on
 (defun helm-grep--filter-candidate-1 (candidate &optional dir)
   (let* ((root   (or dir (and helm-grep-default-directory-fn
                               (funcall helm-grep-default-directory-fn))))
-         ansi-color-context ; seems this avoid non--translated fname entries.
-         (ansi-p (string-match-p ansi-color-regexp candidate))
-         (line   (if ansi-p (ansi-color-apply candidate) candidate))
+         (ansi-p (string-match-p helm--ansi-color-regexp candidate))
+         (line   (if ansi-p (helm--ansi-color-apply candidate) candidate))
          (split  (helm-grep-split-line line))
          (fname  (if (and root split)
                      (expand-file-name (car split) root)
@@ -1018,7 +1017,8 @@ in recurse, and ignoring EXTS, search being made on
                             (helm-default-directory)
                             default-directory)))))
     (if (consp candidate)
-        (helm-grep--filter-candidate-1 (cdr candidate))
+        ;; Already computed do nothing (default as input).
+        candidate
         (and (stringp candidate)
              (helm-grep--filter-candidate-1 candidate)))))
 
@@ -1158,6 +1158,7 @@ If a prefix arg is given run grep on all buffers ignoring non--file-buffers."
                                                             default-directory)))
                 :candidates-process (lambda ()
                                       (funcall helm-pdfgrep-default-function helm-pdfgrep-targets))
+                :nohighlight t
                 :filter-one-by-one #'helm-grep-filter-one-by-one
                 :candidate-number-limit 9999
                 :history 'helm-grep-history
@@ -1179,122 +1180,86 @@ If a prefix arg is given run grep on all buffers ignoring non--file-buffers."
      (format-spec helm-pdfgrep-default-read-command
                   (list (cons ?f fname) (cons ?p pageno))))))
 
-;;; AG
+;;; AG - AT
 ;;
-;;
-;; TODO:
-;; [x] make command configurable.
-;; [x] Fix ansi sequences (maybe nothing to fix, check).
-;; [] Make a source (will allow using default as input easily) .
-;; [] Create a candidates-process fn (find a way to pass directory arg).
+;;  https://github.com/ggreer/the_silver_searcher
+;;  https://github.com/monochromegane/the_platinum_searcher
 
 (defcustom helm-grep-ag-command
-  "ag --line-numbers -S --hidden --nocolor --nogroup %s %s"
-  "The default command for AG.
-Take two format specs, the first for pattern and the second for directory.
+  "ag --line-numbers -S --hidden --color --nogroup %s %s"
+  "The default command for AG or PT.
+Takes two format specs, the first for pattern and the second for directory.
 
-You must use a format that fit with helm grep, that is:
+You must use an output format that fit with helm grep, that is:
 
-    filename:line-number:string
+    \"filename:line-number:string\"
 
-The options \"--nogroup\" allow this.
+The option \"--nogroup\" allow this.
+The option \"--line-numbers\" is also mandatory except with PT (not supported).
 
-By default \"--nocolor\" option is used but you can use safely \"--color\"
-which will process faster the line."
+You can use safely \"--color\" (default)."
   :group 'helm-grep
   :type 'string)
 
-(defun helm--ansi-color-apply (string)
-  "[INTERNAL] This is used to advice `ansi-color-apply' in helm-ag.
-Should not be used elsewhere.
-It is modifying `ansi-color-apply' and reusing the emacs-24.5 code
-as the emacs-25 version is broken."
-  (let ((ansi-color-regexp "\033\\[\\(K\\|[0-9;]*m\\)")
-        (codes (car ansi-color-context))
-	(start 0) end escape-sequence result
-	colorized-substring)
-    ;; If context was saved and is a string, prepend it.
-    (if (cadr ansi-color-context)
-        (setq string (concat (cadr ansi-color-context) string)
-              ansi-color-context nil))
-    ;; Find the next escape sequence.
-    (while (setq end (string-match ansi-color-regexp string start))
-      (setq escape-sequence (match-string 1 string))
-      ;; Colorize the old block from start to end using old face.
-      (when codes
-	(put-text-property start end 'font-lock-face (ansi-color--find-face codes) string))
-      (setq colorized-substring (substring string start end)
-	    start (match-end 0))
-      ;; Eliminate unrecognized ANSI sequences.
-      (while (string-match ansi-color-drop-regexp colorized-substring)
-	(setq colorized-substring
-	      (replace-match "" nil nil colorized-substring)))
-      (push colorized-substring result)
-      ;; Create new face, by applying escape sequence parameters.
-      (setq codes (ansi-color-apply-sequence escape-sequence codes)))
-    ;; if the rest of the string should have a face, put it there
-    (when codes
-      (put-text-property start (length string)
-                         'font-lock-face (ansi-color--find-face codes) string))
-    ;; save context, add the remainder of the string to the result
-    (let (fragment)
-      (if (string-match "\033" string start)
-	  (let ((pos (match-beginning 0)))
-	    (setq fragment (substring string pos))
-	    (push (substring string start pos) result))
-	(push (substring string start) result))
-      (setq ansi-color-context (if (or codes fragment) (list codes fragment))))
-    (apply 'concat (nreverse result))))
+(defun helm-grep--ag-command ()
+  (car (split-string helm-grep-ag-command)))
 
+(defun helm-grep-ag-init (directory)
+  (let (process-connection-type
+        (cmd-line
+         (format helm-grep-ag-command
+                 helm-pattern
+                 directory)))
+    (set (make-local-variable 'helm-grep-last-cmd-line) cmd-line)
+    (prog1
+        (start-process-shell-command
+         "ag" helm-buffer cmd-line)
+      (set-process-sentinel
+       (get-buffer-process helm-buffer)
+       (lambda (_process event)
+         (when (string= event "finished\n")
+           (with-helm-window
+             (setq mode-line-format
+                   '(" " mode-line-buffer-identification " "
+                     (:eval (format "L%s" (helm-candidate-number-at-point))) " "
+                     (:eval (propertize
+                             (format
+                              "[%s process finished - (%s results)] "
+                              (upcase (helm-grep--ag-command))
+                              (max (1- (count-lines
+                                        (point-min)
+                                        (point-max)))
+                                   0))
+                             'face 'helm-grep-finish))))
+             (force-mode-line-update))))))))
+
+(defvar helm-source-grep-ag nil)
 (defun helm-grep-ag-1 (directory)
-  (advice-add 'ansi-color-apply :override #'helm--ansi-color-apply)
-  (unwind-protect
-       (helm :sources
-             (helm-build-async-source "ag"
-               :candidates-process
-               (lambda ()
-                 (let (process-connection-type
-                       (cmd-line
-                        (format helm-grep-ag-command
-                                helm-pattern
-                                directory)))
-                   (set (make-local-variable 'helm-grep-last-cmd-line) cmd-line)
-                   (prog1
-                       (start-process-shell-command
-                        "ag" helm-buffer cmd-line)
-                     (set-process-sentinel
-                      (get-buffer-process helm-buffer)
-                      (lambda (_process event)
-                        (when (string= event "finished\n")
-                          (with-helm-window
-                            (setq mode-line-format
-                                  '(" " mode-line-buffer-identification " "
-                                    (:eval (format "L%s" (helm-candidate-number-at-point))) " "
-                                    (:eval (propertize
-                                            (format
-                                             "[AG process finished - (%s results)] "
-                                             (max (1- (count-lines
-                                                       (point-min)
-                                                       (point-max)))
-                                                  0))
-                                            'face 'helm-grep-finish))))
-                            (force-mode-line-update))))))))
-               :nohighlight t
-               :keymap helm-grep-map
-               :filter-one-by-one 'helm-grep-filter-one-by-one
-               :persistent-action 'helm-grep-persistent-action
-               :candidate-number-limit 99999
-               :requires-pattern 2
-               :action (helm-make-actions
-                        "Find File" 'helm-grep-action
-                        "Find file other frame" 'helm-grep-other-frame
-                        (lambda () (and (locate-library "elscreen")
-                                        "Find file in Elscreen"))
-                        'helm-grep-jump-elscreen
-                        "Save results in grep buffer" 'helm-grep-save-results
-                        "Find file other window" 'helm-grep-other-window))
-             :buffer "*helm ag*")
-    (advice-remove 'ansi-color-apply #'helm--ansi-color-apply)))
+  (setq helm-source-grep-ag
+        (helm-build-async-source (upcase (helm-grep--ag-command))
+          :header-name (lambda (name)
+                         (format "%s [%s]"
+                                 name (abbreviate-file-name directory)))
+          :candidates-process
+          (lambda () (helm-grep-ag-init directory))
+          :nohighlight t
+          :keymap helm-grep-map
+          :help-message 'helm-grep-help-message
+          :filter-one-by-one 'helm-grep-filter-one-by-one
+          :persistent-action 'helm-grep-persistent-action
+          :candidate-number-limit 99999
+          :requires-pattern 2
+          :action (helm-make-actions
+                   "Find File" 'helm-grep-action
+                   "Find file other frame" 'helm-grep-other-frame
+                   (lambda () (and (locate-library "elscreen")
+                                   "Find file in Elscreen"))
+                   'helm-grep-jump-elscreen
+                   "Save results in grep buffer" 'helm-grep-save-results
+                   "Find file other window" 'helm-grep-other-window)))
+  (helm :sources 'helm-source-grep-ag
+        :keymap helm-grep-map
+        :buffer (format "*helm %s*" (helm-grep--ag-command))))
 
 ;;;###autoload
 (defun helm-do-grep-ag ()
