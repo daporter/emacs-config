@@ -829,7 +829,7 @@ Visible marks store candidate. Some actions uses marked candidates.
 ** Miscellaneous Commands
 
 \\[helm-toggle-resplit-and-swap-windows] : Toggle vertical/horizontal split on first hit and swap helm window on second hit.
-\\[helm-quit-and-find-file] : Drop into `find-file'.
+\\[helm-quit-and-find-file] : Drop into `helm-find-files'.
 \\[helm-delete-current-selection] : Delete selected item (visually).
 \\[helm-kill-selection-and-quit] : Kill display value of candidate and quit (with prefix arg kill the real value).
 \\[helm-yank-selection] : Yank selection into pattern.
@@ -5273,7 +5273,10 @@ is what is used to perform actions."
   (helm-run-after-exit
    (lambda (sel)
      (kill-new sel)
-     (message "Killed: %s" sel))
+     ;; Return nil to force `helm-mode--keyboard-quit'
+     ;; in `helm-comp-read' otherwise the value "Killed: foo"
+     ;; is used as exit value for `helm-comp-read'.
+     (prog1 nil (message "Killed: %s" sel) (sit-for 1)))
    (helm-get-selection nil (not arg))))
 
 (defun helm-copy-to-buffer ()
