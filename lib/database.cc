@@ -1441,6 +1441,8 @@ notmuch_database_upgrade (notmuch_database_t *notmuch,
 	notmuch_message_t *message;
 	char *filename;
 
+	/* XXX: this should use the _st version, but needs an error
+	   path */
 	for (messages = notmuch_query_search_messages (query);
 	     notmuch_messages_valid (messages);
 	     notmuch_messages_move_to_next (messages))
@@ -2651,7 +2653,7 @@ notmuch_database_get_all_tags (notmuch_database_t *db)
 }
 
 const char *
-notmuch_database_status_string (notmuch_database_t *notmuch)
+notmuch_database_status_string (const notmuch_database_t *notmuch)
 {
     return notmuch->status_string;
 }
