@@ -14,7 +14,7 @@
 ;;	Rémi Vanicat      <vanicat@debian.org>
 ;;	Yann Hodique      <yann.hodique@gmail.com>
 
-;; Package-Requires: ((emacs "24.4") (async "20150812") (dash "2.11.0") (with-editor "20150824") (git-commit "20150824") (magit-popup "20150824"))
+;; Package-Requires: ((emacs "24.4") (async "20150812") (dash "2.11.0") (with-editor "20150903") (git-commit "20150903") (magit-popup "20150903"))
 ;; Keywords: git tools vc
 ;; Homepage: https://github.com/magit/magit
 
@@ -454,10 +454,10 @@ The sections are inserted by running the functions on the hook
 
 (defun magit-insert-repo-header ()
   "Insert a header line showing the path to the repository top-level."
-  (let ((topdir (magit-toplevel)))
-    (magit-insert-section (repo topdir)
+  (magit-with-toplevel
+    (magit-insert-section (repo default-directory)
       (magit-insert (format "%-10s%s\n" "Repo: "
-                            (abbreviate-file-name topdir))))))
+                            (abbreviate-file-name default-directory))))))
 
 (defun magit-insert-remote-header ()
   "Insert a header line about the remote of the current branch.
@@ -1080,8 +1080,7 @@ is done using `magit-find-index-noselect'."
           (when magit-wip-after-apply-mode
             (magit-wip-commit-after-apply (list file) " after un-/stage")))
       (message "Abort")))
-  (--when-let (magit-mode-get-buffer
-               magit-status-buffer-name-format 'magit-status-mode)
+  (--when-let (magit-mode-get-buffer nil 'magit-status-mode)
     (with-current-buffer it (magit-refresh)))
   t)
 
@@ -1094,6 +1093,16 @@ is no file at point then instead visit `default-directory'."
   (dired-jump other-window (--if-let (magit-file-at-point)
                                (expand-file-name it)
                              default-directory)))
+
+;;;###autoload
+(defun magit-checkout-file (rev file)
+  "Checkout FILE from REV."
+  (interactive
+   (let ((rev (magit-read-branch-or-commit
+               "Checkout from revision" magit-buffer-revision)))
+     (list rev (magit-read-file-from-rev rev "Checkout file"))))
+  (magit-with-toplevel
+    (magit-run-git "checkout" rev "--" file)))
 
 ;;; Manipulate
 ;;;; Init
@@ -1830,22 +1839,22 @@ Optional PATH is the path to the submodule relative to the root
 of the superproject. If it is nil then the path is determined
 based on URL."
   (interactive
-   (let* ((default-directory (magit-toplevel))
-          (path (read-file-name
-                 "Add submodule: " nil nil nil
-                 (magit-section-when [file untracked]
-                   (directory-file-name (magit-section-value it))))))
-     (when path
-       (setq path (file-name-as-directory (expand-file-name path)))
-       (when (member path (list "" default-directory))
-         (setq path nil)))
-     (list (magit-read-string-ns
-            "Remote url"
-            (and path (magit-git-repo-p path t)
-                 (let ((default-directory path))
-                   (magit-get "remote" (or (magit-get-remote) "origin")
-                              "url"))))
-           (and path (directory-file-name (file-relative-name path))))))
+   (magit-with-toplevel
+     (let ((path (read-file-name
+                  "Add submodule: " nil nil nil
+                  (magit-section-when [file untracked]
+                    (directory-file-name (magit-section-value it))))))
+       (when path
+         (setq path (file-name-as-directory (expand-file-name path)))
+         (when (member path (list "" default-directory))
+           (setq path nil)))
+       (list (magit-read-string-ns
+              "Remote url"
+              (and path (magit-git-repo-p path t)
+                   (let ((default-directory path))
+                     (magit-get "remote" (or (magit-get-remote) "origin")
+                                "url"))))
+             (and path (directory-file-name (file-relative-name path)))))))
   (magit-run-git "submodule" "add" url path))
 
 ;;;###autoload
@@ -2055,7 +2064,7 @@ Run the command in the top-level directory of the current repository.
   (let ((dir (if (or root current-prefix-arg)
                  (or (magit-toplevel)
                      (user-error "Not inside a Git repository"))
-               (expand-file-name default-directory))))
+               default-directory)))
     (list (magit-read-string (format prompt (abbreviate-file-name dir))
                              nil 'magit-git-command-history)
           dir)))

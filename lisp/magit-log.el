@@ -540,12 +540,11 @@ completion candidates."
 
 ;;;###autoload
 (defun magit-log-buffer-file (&optional follow)
-  "Show log for the file visited in the current buffer.
+  "Show log for the blob or file visited in the current buffer.
 With a prefix argument or when `--follow' is part of
 `magit-log-arguments', then follow renames."
   (interactive "P")
-  (-if-let (file (or (buffer-file-name (buffer-base-buffer))
-                     magit-buffer-file-name))
+  (-if-let (file (magit-file-relative-name))
       (magit-mode-setup magit-log-buffer-name-format nil
                         #'magit-log-mode
                         #'magit-log-refresh-buffer
@@ -609,8 +608,7 @@ prefix argument instead bury the revision buffer, provided it
 is displayed in the current frame."
   (interactive "p")
   (if (< arg 0)
-      (let* ((buf (magit-mode-get-buffer magit-revision-buffer-name-format
-                                         'magit-revision-mode))
+      (let* ((buf (magit-mode-get-buffer nil 'magit-revision-mode))
              (win (and buf (get-buffer-window buf (selected-frame)))))
         (if win
             (with-selected-window win
@@ -959,18 +957,16 @@ another window, using `magit-show-commit'."
                  (or (magit-section-when commit
                        (and (or (and (magit-diff-auto-show-p 'log-follow)
                                      (magit-mode-get-buffer
-                                      magit-revision-buffer-name-format
-                                      'magit-revision-mode))
+                                      nil 'magit-revision-mode))
                                 (and (magit-diff-auto-show-p 'log-oneline)
                                      (derived-mode-p 'magit-log-mode)))
                             (magit-section-value it)))
                      (and magit-blame-mode
                           (magit-diff-auto-show-p 'blame-follow)
                           (magit-mode-get-buffer
-                           magit-revision-buffer-name-format
-                           'magit-revision-mode)
+                           nil 'magit-revision-mode)
                           (magit-blame-chunk-get :hash)))
-               (magit-show-commit it t))
+               (apply #'magit-show-commit it t nil (magit-diff-arguments)))
              (setq magit-log-show-commit-timer nil))))))
 
 (defun magit-log-goto-same-commit ()
@@ -1241,10 +1237,10 @@ These sections can be expanded to show the respective commits."
   (-when-let (modules (magit-get-submodules))
     (magit-insert-section section (unpulled-modules)
       (magit-insert-heading "Unpulled modules:")
-      (let ((topdir (magit-toplevel)))
+      (magit-with-toplevel
         (dolist (module modules)
           (let ((default-directory
-                  (expand-file-name (file-name-as-directory module) topdir)))
+                  (expand-file-name (file-name-as-directory module))))
             (-when-let (tracked (magit-get-tracked-ref))
               (magit-insert-section sec (file module t)
                 (magit-insert-heading
@@ -1299,10 +1295,10 @@ These sections can be expanded to show the respective commits."
   (-when-let (modules (magit-get-submodules))
     (magit-insert-section section (unpushed-modules)
       (magit-insert-heading "Unpushed modules:")
-      (let ((topdir (magit-toplevel)))
+      (magit-with-toplevel
         (dolist (module modules)
           (let ((default-directory
-                  (expand-file-name (file-name-as-directory module) topdir)))
+                  (expand-file-name (file-name-as-directory module))))
             (-when-let (tracked (magit-get-tracked-ref))
               (magit-insert-section sec (file module t)
                 (magit-insert-heading
