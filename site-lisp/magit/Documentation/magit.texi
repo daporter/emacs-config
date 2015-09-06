@@ -356,9 +356,9 @@ or even all features belonging to a package.
 
 @item
 Furthermore the old dependencies @code{git-commit-mode} and @code{git-rebase-mode}
-have to be removed because they are no longer used by the @code{2.1.0}
-release and later, and get in the way of their successors @code{git-commit}
-and @code{git-rebase}.
+  have to be removed because they are no longer used by the @code{2.1.0}
+  release and later, and get in the way of their successors @code{git-commit}
+  and @code{git-rebase}.
 @end itemize
 
 So please uninstall the packages @code{magit}, @code{git-commit-mode}, and
@@ -2506,16 +2506,6 @@ Scroll text downward.
 @node Diff options
 @subsection Diff options
 
-@defopt magit-diff-show-diffstat
-
-Whether to show diffstat in diff buffers.
-@end defopt
-
-@defopt magit-diff-show-xref-buttons
-
-Whether to show buffer history buttons in diff buffers.
-@end defopt
-
 @defopt magit-diff-auto-show
 
 Whether to automatically show the relevant diff or commit.
@@ -2611,24 +2601,26 @@ Otherwise, highlight neither.
 @node Revision buffer
 @subsection Revision buffer
 
-@defopt magit-revision-show-diffstat
-
-Whether to show diffstat in revision buffers.
-@end defopt
-
-@defopt magit-revision-show-notes
-
-Whether to show notes in revision buffers.
-@end defopt
-
-@defopt magit-revision-show-xref-buttons
-
-Whether to show buffer history buttons in revision buffers.
-@end defopt
-
 @defopt magit-revision-insert-related-refs
 
 Whether to show related refs in revision buffers.
+@end defopt
+
+@defopt magit-revision-show-gravatar
+
+Whether to show gravatar images in revision buffers.
+
+If non-nil, then the value has to be a cons-cell which specifies
+where the gravatar images for the author and/or the committer are
+inserted inside the text that was previously inserted according
+to @verb{~magit-revision-header-format~}.
+
+Both cells are regular expressions.  The car specifies where to
+insert the author gravatar image.  The top halve of the image is
+inserted right after the matched text, the bottom halve on the
+next line at the same offset.  The cdr specifies where to insert
+the committer image, accordingly.  Either the car or the cdr may
+be nil.
 @end defopt
 
 @node Ediffing
@@ -4011,7 +4003,25 @@ UPSTREAM are rebased.
 Start a non-interactive rebase sequence with commits from START to
 @code{HEAD} onto NEWBASE.  START has to be selected from a list of recent
 commits.
+@end table
 
+Note that the popup also features the infix argument @code{--interactive}.
+This can be used to turn one of the above non-interactive rebase
+variants into an interactive rebase.
+
+For example if you want to clean up a feature branch and at the same
+time rebase it onto @code{master}, then you could use @code{r-ir}.  But we recommend
+that you instead do that in two steps.  First use @code{rs} to cleanup the
+feature branch, and then in a second step @code{rl} to rebase it onto @code{master}.
+That way if things turn out to be more complicated than you thought
+and/or you make a mistake and have to start over, then you only have
+to redo half the work.
+
+Explicitly enabling @code{--interactive} won't have an effect on the
+following commands as they always use that argument anyway, even if it
+is not enabled in the popup.
+
+@table @asis
 @kindex r e
 @cindex magit-rebase-interactive
 @item @kbd{r e} @tie{}@tie{}@tie{}@tie{}(@code{magit-rebase-interactive})
@@ -4583,6 +4593,15 @@ as-is.
 
 Reset the @code{HEAD}, index, and working tree to some commit read from the
 user and defaulting to the commit at point.
+
+@kindex M-x magit-checkout-file
+@cindex magit-checkout-file
+@item @kbd{M-x magit-checkout-file} @tie{}@tie{}@tie{}@tie{}(@code{magit-checkout-file})
+
+Update file in the working tree and index to the contents from a
+revision.
+
+Both the revision and file are read from the user.
 @end table
 
 @node Stashing

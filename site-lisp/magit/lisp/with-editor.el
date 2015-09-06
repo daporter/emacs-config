@@ -40,7 +40,7 @@
 ;; export `$EDITOR' making sure the executed command uses the current
 ;; Emacs instance as "the editor".  With a prefix argument these
 ;; commands prompt for an alternative environment variable such as
-;; `$GIT_EDITOR'.  To always use these variants add this to you init
+;; `$GIT_EDITOR'.  To always use these variants add this to your init
 ;; file:
 ;;
 ;;   (define-key (current-global-map)
@@ -597,7 +597,7 @@ else like the former."
 (defun with-editor-shell-command-read-args (prompt &optional async)
   (let ((command (read-shell-command
                   prompt nil nil
-                  (--when-let (or (buffer-file-name)
+                  (--when-let (or buffer-file-name
                                   (and (eq major-mode 'dired-mode)
                                        (dired-get-filename nil t)))
                     (file-relative-name it)))))
