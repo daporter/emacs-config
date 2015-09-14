@@ -2,7 +2,7 @@
 
 ;; Author: Bastian Bechtold
 ;; URL: http://github.com/bastibe/org-journal
-;; Version: 1.9.6
+;; Version: 1.10.2
 
 ;; Adapted from http://www.emacswiki.org/PersonalDiary
 
@@ -72,9 +72,6 @@ org-journal. Use org-journal-file-format instead.")
 ;;;###autoload
 (add-hook 'org-mode-hook 'org-journal-update-auto-mode-alist)
 
-;; Automatically switch to journal mode when opening a journal entry file
-(org-journal-update-auto-mode-alist)
-
 ;;;###autoload
 (defun org-journal-format-string->regex (format-string)
   "Update org-journal-file-pattern with the current
@@ -92,7 +89,7 @@ org-journal. Use org-journal-file-format instead.")
 ; Customizable variables
 (defgroup org-journal nil
   "Settings for the personal journal"
-  :version "1.9.6"
+  :version "1.10.2"
   :group 'applications)
 
 ;;;###autoload
@@ -145,7 +142,8 @@ string if you want to disable timestamps."
 
 (defcustom org-journal-hide-entries-p t
   "If true, org-journal-mode will hide all but the current entry
-   when creating a new one.")
+   when creating a new one."
+  :type 'boolean :group 'org-journal)
 
 (require 'org-crypt nil 'noerror)
 
@@ -158,7 +156,17 @@ to encrypt/decrypt it."
 
 (defcustom org-journal-encrypt-on 'before-save-hook
   "Hook on which to encrypt entries. It can be set to other hooks
-  like kill-buffer-hook. ")
+  like kill-buffer-hook. "
+  :type 'function :group 'org-journal)
+
+(defcustom org-journal-find-file 'find-file-other-window
+  "The function to use when opening an entry. Set this to `find-file` if you don't want org-journal to split your window."
+  :type 'function :group 'org-journal)
+
+;; Automatically switch to journal mode when opening a journal entry file
+(setq org-journal-file-pattern
+      (org-journal-format-string->regex org-journal-file-format))
+(org-journal-update-auto-mode-alist)
 
 (require 'calendar)
 ;;;###autoload
@@ -223,7 +231,7 @@ the time's day."
          (should-add-entry-p (not prefix)))
 
     ;; open journal file
-    (find-file-other-window entry-path)
+    (funcall org-journal-find-file entry-path)
     (org-journal-decrypt)
     (goto-char (point-max))
     (let ((unsaved (buffer-modified-p)))
@@ -409,7 +417,7 @@ prefix is given, don't add a new heading."
               (org-journal-decrypt)
               (org-show-subtree))
             (if (not noselect)
-                (find-file-other-window org-journal-file)
+                (funcall org-journal-find-file org-journal-file)
               (display-buffer buf t))))
       (message "No journal entry for this date."))))
 
