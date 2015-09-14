@@ -2457,6 +2457,13 @@ Find inside `require' and `declare-function' sexp."
 ;;; Handle copy, rename, symlink, relsymlink and hardlink from helm.
 ;;
 ;;
+(defun helm-ff--valid-default-directory ()
+  (with-helm-current-buffer
+    (cl-loop for b in (buffer-list)
+             for cd = (with-current-buffer b default-directory)
+             when (eq (car (file-attributes cd)) t)
+             return cd)))
+
 (defvar dired-async-mode)
 (cl-defun helm-dired-action (candidate
                              &key action follow (files (dired-get-marked-files)))
@@ -2466,7 +2473,12 @@ Where ACTION is a symbol that can be one of:
 Argument FOLLOW when non--nil specify to follow FILES to destination for the actions
 copy and rename."
   (when (get-buffer dired-log-buffer) (kill-buffer dired-log-buffer))
-  (let ((fn     (cl-case action
+  ;; When default-directory in current-buffer is an invalid directory,
+  ;; (e.g buffer-file directory have been renamed somewhere else)
+  ;; be sure to use a valid value to give to dired-create-file.
+  ;; i.e start-process is creating a process buffer based on default-directory.
+  (let ((default-directory (helm-ff--valid-default-directory))
+        (fn     (cl-case action
                   (copy       'dired-copy-file)
                   (rename     'dired-rename-file)
                   (symlink    'make-symbolic-link)
@@ -2655,7 +2667,7 @@ Called with a prefix arg open files in background without selecting them."
         ;; an existing filename, create or jump to it.
         ;; If the basedir of candidate doesn't exists,
         ;; ask for creating it.
-        (let ((dir (file-name-directory candidate)))
+        (let ((dir (helm-basedir candidate)))
           (find-file-at-point
            (cond ((and dir (file-directory-p dir))
                   (substitute-in-file-name (car marked)))
@@ -2924,8 +2936,8 @@ Set `recentf-max-saved-items' to a bigger value if default is too small.")
 
 (defun helm-browse-project-get-buffers (root-directory)
   (cl-loop for b in (helm-buffer-list)
-           for bf = (buffer-file-name (get-buffer b)) 
-           when (and bf (file-in-directory-p bf root-directory))
+           for cd = (with-current-buffer b default-directory)
+           when (file-in-directory-p cd root-directory)
            collect b))
 
 (defun helm-browse-project-build-buffers-source (directory)
