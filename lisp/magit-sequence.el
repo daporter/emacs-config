@@ -344,6 +344,8 @@ START has to be selected from a list of recent commits."
 
 (defun magit-rebase-interactive-1 (commit message &optional editor args)
   (declare (indent 1))
+  (when magit-current-popup
+    (setq args (nconc (magit-rebase-arguments) args)))
   (when commit
     (if (eq commit :merge-base)
         (setq commit (--if-let (magit-get-tracked-branch)
@@ -365,10 +367,10 @@ START has to be selected from a list of recent commits."
         (when editor
           (setenv "GIT_SEQUENCE_EDITOR" editor))
         (magit-run-git-sequencer "rebase" "-i" args
-                                 (unless (member "--root" args) commit)
-                                 (magit-rebase-arguments)))
+                                 (unless (member "--root" args) commit)))
     (magit-log-select
-      `(lambda (commit) (magit-rebase-interactive-1 commit ,message ,editor ,args))
+      `(lambda (commit)
+         (magit-rebase-interactive-1 commit ,message ,editor (list ,@args)))
       message)))
 
 ;;;###autoload
@@ -484,24 +486,31 @@ If no such sequence is in progress, do nothing."
   (when (magit-am-in-progress-p)
     (magit-insert-section (rebase-sequence)
       (magit-insert-heading "Applying patches")
-      (let* ((patches (magit-rebase-patches))
-             (stop (magit-file-line (car patches))))
-        (if (string-match "^From \\([^ ]\\{40\\}\\)" stop)
-            (progn (setq stop (match-string 1 stop))
-                   (magit-rebase-insert-apply-sequence)
-                   (magit-sequence-insert-sequence stop "ORIG_HEAD"))
-          (setq  patches (nreverse patches))
-          (while patches
-            (let ((patch (pop patches)))
-              (magit-insert-section (file patch)
-                (insert (if patches
-                            (propertize "pick" 'face 'magit-sequence-pick)
-                          (propertize "stop" 'face 'magit-sequence-stop))
-                        ?\s (propertize (file-name-nondirectory patch)
-                                        'face 'magit-hash)
-                        ?\n))))
-          (magit-sequence-insert-sequence nil "ORIG_HEAD")))
+      (let ((patches (nreverse (magit-rebase-patches)))
+            patch commit)
+        (while patches
+          (setq patch (pop patches)
+                commit (magit-rev-verify-commit
+                        (cadr (split-string (magit-file-line patch)))))
+          (cond ((and commit patches)
+                 (magit-sequence-insert-commit
+                  "pick" commit 'magit-sequence-pick))
+                (patches
+                 (magit-sequence-insert-am-patch
+                  "pick" patch 'magit-sequence-pick))
+                (commit
+                 (magit-sequence-insert-sequence commit "ORIG_HEAD"))
+                (t
+                 (magit-sequence-insert-am-patch
+                  "stop" patch 'magit-sequence-stop)
+                 (magit-sequence-insert-sequence nil "ORIG_HEAD")))))
       (insert ?\n))))
+
+(defun magit-sequence-insert-am-patch (type patch face)
+  (magit-insert-section (file patch)
+    (insert (propertize type 'face face)
+            ?\s (propertize (file-name-nondirectory patch) 'face 'magit-hash)
+            ?\n)))
 
 (defun magit-insert-rebase-sequence ()
   "Insert section for the on-going rebase sequence.
@@ -544,9 +553,9 @@ If no such sequence is in progress, do nothing."
   (directory-files (magit-git-dir "rebase-apply") t "^[0-9]\\{4\\}$"))
 
 (defun magit-sequence-insert-sequence (stop onto &optional orig)
-  (setq  onto (magit-rev-parse onto))
-  (let ((head (magit-rev-parse "HEAD"))
-        (done (magit-git-lines "log" "--format=%H" (concat onto "..HEAD"))))
+  (let ((head (magit-rev-parse "HEAD")) done)
+    (setq onto (if onto (magit-rev-parse onto) head))
+    (setq done (magit-git-lines "log" "--format=%H" (concat onto "..HEAD")))
     (when (and stop (not (member stop done)))
       (let ((id (magit-patch-id stop)))
         (--if-let (--first (equal (magit-patch-id it) id) done)
@@ -563,7 +572,7 @@ If no such sequence is in progress, do nothing."
             ;; ...and the dust hasn't settled yet...
             (magit-sequence-insert-commit
              (let ((staged   (magit-commit-tree "oO" nil "HEAD"))
-                   (unstaged (magit-commit-worktree "oO")))
+                   (unstaged (magit-commit-worktree "oO" "--reset")))
                (cond
                 ;; ...but we could end up at the same tree just by committing.
                 ((or (magit-rev-equal staged   stop)

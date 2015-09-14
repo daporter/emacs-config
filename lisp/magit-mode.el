@@ -333,8 +333,7 @@ which visits the thing at point."
     ["Diff working tree" magit-diff-working-tree t]
     ["Diff" magit-diff t]
     ("Log"
-     ["Oneline Log" magit-log t]
-     ["Verbose Log" magit-log-verbose t]
+     ["Log" magit-log t]
      ["Reflog" magit-reflog t]
      ["Extended..." magit-log-popup t])
     "---"
@@ -438,35 +437,34 @@ and finally \"refresh\" a first time.  All arguments are evaluated
 before switching to BUFFER."
   (declare (debug (form form form form &rest form)))
   (let ((smode (cl-gensym "mode"))
-        (sroot (cl-gensym "root"))
         (sfunc (cl-gensym "func"))
         (sargs (cl-gensym "args"))
         (sbuf  (cl-gensym "buffer")))
     `(let* ((,smode ,mode)
-            (,sroot (let ((default-directory (or magit-mode-setup--topdir
-                                                 default-directory)))
-                      (magit-toplevel)))
             (,sfunc ,refresh-func)
             (,sargs (list ,@refresh-args))
             (,sbuf  (magit-mode-display-buffer
-                     ,buffer ,smode ,switch-func ,sroot)))
-       (when find-file-visit-truename
-         (setq ,sroot (file-truename ,sroot)))
-       (if ,sroot
-           (with-current-buffer ,sbuf
-             (setq default-directory ,sroot
-                   magit-refresh-function ,sfunc
-                   magit-refresh-args ,sargs)
-             (run-hooks 'magit-mode-setup-hook)
-             (pcase ,smode
-               ((or `magit-log-mode `magit-reflog-mode)
-                (magit-xref-setup ,sargs))
-               ((or `magit-diff-mode `magit-revision-mode)
-                (magit-xref-setup ,sargs)
-                (goto-char (point-min))))
-             (funcall ,smode)
-             (magit-refresh-buffer))
-         (user-error "Not inside a Git repository")))))
+                     ,buffer ,smode ,switch-func
+                     (let ((default-directory
+                             (or magit-mode-setup--topdir
+                                 default-directory)))
+                       (--if-let (magit-toplevel)
+                           (if find-file-visit-truename
+                               (file-truename it)
+                             it)
+                         (user-error "Not inside a Git repository"))))))
+       (with-current-buffer ,sbuf
+         (setq magit-refresh-function ,sfunc)
+         (setq magit-refresh-args     ,sargs)
+         (run-hooks 'magit-mode-setup-hook)
+         (pcase ,smode
+           ((or `magit-log-mode `magit-reflog-mode)
+            (magit-xref-setup ,sargs))
+           ((or `magit-diff-mode `magit-revision-mode)
+            (magit-xref-setup ,sargs)
+            (goto-char (point-min))))
+         (funcall ,smode)
+         (magit-refresh-buffer)))))
 
 (defvar-local magit-previous-section nil)
 (put 'magit-previous-section 'permanent-local t)
@@ -515,29 +513,34 @@ the function `magit-toplevel'."
                      (equal default-directory topdir)))
               (buffer-list))))
 
-(defun magit-mode-get-buffer (format mode &optional pwd create)
+(defun magit-mode-get-buffer (format mode &optional pwd create frame)
   (unless format
     (setq format (symbol-value
                   (intern (format "%s-buffer-name-format"
                                   (substring (symbol-name mode) 0 -5))))))
-  (setq pwd (expand-file-name (or pwd default-directory)))
-  (let* ((topdir (let ((default-directory pwd))
-                   (magit-toplevel)))
-         (name (format-spec
-                format (if topdir
-                           `((?a . ,(abbreviate-file-name topdir))
-                             (?b . ,(file-name-nondirectory
-                                     (directory-file-name topdir))))
-                         '((?a . "-") (?b . "-"))))))
-    (or (--first (with-current-buffer it
-                   (and (equal (buffer-name) name)
-                        (or (not topdir)
-                            (equal (expand-file-name default-directory)
-                                   topdir))))
-                 (buffer-list))
-        (and create
-             (let ((default-directory (or topdir pwd)))
-               (generate-new-buffer name))))))
+  (if (not (string-match-p "%[ab]" format))
+      (funcall (if create #'get-buffer-create #'get-buffer) format)
+    (setq pwd (expand-file-name (or pwd default-directory)))
+    (let* ((topdir (let ((default-directory pwd))
+                     (magit-toplevel)))
+           (name (format-spec
+                  format (if topdir
+                             `((?a . ,(abbreviate-file-name topdir))
+                               (?b . ,(file-name-nondirectory
+                                       (directory-file-name topdir))))
+                           '((?a . "-") (?b . "-"))))))
+      (or (--first (with-current-buffer it
+                     (and (equal (buffer-name) name)
+                          (or (not topdir)
+                              (equal (expand-file-name default-directory)
+                                     topdir))))
+                   (if frame
+                       (-map #'window-buffer
+                             (window-list (unless (eq frame t) frame)))
+                     (buffer-list)))
+          (and create
+               (let ((default-directory (or topdir pwd)))
+                 (generate-new-buffer name)))))))
 
 (defun magit-mode-get-buffer-create (format mode &optional directory)
   (magit-mode-get-buffer format mode directory t))

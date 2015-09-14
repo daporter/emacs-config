@@ -576,6 +576,10 @@ string \"true\", otherwise return nil."
 (defun magit-rev-verify (rev)
   (magit-rev-parse-safe "--verify" rev))
 
+(defun magit-rev-verify-commit (rev)
+  "Return full hash for REV if it names an existing commit."
+  (magit-rev-verify (concat rev "^{commit}")))
+
 (defun magit-rev-equal (a b)
   (magit-git-success "diff" "--quiet" a b))
 
@@ -835,6 +839,15 @@ Return a list of two integers: (A>B B>A)."
 (defun magit-abbrev-arg ()
   (format "--abbrev=%d" (magit-abbrev-length)))
 
+(defun magit-commit-children (commit &optional args)
+  (-map #'car
+        (--filter (member commit (cdr it))
+                  (--map (split-string it " ")
+                         (magit-git-lines
+                          "log" "--format=%H %P"
+                          (or args (list "--branches" "--tags" "--remotes"))
+                          "--not" commit)))))
+
 (defun magit-commit-parents (commit)
   (--when-let (magit-git-string "rev-list" "-1" "--parents" commit)
     (cdr (split-string it))))
@@ -864,14 +877,14 @@ Return a list of two integers: (A>B B>A)."
 (defun magit-rev-format (format &optional rev args)
   (let ((str (magit-git-string "show" "--no-patch"
                                (concat "--format=" format) args
-                               (concat rev "^{commit}") "--")))
+                               (if rev (concat rev "^{commit}") "HEAD") "--")))
     (unless (string-equal str "")
       str)))
 
 (defun magit-rev-insert-format (format &optional rev args)
   (magit-git-insert "show" "--no-patch"
                     (concat "--format=" format) args
-                    (concat rev "^{commit}") "--"))
+                    (if rev (concat rev "^{commit}") "HEAD") "--"))
 
 (defun magit-format-rev-summary (rev)
   (--when-let (magit-rev-format "%h %s" rev)
@@ -924,16 +937,16 @@ Return a list of two integers: (A>B B>A)."
         (point-min) (point-max) buffer-file-name t nil nil t)
        ,@body)))
 
-(defmacro magit-with-temp-index (tree &rest body)
-  (declare (indent 1) (debug (form body)))
+(defmacro magit-with-temp-index (tree arg &rest body)
+  (declare (indent 2) (debug (form form body)))
   (let ((file (cl-gensym "file")))
     `(let ((,file (magit-git-dir (make-temp-name "index.magit."))))
        (setq ,file (or (file-remote-p ,file 'localname) ,file))
        (unwind-protect
-           (progn ,@(--when-let tree
-                      `((or (magit-git-success
-                             "read-tree" ,it (concat "--index-output=" ,file))
-                            (error "Cannot read tree %s" ,it))))
+           (progn (--when-let ,tree
+                    (or (magit-git-success "read-tree" ,arg it
+                                           (concat "--index-output=" ,file))
+                        (error "Cannot read tree %s" it)))
                   (if (file-remote-p default-directory)
                       (let ((magit-tramp-process-environment
                              (setenv-internal magit-tramp-process-environment
@@ -950,8 +963,8 @@ Return a list of two integers: (A>B B>A)."
                     (--mapcat (list "-p" it) (delq nil parents))
                     (or tree (magit-git-string "write-tree"))))
 
-(defun magit-commit-worktree (message &rest other-parents)
-  (magit-with-temp-index "HEAD"
+(defun magit-commit-worktree (message &optional arg &rest other-parents)
+  (magit-with-temp-index "HEAD" arg
     (and (magit-update-files (magit-modified-files))
          (apply #'magit-commit-tree message nil "HEAD" other-parents))))
 

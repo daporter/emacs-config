@@ -189,7 +189,8 @@ Miscellaneous
 * Notes::
 * Submodules::
 * Wip modes::
-* File-buffer mode::
+* Minor mode for buffers visiting files::
+* Minor mode for buffers visiting blobs::
 
 Customizing
 
@@ -645,8 +646,7 @@ non-Magit buffers.  So you should bind this globally too:
 (global-set-key (kbd "C-x M-g") 'magit-dispatch-popup)
 @end lisp
 
-You might also want to enable @code{global-magit-file-buffer-mode} (see
-@ref{File-buffer mode,File-buffer mode}).
+You might also want to enable @code{global-magit-file-mode} (see @ref{Minor mode for buffers visiting files,Minor mode for buffers visiting files}).
 
 @node Interface concepts
 @chapter Interface concepts
@@ -2613,7 +2613,7 @@ Whether to show gravatar images in revision buffers.
 If non-nil, then the value has to be a cons-cell which specifies
 where the gravatar images for the author and/or the committer are
 inserted inside the text that was previously inserted according
-to @verb{~magit-revision-header-format~}.
+to @code{magit-revision-header-format}.
 
 Both cells are regular expressions.  The car specifies where to
 insert the author gravatar image.  The top halve of the image is
@@ -2770,7 +2770,7 @@ Whether to show commit counts in Magit-Refs mode buffers.
 
 @itemize
 @item
-@verb{~all~} Show counts for branches and tags.
+@code{all} Show counts for branches and tags.
 
 @item
 @code{branch} Show counts for branches only.
@@ -3063,8 +3063,8 @@ arguments available from @code{magit-blame-popup} should be used.
 @cindex magit-blame-popup
 @item @kbd{M-x magit-blame-popup} @tie{}@tie{}@tie{}@tie{}(@code{magit-blame-popup})
 
-This prefix command shows the following suffix commands along with
-the appropriate infix arguments in a popup buffer.
+This prefix command shows the above suffix command along with the
+appropriate infix arguments in a popup buffer.
 
 @kindex RET
 @cindex magit-show-commit
@@ -3155,7 +3155,7 @@ Format string used for time strings in blame headings.
 @defopt magit-blame-show-headings
 
 Whether to initially show blame block headings.  The headings can
-also be toggled locally using command @verb{~magit-blame-toggle-headings~}.
+also be toggled locally using command @code{magit-blame-toggle-headings}.
 @end defopt
 
 @defopt magit-blame-goto-chunk-hook
@@ -3822,6 +3822,36 @@ minibuffer.
 
 This command creates a new branch like @code{magit-branch}, but then also
 checks it out.
+
+@kindex b s
+@cindex magit-branch-spinoff
+@item @kbd{b s} @tie{}@tie{}@tie{}@tie{}(@code{magit-branch-spinoff})
+
+This command creates and checks out a new branch starting at and
+tracking the current branch.  That branch in turn is reset to the
+last commit it shares with its upstream.  If the current branch has
+no upstream or no unpushed commits, then the new branch is created
+anyway and the previously current branch is not touched.
+
+This is useful to create a feature branch after work has already
+began on the old branch (likely but not necessarily "master").
+
+@kindex b x
+@cindex magit-branch-reset
+@item @kbd{b x} @tie{}@tie{}@tie{}@tie{}(@code{magit-branch-reset})
+
+This command resets a branch, defaulting to the branch at point, to
+the tip of another branch or any other commit.
+
+When resetting to another branch, then that branch is also set as
+the upstream of the branch being reset.
+
+When the branch being reset is the current branch, then a hard reset
+is performed.  If there are any uncommitted changes, then the user
+has to confirming the reset because those changes would be lost.
+
+This is useful when you have started work on a feature branch but
+realize it's all crap and want to start over.
 
 @kindex b d
 @cindex magit-branch-delete
@@ -5122,7 +5152,8 @@ changes made since the sequence started.
 * Notes::
 * Submodules::
 * Wip modes::
-* File-buffer mode::
+* Minor mode for buffers visiting files::
+* Minor mode for buffers visiting blobs::
 @end menu
 
 @node Tagging
@@ -5523,29 +5554,99 @@ slash.  The wip refs are named "<namespace>index/<branchref>" and
 the @code{HEAD} is detached then "HEAD" is used in place of @code{<branchref>}.
 @end defopt
 
-@node File-buffer mode
-@section File-buffer mode
+@node Minor mode for buffers visiting files
+@section Minor mode for buffers visiting files
 
-The @code{magit-file-buffer-mode} enables certain Magit features in
-file-visiting buffers belonging to a Git repository.  It should be
-enabled globally using @code{global-magit-file-buffer-mode}.  Currently this
-mode only establishes a few key bindings, but this might be extended
-in the future.
+The @code{magit-file-mode} enables certain Magit features in file-visiting
+buffers belonging to a Git repository.  It should be enabled globally
+using @code{global-magit-file-mode}.  Currently this mode only establishes a
+few key bindings, but this might be extended in the future.
 
-@defopt global-magit-file-buffer-mode
+@defopt global-magit-file-mode
 
 Whether to establish certain Magit key bindings in all file-visiting
-buffers belonging to a Git repository.  This establishes the bindings
-suggested in @ref{Getting started,Getting started} (but only for file-visiting buffers),
-and additionally binds @code{C-c M-g} to @code{magit-file-buffer-popup}.
+buffers belonging to a Git repository.  This establishes the
+bindings suggested in @ref{Getting started,Getting started} (but only for file-visiting
+buffers), and additionally binds @code{C-c M-g} to @code{magit-file-popup}.
 @end defopt
 
-@cindex magit-file-buffer-popup
-@deffn Command magit-file-buffer-popup
+@table @asis
+@kindex p
+@cindex magit-blob-previous
+@item @kbd{p} @tie{}@tie{}@tie{}@tie{}(@code{magit-blob-previous})
+
+Visit the previous blob which modified the current file.
+
+@kindex C-c M-g
+@cindex magit-file-popup
+@item @kbd{C-c M-g} @tie{}@tie{}@tie{}@tie{}(@code{magit-file-popup})
 
 This prefix command shows a popup buffer featuring suffix commands
 that operate on the file being visited in the current buffer.
-@end deffn
+
+@kindex C-c M-g s
+@cindex magit-stage-file
+@item @kbd{C-c M-g s} @tie{}@tie{}@tie{}@tie{}(@code{magit-stage-file})
+
+Stage all changes to the file being visited in the current buffer.
+
+@kindex C-c M-g u
+@cindex magit-unstage-file
+@item @kbd{C-c M-g u} @tie{}@tie{}@tie{}@tie{}(@code{magit-unstage-file})
+
+Untage all changes to the file being visited in the current buffer.
+
+@kindex C-c M-g l
+@cindex magit-log-buffer-file
+@item @kbd{C-c M-g l} @tie{}@tie{}@tie{}@tie{}(@code{magit-log-buffer-file})
+
+This command shows the log for the file of blob that the current
+buffer visits.  Renames are followed when a prefix argument is used
+or when @code{--follow} is part of @code{magit-log-arguments}.
+
+@kindex C-c M-g b
+@cindex magit-blame-popup
+@item @kbd{C-c M-g b} @tie{}@tie{}@tie{}@tie{}(@code{magit-blame-popup})
+
+This prefix command shows the @code{magit-blame} suffix command along with
+the appropriate infix arguments in a popup buffer.  See @ref{Initiating a commit,Initiating a commit}.
+
+@kindex C-c M-g c
+@cindex magit-commit-popup
+@item @kbd{C-c M-g c} @tie{}@tie{}@tie{}@tie{}(@code{magit-commit-popup})
+
+This prefix command shows suffix commands along with the appropriate
+infix arguments in a popup buffer.  See @ref{Initiating a commit,Initiating a commit}.
+@end table
+
+@node Minor mode for buffers visiting blobs
+@section Minor mode for buffers visiting blobs
+
+The @code{magit-blob-mode} enables certain Magit features in blob-visiting
+buffers.  Such buffers can be created using @code{magit-find-file} and some
+of the commands mentioned below, which also take care of turning on
+this minor mode.  Currently this mode only establishes a few key
+bindings, but this might be e
+
+@table @asis
+@kindex p
+@cindex magit-blob-previous
+@item @kbd{p} @tie{}@tie{}@tie{}@tie{}(@code{magit-blob-previous})
+
+Visit the previous blob which modified the current file.
+
+@kindex n
+@cindex magit-blob-next
+@item @kbd{n} @tie{}@tie{}@tie{}@tie{}(@code{magit-blob-next})
+
+Visit the next blob which modified the current file.
+
+@kindex q
+@cindex magit-kill-this-buffer
+@item @kbd{q} @tie{}@tie{}@tie{}@tie{}(@code{magit-kill-this-buffer})
+
+Kill the current buffer.
+@end table
 
 @node Customizing
 @chapter Customizing
