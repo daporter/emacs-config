@@ -156,9 +156,10 @@ changes to be displayed automatically.
 `blame-follow'
 
 In the event that expanding very large patches takes a long time
-\\<global-map>\\[keyboard-quit] can be used to abort that step.
-This is especially useful when you would normally not look at the
-changes, e.g. because you are committing some binary files.
+\\<global-map>\\[keyboard-quit] \
+can be used to abort that step. This is especially useful when
+you would normally not look at the changes, e.g. because you are
+committing some binary files.
 
 Also see `magit-diff-auto-show-delay'."
   :package-version '(magit . "2.1.0")
@@ -873,7 +874,7 @@ for a commit."
     (when module
       (setq default-directory
             (expand-file-name (file-name-as-directory module))))
-    (unless (magit-rev-verify commit)
+    (unless (magit-rev-verify-commit commit)
       (user-error "%s is not a commit" commit))
     (-when-let (buffer (magit-mode-get-buffer nil 'magit-revision-mode))
       (with-current-buffer buffer
@@ -1267,6 +1268,7 @@ Staging and applying changes is documented in info node
     (define-key map [C-return] 'magit-diff-visit-file-worktree)
     (define-key map "\r" 'magit-diff-visit-file)
     (define-key map "a"  'magit-apply)
+    (define-key map "C"  'magit-commit-add-log)
     (define-key map "k"  'magit-discard)
     (define-key map "K"  'magit-file-untrack)
     (define-key map "R"  'magit-file-rename)
@@ -1687,12 +1689,12 @@ or a ref which is not a branch, then it inserts nothing."
 
 (defun magit-insert-revision-gravatar (beg email regexp)
   (when (and email (goto-char beg) (re-search-forward regexp nil t))
-    (let* ((offset   (length (match-string 0)))
-           (font-obj (query-font (font-at (point) (get-buffer-window))))
-           (size     (* 2 (+ (aref font-obj 4) (aref font-obj 5))))
-           (align-to (+ offset (ceiling (/ size (aref font-obj 7) 1.0))))
-           (gravatar-size (- size 2)))
-      (ignore-errors
+    (ignore-errors
+      (let* ((offset   (length (match-string 0)))
+             (font-obj (query-font (font-at (point) (get-buffer-window))))
+             (size     (* 2 (+ (aref font-obj 4) (aref font-obj 5))))
+             (align-to (+ offset (ceiling (/ size (aref font-obj 7) 1.0))))
+             (gravatar-size (- size 2)))
         (gravatar-retrieve
          email
          (lambda (image offset align-to)
