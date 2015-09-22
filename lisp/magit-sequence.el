@@ -297,8 +297,8 @@ This discards all changes made since the sequence started."
               (?f "Autosquash"         magit-rebase-autosquash)
               (?o "Rebase subset"      magit-rebase-subset)
               nil
-              (?e "Rebase interactive" magit-rebase-interactive)
-              (?s "Edit commit"        magit-rebase-edit-commit)
+              (?i "Rebase interactive" magit-rebase-interactive)
+              (?e "Edit commit"        magit-rebase-edit-commit)
               (?l "Rebase unpushed"    magit-rebase-unpushed)
               (?w "Reword commit"      magit-rebase-reword-commit))
   :sequence-actions '((?r "Continue" magit-rebase-continue)
@@ -342,10 +342,8 @@ START has to be selected from a list of recent commits."
       (concat "Type %p on a commit to rebase it "
               "and commits above it onto " newbase ","))))
 
-(defun magit-rebase-interactive-1 (commit message &optional editor args)
-  (declare (indent 1))
-  (when magit-current-popup
-    (setq args (nconc (magit-rebase-arguments) args)))
+(defun magit-rebase-interactive-1 (commit args message &optional editor)
+  (declare (indent 2))
   (when commit
     (if (eq commit :merge-base)
         (setq commit (--if-let (magit-get-tracked-branch)
@@ -370,52 +368,49 @@ START has to be selected from a list of recent commits."
                                  (unless (member "--root" args) commit)))
     (magit-log-select
       `(lambda (commit)
-         (magit-rebase-interactive-1 commit ,message ,editor (list ,@args)))
+         (magit-rebase-interactive-1 commit (list ,@args) ,message ,editor))
       message)))
 
 ;;;###autoload
-(defun magit-rebase-interactive (commit)
+(defun magit-rebase-interactive (commit &optional args)
   "Start an interactive rebase sequence."
-  (interactive (list (magit-commit-at-point)))
-  (magit-rebase-interactive-1 commit
+  (interactive (list (magit-commit-at-point)
+                     (magit-rebase-arguments)))
+  (magit-rebase-interactive-1 commit args
     "Type %p on a commit to rebase it and all commits above it,"))
 
 ;;;###autoload
-(defun magit-rebase-unpushed ()
+(defun magit-rebase-unpushed (&optional args)
   "Start an interactive rebase sequence of all unpushed commits."
-  (interactive)
-  (magit-rebase-interactive-1 :merge-base
+  (interactive (list (magit-rebase-arguments)))
+  (magit-rebase-interactive-1 :merge-base args
     "Type %p on a commit to rebase it and all commits above it,"))
 
 ;;;###autoload
-(defun magit-rebase-autosquash ()
+(defun magit-rebase-autosquash (&optional args)
   "Combine squash and fixup commits with their intended targets."
-  (interactive)
-  (magit-rebase-interactive-1 :merge-base
+  (interactive (list (magit-rebase-arguments)))
+  (magit-rebase-interactive-1 :merge-base (cons "--autosquash" args)
     "Type %p on a commit to squash into it and the commits above it,"
-    "true" (list "--autosquash")))
+    "true"))
 
 ;;;###autoload
-(defun magit-rebase-edit-commit (commit)
+(defun magit-rebase-edit-commit (commit &optional args)
   "Edit a single older commit using rebase."
-  (interactive (list (magit-commit-at-point)))
-  (magit-rebase-interactive-1 commit
+  (interactive (list (magit-commit-at-point)
+                     (magit-rebase-arguments)))
+  (magit-rebase-interactive-1 commit args
     "Type %p on a commit to edit it,"
     "perl -i -p -e '++$x if not $x and s/^pick/edit/'"))
 
 ;;;###autoload
-(defun magit-rebase-reword-commit (commit)
+(defun magit-rebase-reword-commit (commit &optional args)
   "Reword a single older commit using rebase."
-  (interactive (list (magit-commit-at-point)))
-  (magit-rebase-interactive-1 commit
+  (interactive (list (magit-commit-at-point)
+                     (magit-rebase-arguments)))
+  (magit-rebase-interactive-1 commit args
     "Type %p on a commit to reword its message,"
     "perl -i -p -e '++$x if not $x and s/^pick/reword/'"))
-
-(put 'magit-rebase-interactive   'interactive-only t)
-(put 'magit-rebase-unpushed      'interactive-only t)
-(put 'magit-rebase-autosquash    'interactive-only t)
-(put 'magit-rebase-edit-commit   'interactive-only t)
-(put 'magit-rebase-reword-commit 'interactive-only t)
 
 ;;;###autoload
 (defun magit-rebase-continue ()
