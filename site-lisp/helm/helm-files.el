@@ -490,6 +490,7 @@ Should not be used among other sources.")
    (persistent-help :initform "Hit1 Expand Candidate, Hit2 or (C-u) Find file")
    (help-message :initform 'helm-ff-help-message)
    (volatile :initform t)
+   (migemo :initform t)
    (nohighlight :initform t)
    (keymap :initform helm-find-files-map)
    (candidate-number-limit :initform 'helm-ff-candidate-number-limit)
@@ -1770,6 +1771,11 @@ If PATTERN is a valid directory name,return PATTERN unchanged."
            (and dir-p (string-match (regexp-quote bn) bd)))
        ;; Use full PATTERN on e.g "/ssh:host:".
        (regexp-quote pattern))
+      ;; With Migemo make a regexp like "bd bn" forcing
+      ;; the use of multi-match.  Fuzzy will be disabled
+      ;; in this case. If bn contain a space we will have:
+      ;; "bd bn1 bn2".
+      (helm-migemo-mode (concat (regexp-quote bd) " " bn))
       ;; Prefixing BN with a space call multi-match completion.
       ;; This allow showing all files/dirs matching BN (Issue #518).
       ;; FIXME: some multi-match methods may not work here.
@@ -2909,6 +2915,7 @@ Don't use it in your own code unless you know what you are doing.")
                                            (not (consp c)))
                                       (cons (helm-basename c) c)
                                       c)))
+   (migemo :initform t)
    (keymap :initform helm-generic-files-map)
    (help-message :initform helm-generic-file-help-message)
    (action :initform 'helm-type-file-actions)))
@@ -2936,8 +2943,13 @@ Set `recentf-max-saved-items' to a bigger value if default is too small.")
 
 (defun helm-browse-project-get-buffers (root-directory)
   (cl-loop for b in (helm-buffer-list)
+           ;; FIXME: Why default-directory is root-directory
+           ;; for current-buffer when coming from helm-quit-and-find-file.
            for cd = (with-current-buffer b default-directory)
-           when (file-in-directory-p cd root-directory)
+           for bn = (buffer-file-name (get-buffer b))
+           if (or (and bn (file-in-directory-p bn root-directory))
+                  (and (null bn)
+                       (file-in-directory-p cd root-directory)))
            collect b))
 
 (defun helm-browse-project-build-buffers-source (directory)
