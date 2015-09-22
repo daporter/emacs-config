@@ -207,11 +207,6 @@ If set to nil `doc-view-mode' will be used instead of an external command."
   "Face used to highlight grep number lines."
   :group 'helm-grep-faces)
 
-(defface helm-grep-running
-    '((t (:foreground "Red")))
-  "Face used in mode line when grep is running."
-  :group 'helm-grep-faces)
-
 (defface helm-grep-finish
     '((t (:foreground "Green")))
   "Face used in mode line when grep is finish."
@@ -915,6 +910,7 @@ in recurse, and ignoring EXTS, search being made on
             :filter-one-by-one 'helm-grep-filter-one-by-one
             :keymap helm-grep-map
             :nohighlight t
+            :nomark t
             :candidate-number-limit 9999
             :help-message 'helm-grep-help-message
             :history 'helm-grep-history
@@ -1016,7 +1012,7 @@ in recurse, and ignoring EXTS, search being made on
   (let (beg end)
     (condition-case-unless-debug nil
         (with-temp-buffer
-          (insert str)
+          (insert (propertize str 'read-only nil))
           (goto-char (point-min))
           (cl-loop for reg in (if multi-match
                                   ;; (m)occur.
@@ -1148,6 +1144,7 @@ If a prefix arg is given run grep on all buffers ignoring non--file-buffers."
                 :candidates-process (lambda ()
                                       (funcall helm-pdfgrep-default-function helm-pdfgrep-targets))
                 :nohighlight t
+                :nomark t
                 :filter-one-by-one #'helm-grep-filter-one-by-one
                 :candidate-number-limit 9999
                 :history 'helm-grep-history
@@ -1236,6 +1233,7 @@ You can use safely \"--color\" (default)."
           :persistent-action 'helm-grep-persistent-action
           :candidate-number-limit 99999
           :requires-pattern 2
+          :nomark t
           :action (helm-make-actions
                    "Find File" 'helm-grep-action
                    "Find file other frame" 'helm-grep-other-frame
