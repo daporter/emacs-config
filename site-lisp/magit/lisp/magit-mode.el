@@ -383,6 +383,7 @@ Magit is documented in info node `(magit)'."
   (setq buffer-read-only t)
   (setq-local line-move-visual t) ; see #1771
   (setq show-trailing-whitespace nil)
+  (setq list-buffers-directory default-directory)
   (hack-dir-local-variables-non-file-buffer)
   (make-local-variable 'text-property-default-nonsticky)
   (push (cons 'keymap t) text-property-default-nonsticky)
@@ -510,7 +511,7 @@ the function `magit-toplevel'."
   (let ((topdir (magit-toplevel)))
     (--filter (with-current-buffer it
                 (and (derived-mode-p 'magit-mode)
-                     (equal default-directory topdir)))
+                     (equal (expand-file-name default-directory) topdir)))
               (buffer-list))))
 
 (defun magit-mode-get-buffer (format mode &optional pwd create frame)

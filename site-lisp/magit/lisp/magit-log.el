@@ -960,7 +960,9 @@ and `magit-log-auto-more' is non-nil."
 If the section at point is a `commit' section and the value of
 `magit-diff-auto-show-p' calls for it, then show that commit in
 another window, using `magit-show-commit'."
-  (unless magit-update-other-window-timer
+  (when (and (or (derived-mode-p 'magit-log-mode)
+                 (derived-mode-p 'magit-status-mode))
+             (not magit-update-other-window-timer))
     (setq magit-update-other-window-timer
           (run-with-idle-timer
            magit-diff-auto-show-delay nil
