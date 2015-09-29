@@ -655,6 +655,10 @@ Type \\[magit-reset] to reset HEAD to the commit at point.
   (concat "^" (regexp-opt '("-G" "--grep" "--follow")))
   "Regexp matching arguments which are not compatible with `--graph'.")
 
+(defvar magit-log-disable-graph-hack-args
+  '("-G" "--grep" "--author")
+  "Arguments which disable the graph speedup hack.")
+
 (defvar magit-log-use-verbose-re
   (concat "^" (regexp-opt '("--patch" "--stat")))
   "Regexp matching arguments which trigger the use of verbose log.")
@@ -675,12 +679,16 @@ Type \\[magit-reset] to reset HEAD to the commit at point.
                    (setq revs (car revs))
                    (not (string-match-p "\\.\\." revs))
                    (not (member revs '("--all" "--branches")))
-                   (magit-git-string "rev-list" "--count"
-                                     "--first-parent" revs))
-    (setq revs (format "%s~%s..%s" revs
-                       (min (1- (string-to-number it))
-                            (max 1024 (* 2 magit-log-cutoff-length)))
-                       revs)))
+                   (-none-p (lambda (arg)
+                              (--any-p (string-prefix-p it arg)
+                                       magit-log-disable-graph-hack-args))
+                            args)
+                   (magit-git-string "rev-list" "--count" "--first-parent"
+                                     args revs))
+    (setq revs (let ((cutoff (max 1024 (* 2 magit-log-cutoff-length))))
+                 (if (< (string-to-number it) cutoff)
+                     revs
+                   (format "%s~%s..%s" revs cutoff revs)))))
   (magit-insert-section (logbuf)
     (magit-insert-log revs args files)))
 
