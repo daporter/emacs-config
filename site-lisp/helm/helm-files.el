@@ -118,8 +118,8 @@ and `helm-read-file-map' for this take effect."
   :group 'helm-files
   :type 'integer)
 
-(defcustom helm-ff-smart-completion t
-  "Try to complete filenames smarter when non--nil.
+(defcustom helm-ff-fuzzy-matching t
+  "Enable fuzzy matching for `helm-find-files' when non--nil.
 See `helm-ff--transform-pattern-for-completion' for more info."
   :group 'helm-files
   :type 'boolean)
@@ -246,6 +246,12 @@ I.e use the -path/ipath arguments of find instead of -name/iname."
   "bookmark name prefix of `helm-find-files' sessions."
   :group 'helm-files
   :type 'string)
+
+(defcustom helm-ff-guess-ffap-filenames nil
+  "Use ffap to guess local filenames at point.
+This doesn't disable url or mail at point, only files."
+  :group 'helm-files
+  :type 'boolean)
 
 ;;; Faces
 ;;
@@ -360,6 +366,7 @@ I.e use the -path/ipath arguments of find instead of -name/iname."
     (define-key map (kbd "C-l")           'helm-find-files-up-one-level)
     (define-key map (kbd "C-r")           'helm-find-files-down-last-level)
     (define-key map (kbd "C-c r")         'helm-ff-run-find-file-as-root)
+    (define-key map (kbd "C-x C-v")       'helm-ff-run-find-alternate-file)
     (define-key map (kbd "C-c @")         'helm-ff-run-insert-org-link)
     (helm-define-key-with-subkeys map (kbd "DEL") ?\d 'helm-ff-delete-char-backward
                                   nil nil 'helm-ff-delete-char-backward--exit-fn)
@@ -449,6 +456,7 @@ Don't set it directly, use instead `helm-ff-auto-update-initial-value'.")
    "Eshell command on file(s) `M-!, C-u take all marked as arguments.'"
    'helm-find-files-eshell-command-on-file
    "Find file as root `C-c r'" 'helm-find-file-as-root
+   "Find alternate file" 'find-alternate-file
    "Ediff File `C-='" 'helm-find-files-ediff-files
    "Ediff Merge File `C-c ='" 'helm-find-files-ediff-merge-files
    "Delete File(s) `M-D'" 'helm-delete-marked-files
@@ -1174,6 +1182,11 @@ This doesn't replace inside the files, only modify filenames."
   (with-helm-alive-p
     (helm-exit-and-execute-action 'helm-find-file-as-root)))
 
+(defun helm-ff-run-find-alternate-file ()
+  (interactive)
+  (with-helm-alive-p
+    (helm-exit-and-execute-action 'find-alternate-file)))
+
 (defun helm-ff-run-gnus-attach-files ()
   "Run gnus attach files command action from `helm-source-find-files'."
   (interactive)
@@ -1739,13 +1752,13 @@ systems."
         if isbad concat (cdr isbad)
         else concat (string i)))
 
-(defun helm-ff-smart-completion-p ()
-  (and helm-ff-smart-completion
+(defun helm-ff-fuzzy-matching-p ()
+  (and helm-ff-fuzzy-matching
        (not (memq helm-mm-matching-method '(multi1 multi3p)))))
 
 (defun helm-ff--transform-pattern-for-completion (pattern)
   "Maybe return PATTERN with it's basename modified as a regexp.
-This happen only when `helm-ff-smart-completion' is enabled.
+This happen only when `helm-ff-fuzzy-matching' is enabled.
 This provide a similar behavior as `ido-enable-flex-matching'.
 See also `helm--mapconcat-pattern'.
 If PATTERN is an url returns it unmodified.
@@ -1771,16 +1784,11 @@ If PATTERN is a valid directory name,return PATTERN unchanged."
            (and dir-p (string-match (regexp-quote bn) bd)))
        ;; Use full PATTERN on e.g "/ssh:host:".
        (regexp-quote pattern))
-      ;; With Migemo make a regexp like "bd bn" forcing
-      ;; the use of multi-match.  Fuzzy will be disabled
-      ;; in this case. If bn contain a space we will have:
-      ;; "bd bn1 bn2".
-      (helm-migemo-mode (concat (regexp-quote bd) " " bn))
       ;; Prefixing BN with a space call multi-match completion.
       ;; This allow showing all files/dirs matching BN (Issue #518).
       ;; FIXME: some multi-match methods may not work here.
       (dir-p (concat (regexp-quote bd) " " (regexp-quote bn)))
-      ((or (not (helm-ff-smart-completion-p))
+      ((or (not (helm-ff-fuzzy-matching-p))
            (string-match "\\s-" bn))    ; Fall back to multi-match.
        (concat (regexp-quote bd) bn))
       ((or (string-match "[*][.]?.*" bn) ; Allow entering wilcard.
@@ -1791,11 +1799,10 @@ If PATTERN is a valid directory name,return PATTERN unchanged."
        ;; (e.g ./foo/*.el => ./foo/[*].el)
        (concat (regexp-quote bd)
                (replace-regexp-in-string "[*]" "[*]" bn)))
-      (t
-       (setq bn (if (>= (length bn) 2) ; wait 2nd char before concating.
-                    (helm--mapconcat-pattern bn)
-                  (concat ".*" (regexp-quote bn))))
-       (concat (regexp-quote bd) bn)))))
+      (t (concat (regexp-quote bd)
+                 (if (>= (length bn) 2) ; wait 2nd char before concating.
+                     (helm--mapconcat-pattern bn)
+                     (concat ".*" (regexp-quote bn))))))))
 
 (defun helm-dir-is-dot (dir)
   (string-match "\\(?:/\\|\\`\\)\\.\\{1,2\\}\\'" dir))
@@ -2383,7 +2390,8 @@ Use it for non--interactive calls of `helm-find-files'."
 
 (defun helm-find-files-initial-input (&optional input)
   "Return INPUT if present, otherwise try to guess it."
-  (let ((ffap-machine-p-known 'reject))
+  (let ((ffap-machine-p-known 'reject)
+        (ffap-alist (and helm-ff-guess-ffap-filenames ffap-alist)))
     (unless (eq major-mode 'image-mode)
       (or (and input (or (and (file-remote-p input) input)
                          (expand-file-name input)))
@@ -2868,6 +2876,7 @@ Don't use it in your own code unless you know what you are doing.")
                               file-name-history))
             :fuzzy-match t
             :persistent-action 'ignore
+            :migemo t
             :filtered-candidate-transformer 'helm-file-name-history-transformer
             :action (helm-make-actions
                      "Find file" (lambda (candidate)
@@ -3119,6 +3128,7 @@ Colorize only symlinks, directories and files."
                                    helm-recentf--basename-flag)
                                (helm-basename candidate) candidate)))
    (fuzzy-match :initform t)
+   (migemo :initform t)
    (keymap :initform helm-generic-files-map)
    (help-message :initform helm-generic-file-help-message)))
 
