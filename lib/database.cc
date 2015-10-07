@@ -1372,6 +1372,7 @@ notmuch_database_upgrade (notmuch_database_t *notmuch,
     enum _notmuch_features target_features, new_features;
     notmuch_status_t status;
     notmuch_private_status_t private_status;
+    notmuch_query_t *query = NULL;
     unsigned int count = 0, total = 0;
 
     status = _notmuch_database_ensure_writable (notmuch);
@@ -1408,9 +1409,16 @@ notmuch_database_upgrade (notmuch_database_t *notmuch,
     if (new_features &
 	(NOTMUCH_FEATURE_FILE_TERMS | NOTMUCH_FEATURE_BOOL_FOLDER |
 	 NOTMUCH_FEATURE_LAST_MOD)) {
-	notmuch_query_t *query = notmuch_query_create (notmuch, "");
-	total += notmuch_query_count_messages (query);
+	query = notmuch_query_create (notmuch, "");
+	unsigned msg_count;
+
+	status = notmuch_query_count_messages_st (query, &msg_count);
+	if (status)
+	    goto DONE;
+
+	total += msg_count;
 	notmuch_query_destroy (query);
+	query = NULL;
     }
     if (new_features & NOTMUCH_FEATURE_DIRECTORY_DOCS) {
 	t_end = db->allterms_end ("XTIMESTAMP");
@@ -1436,14 +1444,16 @@ notmuch_database_upgrade (notmuch_database_t *notmuch,
     if (new_features &
 	(NOTMUCH_FEATURE_FILE_TERMS | NOTMUCH_FEATURE_BOOL_FOLDER |
 	 NOTMUCH_FEATURE_LAST_MOD)) {
-	notmuch_query_t *query = notmuch_query_create (notmuch, "");
 	notmuch_messages_t *messages;
 	notmuch_message_t *message;
 	char *filename;
 
-	/* XXX: this should use the _st version, but needs an error
-	   path */
-	for (messages = notmuch_query_search_messages (query);
+	query = notmuch_query_create (notmuch, "");
+
+	status = notmuch_query_search_messages_st (query, &messages);
+	if (status)
+	    goto DONE;
+	for (;
 	     notmuch_messages_valid (messages);
 	     notmuch_messages_move_to_next (messages))
 	{
@@ -1490,6 +1500,7 @@ notmuch_database_upgrade (notmuch_database_t *notmuch,
 	}
 
 	notmuch_query_destroy (query);
+	query = NULL;
     }
 
     /* Perform per-directory upgrades. */
@@ -1609,6 +1620,9 @@ notmuch_database_upgrade (notmuch_database_t *notmuch,
 	action.sa_handler = SIG_IGN;
 	sigaction (SIGALRM, &action, NULL);
     }
+
+    if (query)
+	notmuch_query_destroy (query);
 
     talloc_free (local);
     return status;

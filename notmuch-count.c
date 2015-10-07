@@ -67,6 +67,7 @@ count_files (notmuch_query_t *query)
     return count;
 }
 
+/* return 0 on success, -1 on failure */
 static int
 print_count (notmuch_database_t *notmuch, const char *query_str,
 	     const char **exclude_tags, size_t exclude_tags_length, int output, int print_lastmod)
@@ -74,14 +75,16 @@ print_count (notmuch_database_t *notmuch, const char *query_str,
     notmuch_query_t *query;
     size_t i;
     int count;
+    unsigned int ucount;
     unsigned long revision;
     const char *uuid;
     int ret = 0;
+    notmuch_status_t status;
 
     query = notmuch_query_create (notmuch, query_str);
     if (query == NULL) {
 	fprintf (stderr, "Out of memory\n");
-	return 1;
+	return -1;
     }
 
     for (i = 0; i < exclude_tags_length; i++)
@@ -89,10 +92,16 @@ print_count (notmuch_database_t *notmuch, const char *query_str,
 
     switch (output) {
     case OUTPUT_MESSAGES:
-	printf ("%u", notmuch_query_count_messages (query));
+	status = notmuch_query_count_messages_st (query, &ucount);
+	if (print_status_query ("notmuch count", query, status))
+	    return -1;
+	printf ("%u", ucount);
 	break;
     case OUTPUT_THREADS:
-	printf ("%u", notmuch_query_count_threads (query));
+	status = notmuch_query_count_threads_st (query, &ucount);
+	if (print_status_query ("notmuch count", query, status))
+	    return -1;
+	printf ("%u", ucount);
 	break;
     case OUTPUT_FILES:
 	count = count_files (query);
