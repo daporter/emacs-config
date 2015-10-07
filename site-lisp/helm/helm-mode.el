@@ -29,6 +29,7 @@
 (defcustom helm-completing-read-handlers-alist
   '((describe-function . helm-completing-read-symbols)
     (describe-variable . helm-completing-read-symbols)
+    (describe-symbol . helm-completing-read-symbols)
     (debug-on-entry . helm-completing-read-symbols)
     (find-function . helm-completing-read-symbols)
     (trace-function . helm-completing-read-symbols)
@@ -136,7 +137,7 @@ To fuzzy match `completion-at-point' and friends see
   (interactive)
   (with-helm-alive-p
     (helm-exit-and-execute-action
-     #'(lambda (_candidate)
+     (lambda (_candidate)
          (identity "")))))
 
 (defun helm-mode--keyboard-quit ()
@@ -1080,11 +1081,11 @@ Can be used as value for `completion-in-region-function'."
                                                                (sort candidates 'helm-generic-sort-fn))))
                                :exec-when-only-one t
                                :quit-when-no-cand
-                               #'(lambda ()
+                               (lambda ()
                                    ;; Delay message to overwrite "Quit".
                                    (run-with-timer
                                     0.01 nil
-                                    #'(lambda ()
+                                    (lambda ()
                                         (message "[No matches]")))
                                    t)   ; exit minibuffer immediately.
                                :must-match require-match))))
