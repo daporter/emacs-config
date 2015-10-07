@@ -1,7 +1,26 @@
-;; -*- lexical-binding: t -*-
+;;; examples.el --- Examples/tests for dash.el's API  -*- lexical-binding: t -*-
+
+;; Copyright (C) 2015 Free Software Foundation, Inc.
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
 
 ;; Only the first three examples per function are shown in the docs,
 ;; so make those good.
+
+;;; Code:
 
 (require 'dash)
 
@@ -901,6 +920,13 @@ new list."
     (-let [(&plist 'a a) (list 'a 1 'b 2)] a) => 1
     (-let [(&plist 'a [a b]) (list 'a [1 2] 'b 3)] (list a b)) => '(1 2)
     (-let [(&plist 'a [a b] 'c c) (list 'a [1 2] 'c 3)] (list a b c)) => '(1 2 3)
+    ;; mixing dot and &alist
+    (-let (((x y &alist 'a a 'c c) (list 1 2 '(a . b) '(e . f) '(g . h) '(c . d)))) (list x y a c)) => '(1 2 b d)
+    (-let (((_ _ &alist 'a a 'c c) (list 1 2 '(a . b) '(e . f) '(g . h) '(c . d)))) (list a c)) => '(b d)
+    (-let (((x y . (&alist 'a a 'c c)) (list 1 2 '(a . b) '(e . f) '(g . h) '(c . d)))) (list x y a c)) => '(1 2 b d)
+    (-let (((_ _ . (&alist 'a a 'c c)) (list 1 2 '(a . b) '(e . f) '(g . h) '(c . d)))) (list a c)) => '(b d)
+    (-let (((x y (&alist 'a a 'c c)) (list 1 2 '((a . b) (e . f) (g . h) (c . d))))) (list x y a c)) => '(1 2 b d)
+    (-let (((_ _ . ((&alist 'a a 'c c))) (list 1 2 '((a . b) (e . f) (g . h) (c . d))))) (list a c)) => '(b d)
     ;; test the &as form
     (-let (((items &as first . rest) (list 1 2 3))) (list first rest items)) => '(1 (2 3) (1 2 3))
     (-let [(all &as [vect &as a b] bar) (list [1 2] 3)] (list a b bar vect all)) => '(1 2 3 [1 2] ([1 2] 3))
@@ -1093,3 +1119,5 @@ new list."
 ;; Local Variables:
 ;; eval: (font-lock-add-keywords nil '(("defexamples\\|def-example-group\\| => \\| !!> \\| ~>" (0 'font-lock-keyword-face)) ("(defexamples[[:blank:]]+\\(.*\\)" (1 'font-lock-function-name-face))))
 ;; End:
+
+;;; examples.el ends here
