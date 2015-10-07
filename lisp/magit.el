@@ -188,7 +188,7 @@ all    Show counts for branches and tags.
 branch Show counts for branches only.
 nil    Never show counts."
   :package-version '(magit . "2.1.0")
-  :group 'magit
+  :group 'magit-refs
   :safe (lambda (val) (memq val '(all branch nil)))
   :type '(choice (const all    :tag "For branches and tags")
                  (const branch :tag "For branches only")
@@ -644,7 +644,7 @@ Type \\[magit-cherry-pick-popup] to apply the commit at point.
 Type \\[magit-reset] to reset HEAD to the commit at point.
 
 \\{magit-refs-mode-map}"
-  :group 'magit-modes
+  :group 'magit-refs
   (hack-dir-local-variables-non-file-buffer))
 
 ;;;###autoload (autoload 'magit-show-refs-popup "magit" nil t)
@@ -1552,7 +1552,7 @@ Keep the head and working tree as-is, so if COMMIT refers to the
 head this effectivley unstages all changes.
 \n(git reset COMMIT)"
   (interactive (list (magit-read-branch-or-commit "Reset index to")))
-  (magit-reset-internal nil commit))
+  (magit-reset-internal nil commit "."))
 
 ;;;###autoload
 (defun magit-reset (commit &optional hard)
@@ -1587,7 +1587,7 @@ With a prefix argument also reset the working tree.
   (interactive (list (magit-read-branch-or-commit "Hard reset to")))
   (magit-reset-internal "--hard" commit))
 
-(defun magit-reset-internal (arg commit)
+(defun magit-reset-internal (arg commit &optional path)
   (when (and (not (member arg '("--hard" nil)))
              (equal (magit-rev-parse commit)
                     (magit-rev-parse "HEAD~")))
@@ -1599,7 +1599,7 @@ With a prefix argument also reset the working tree.
       (git-commit-save-message)))
   (let ((cmd (if (and (equal commit "HEAD") (not arg)) "unstage" "reset")))
     (magit-wip-commit-before-change nil (concat " before " cmd))
-    (magit-run-git "reset" arg commit "--")
+    (magit-run-git "reset" arg commit "--" path)
     (when (equal cmd "unstage")
       (magit-wip-commit-after-apply nil " after unstage"))))
 
@@ -2018,7 +2018,7 @@ Currently this only adds the following key bindings.
 (define-globalized-minor-mode global-magit-file-mode
   magit-file-mode magit-file-mode-turn-on
   :package-version '(magit . "2.2.0")
-  :group 'magit)
+  :group 'magit-modes)
 
 (define-obsolete-function-alias 'global-magit-file-buffer-mode
   'global-magit-file-mode "2.3.0")
@@ -2300,14 +2300,14 @@ of the buffer, and removes the consumed revision from the stack.
 The entries on the stack have the format (HASH TOPLEVEL) and this
 option has the format (POINT-FORMAT EOB-FORMAT INDEX-REGEXP), all
 of which may be nil or a string (though either one of EOB-FORMAT
-or POINT-FORMAT should be a string, and if POINT-FORMAT is
-non-nil, then the the two formats should be too).
+or POINT-FORMAT should be a string, and if INDEX-REGEXP is
+non-nil, then the two formats should be too).
 
 First INDEX-REGEXP is used to find the previously inserted entry,
 by searching backward from point.  The first submatch must match
 the index number.  That number is incremented by one, and becomes
 the index number of the entry to be inserted.  If you don't want
-to number the inserted revisions, then us nil for INDEX-REGEXP.
+to number the inserted revisions, then use nil for INDEX-REGEXP.
 
 If INDEX-REGEXP is non-nil then both POINT-FORMAT and EOB-FORMAT
 should contain \"%N\", which is replaced with the number that was
@@ -2322,12 +2322,16 @@ the buffer ends with a comment, then it is inserted right before
 that)."
   :package-version '(magit . "2.3.0")
   :group 'magit-status
-  :type '(list (or (string :tag "Insert at point format")
-                   (const  :tag "Don't insert at point" nil))
-               (or (string :tag "Insert at eob format")
-                   (const  :tag "Don't insert at eob" nil))
-               (or (regexp :tag "Find index regexp")
-                   (const  :tag "Don't number entries" nil))))
+  :type '(list (choice (string :tag "Insert at point format")
+                       (cons (string :tag "Insert at point format")
+                             (repeat (string :tag "Argument to git show")))
+                       (const :tag "Don't insert at point" nil))
+               (choice (string :tag "Insert at eob format")
+                       (cons (string :tag "Insert at eob format")
+                             (repeat (string :tag "Argument to git show")))
+                       (const :tag "Don't insert at eob" nil))
+               (choice (regexp :tag "Find index regexp")
+                       (const :tag "Don't number entries" nil))))
 
 (defun magit-pop-revision-stack (rev toplevel)
   "Insert a representation of a revision into the current buffer.
@@ -2372,12 +2376,19 @@ the minibuffer too."
                           (if (re-search-backward idx-format nil t)
                               (number-to-string
                                (1+ (string-to-number (match-string 1))))
-                            "1")))))
+                            "1"))))
+              pnt-args eob-args)
+          (when (listp pnt-format)
+            (setq pnt-args (cdr pnt-format)
+                  pnt-format (car pnt-format)))
+          (when (listp eob-format)
+            (setq eob-args (cdr eob-format)
+                  eob-format (car eob-format)))
           (when pnt-format
             (when idx-format
               (setq pnt-format
                     (replace-regexp-in-string "%N" idx pnt-format t t)))
-            (magit-rev-insert-format pnt-format rev)
+            (magit-rev-insert-format pnt-format rev pnt-args)
             (backward-delete-char 1))
           (when eob-format
             (when idx-format
@@ -2385,12 +2396,17 @@ the minibuffer too."
                     (replace-regexp-in-string "%N" idx eob-format t t)))
             (save-excursion
               (goto-char (point-max))
-              (when comment-start
-                (while (re-search-backward (concat "^" comment-start) nil t)))
-              (magit-rev-insert-format eob-format rev)
-              (backward-delete-char 1)
-              (when (and comment-start (looking-at (concat "^" comment-start)))
-                (insert "\n"))))))
+              (skip-syntax-backward ">s-")
+              (beginning-of-line)
+              (if (and comment-start (looking-at comment-start))
+                  (while (looking-at comment-start)
+                    (forward-line -1))
+                (forward-line)
+                (unless (= (current-column) 0)
+                  (insert ?\n)))
+              (insert ?\n)
+              (magit-rev-insert-format eob-format rev eob-args)
+              (backward-delete-char 1)))))
     (user-error "Revision stack is empty")))
 
 (define-key git-commit-mode-map
@@ -2401,7 +2417,8 @@ the minibuffer too."
 
 Save the section value to the `kill-ring', and, provided that
 the current section is a commit, branch, or tag section, push
-the (referenced) revision to the `magit-revision-stack'.
+the (referenced) revision to the `magit-revision-stack' for use
+with `magit-pop-revision-stack'.
 
 When the current section is a branch or a tag, and a prefix
 argument is used, then save the revision at its tip to the

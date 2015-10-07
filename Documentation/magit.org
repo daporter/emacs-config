@@ -433,20 +433,7 @@ Besides these special purpose buffers, there also exists an overview
 buffer, called the *status buffer*.  Its usually from this buffer that
 the user invokes Git commands, or creates or visits other buffers.
 
-- Key: q, magit-mode-bury-buffer
-
-  This command buries the current Magit buffer.  With a prefix
-  argument, it instead kills the buffer.
-
-  If ~magit-restore-window-configuration~ is non-nil and the last
-  configuration stored by ~magit-mode-display-buffer~ originates from
-  the selected frame (which usually is the case), then that is restored
-  after burying or killing the buffer.
-
-- User Option: magit-restore-window-configuration
-
-  This option controls whether quitting a Magit buffer restores the
-  previous window configuration.
+*** Naming Buffers
 
 While it often is enough to have one buffer of a certain Magit mode
 per repository, this is not always the case.  You might, for example,
@@ -464,6 +451,43 @@ other commits as usual.
   other information of the same kind.
 
   With a prefix argument, the user can pick an arbitrary name.
+
+*** Quitting Windows
+
+- Key: q, magit-mode-bury-buffer
+
+  This command buries the current Magit buffer.  With a prefix
+  argument, it instead kills the buffer.
+
+- User Option: magit-bury-buffer-function
+
+  The function used to actually bury or kill the current buffer.
+
+  ~magit-mode-bury-buffer~ calls this function with one argument.  If
+  the argument is non-nil, then the function has to kill the current
+  buffer.  Otherwise it has to bury it alive.  The default value
+  currently is ~magit-restore-window-configuration~.
+
+- Function: magit-restore-window-configuration kill-buffer
+
+  Bury or kill the current buffer using ~quit-window~, which is called
+  with KILL-BUFFER as first and the selected window as second
+  argument.
+
+  Then restore the window configuration that existed right before the
+  current buffer was displayed in the selected frame.  Unfortunately
+  that also means that point gets adjusted in all the buffers, which
+  are being displayed in the selected frame.
+
+- Function: magit-mode-quit-window kill-buffer
+
+  Bury or kill the current buffer using ~quit-window~, which is called
+  with KILL-BUFFER as first and the selected window as second
+  argument.
+
+  Then, if the window was originally created to display a Magit buffer
+  and the buried buffer was the last remaining Magit buffer that was
+  ever displayed in the window, then that is deleted.
 
 ** Automatic save
 
@@ -526,6 +550,10 @@ and also because doing so can sometimes be undesirable.
   - ~silent~
 
     Revert the buffers synchronously and be quiet about it.
+
+    This is the recommended setting, because for the other values the
+    revert messages might prevent you from seeing other, more
+    important, messages in the echo area.
 
   - NUMBER
 
@@ -1451,6 +1479,19 @@ the status buffer.
 
 *** Log Buffer
 
+- Key: L, magit-log-refresh-popup
+
+  This prefix command shows the following suffix commands along with
+  the appropriate infix arguments in a popup buffer.  See [[*Refreshing
+  logs]].
+
+- Key: q, magit-log-bury-buffer
+
+  Bury the current buffer or the revision buffer in the same frame.
+  Like ~magit-mode-bury-buffer~ (which see) but with a negative prefix
+  argument instead bury the revision buffer, provided it is displayed
+  in the current frame.
+
 - Key: C-c C-b, magit-go-backward
 
   Move backward in current buffer's history.
@@ -1479,32 +1520,25 @@ the status buffer.
   scroll the buffer down.  If there is no commit or stash at point,
   then prompt for a commit.
 
-- Key: q, magit-log-bury-buffer
+- Key: =, magit-log-toggle-commit-limit
 
-  Bury the current buffer or the revision buffer in the same frame.
-  Like ~magit-mode-bury-buffer~ (which see) but with a negative prefix
-  argument instead bury the revision buffer, provided it is displayed
-  in the current frame.
+  Toggle the number of commits the current log buffer is limited to.
+  If the number of commits is currently limited, then remove that
+  limit.  Otherwise set it to 256.
+
+- Key: +, magit-log-double-commit-limit
+
+  Double the number of commits the current log buffer is limited to.
+
+- Key: =, magit-log-half-commit-limit
+
+  Half the number of commits the current log buffer is limited to.
 
 - User Option: magit-log-auto-more
 
   Insert more log entries automatically when moving past the last
   entry.  Only considered when moving past the last entry with
   ~magit-goto-*-section~ commands.
-
-- Key: +, magit-log-show-more-commits
-
-  Increase the number of commits shown in current log.
-
-  With no prefix argument, show twice as many commits as before.
-  With a numerical prefix argument, show this many additional
-  commits.  With a non-numeric prefix argument, show all commits.
-
-  When no limit was previously imposed in the current buffer, set the
-  local limit to the default limit instead (or if that is nil then
-  100), regardless of the prefix argument.
-
-  By default ~magit-log-cutoff-length~ commits are shown.
 
 - User Option: magit-log-show-margin
 
@@ -1517,16 +1551,6 @@ the status buffer.
   When a log buffer contains a verbose log, then the margin is never
   displayed.  In status buffers this option is ignored, but it is
   possible to show the margin using the mentioned command.
-
-- Key: L, magit-log-refresh-popup
-
-  This prefix command shows the following suffix commands along with
-  the appropriate infix arguments in a popup buffer.  See [[*Refreshing
-  logs]].
-
-- User Option: magit-log-cutoff-length
-
-  The maximum number of commits to show in log and reflog buffers.
 
 - User Option: magit-log-show-refname-after-summary
 
@@ -2417,17 +2441,19 @@ Also see [[info:gitman#git-commit]].
 - Key: c e, magit-commit-extend
 
   Amend the last commit, without editing the message.  With a prefix
-  argument change the committer date.  The option
-  ~magit-commit-extend-override-date~ can be used to inverse the
-  meaning of the prefix argument.
+  argument keep the committer date, otherwise change it.  The option
+  ~magit-commit-extend-override-date~ can be used to inverse the meaning
+  of the prefix argument.
+
+  Non-interactively respect the optional OVERRIDE-DATE argument and
+  ignore the option.
 
 - Key: c w, magit-commit-reword
 
-  Reword the last commit, ignoring staged changes.
-
-  With a prefix argument change the committer date.  The option
-  ~magit-commit-rewrite-override-date~ can be used to inverse the
-  meaning of the prefix argument.
+  Reword the last commit, ignoring staged changes.  With a prefix
+  argument keep the committer date, otherwise change it.  The option
+  ~magit-commit-reword-override-date~ can be used to inverse the meaning
+  of the prefix argument.
 
   Non-interactively respect the optional OVERRIDE-DATE argument and
   ignore the option.
@@ -2547,13 +2573,13 @@ with those that are already committed.
 
 - Key: C-c C-w, magit-pop-revision-stack
 
-  This command insert a representation of a revision into the current
+  This command inserts a representation of a revision into the current
   buffer.  It can be used inside buffers used to write commit messages
   but also in other buffers such as buffers used to edit emails or
   ChangeLog files.
 
   By default this command pops the revision which was last added to
-  the ~magit-revision-stack~ and insert it into the current buffer
+  the ~magit-revision-stack~ and inserts it into the current buffer
   according to ~magit-pop-revision-stack-format~.  Revisions can be put
   on the stack using ~magit-copy-section-value~ and
   ~magit-copy-buffer-revision~.
@@ -2582,14 +2608,14 @@ with those that are already committed.
   The entries on the stack have the format ~(HASH TOPLEVEL)~ and this
   option has the format ~(POINT-FORMAT EOB-FORMAT INDEX-REGEXP)~, all
   of which may be nil or a string (though either one of EOB-FORMAT
-  or POINT-FORMAT should be a string, and if POINT-FORMAT is
-  non-nil, then the the two formats should be too).
+  or POINT-FORMAT should be a string, and if INDEX-REGEXP is
+  non-nil, then the two formats should be too).
 
   First INDEX-REGEXP is used to find the previously inserted entry,
   by searching backward from point.  The first submatch must match
   the index number.  That number is incremented by one, and becomes
   the index number of the entry to be inserted.  If you don't want
-  to number the inserted revisions, then us nil for INDEX-REGEXP.
+  to number the inserted revisions, then use nil for INDEX-REGEXP.
 
   If INDEX-REGEXP is non-nil then both POINT-FORMAT and EOB-FORMAT
   should contain \"%N\", which is replaced with the number that was
@@ -3398,6 +3424,10 @@ Also see [[info:gitman#git-stash]].
 - Key: z b, magit-stash-branch
 
   Create and checkout a new BRANCH from STASH.
+
+- Key: z f, magit-stash-format-patch
+
+  Create a patch from STASH.
 
 - Key: k, magit-stash-clear
   
