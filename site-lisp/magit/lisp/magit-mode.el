@@ -70,7 +70,7 @@ displayed.  Otherwise fall back to regular region highlighting."
 (defcustom magit-bury-buffer-function 'magit-restore-window-configuration
   "The function used to bury or kill the current Magit buffer."
   :package-version '(magit . "2.3.0")
-  :group 'magit
+  :group 'magit-modes
   :type '(radio (function-item quit-window)
                 (function-item magit-mode-quit-window)
                 (function-item magit-restore-window-configuration)
@@ -83,7 +83,7 @@ displayed.  Otherwise fall back to regular region highlighting."
   :type 'boolean)
 
 (defcustom magit-refresh-buffer-hook nil
-  "Normal hook for `magit-revert-buffer' to run after refreshing."
+  "Normal hook for `magit-refresh-buffer' to run after refreshing."
   :package-version '(magit . "2.1.0")
   :group 'magit-modes
   :type 'hook)
@@ -120,6 +120,10 @@ the current repository may optionally be reverted.
           what is right for them.
 
 `silent'  Revert the buffers synchronously and be quiet about it.
+          This is the recommended setting, because for the other
+          values the revert messages might prevent you from
+          seeing other, more important, messages in the echo
+          area.
 
 NUMBER    An integer or float.  Revert the buffers asynchronously,
           mentioning each one as it is being reverted.  If user
@@ -139,7 +143,10 @@ NUMBER    An integer or float.  Revert the buffers asynchronously,
          (magit-revert-buffers-set-timer)))
 
 (defcustom magit-after-revert-hook '(magit-refresh-vc-mode-line)
-  "Normal hook for `magit-revert-buffer' to run after reverting."
+  "Normal hook for `magit-revert-buffer' to run after reverting.
+
+This hook is only run for buffers that were actually reverted.
+For other buffers `magit-not-reverted-hook' is run instead."
   :package-version '(magit . "2.1.0")
   :group 'magit-modes
   :type 'hook
@@ -147,8 +154,10 @@ NUMBER    An integer or float.  Revert the buffers asynchronously,
 
 (defcustom magit-not-reverted-hook '(magit-refresh-vc-mode-line)
   "Normal hook for `magit-revert-buffer' to run instead of reverting.
-Run if the visited file has not changed on disk and the buffer
-therefore does not have to be reverted."
+
+This hook is only run for buffers which might have been reverted
+but were not actually reverted, because that was not necessary.
+For other buffers `magit-after-revert-hook' is run instead."
   :package-version '(magit . "2.1.0")
   :group 'magit-modes
   :type 'hook
@@ -162,7 +171,7 @@ belonging to the current repository may be saved before running
 commands, before creating new Magit buffers, and before
 explicitly refreshing such buffers.  If this is `dontask' then
 this is done without user intervention, if it is t then the user
-has to confirm each save."
+has to confirm each save.  `dontask' is the recommended setting."
   :group 'magit
   :type '(choice (const :tag "Never" nil)
                  (const :tag "Ask" t)
@@ -868,6 +877,7 @@ argument (the prefix) non-nil means save all with no questions."
             (current-window-configuration)))))
 
 (defun magit-restore-window-configuration (&optional kill-buffer)
+  "Bury or kill the current buffer and restore previous window configuration."
   (let ((winconf magit-previous-window-configuration)
         (buffer (current-buffer))
         (frame (selected-frame)))
