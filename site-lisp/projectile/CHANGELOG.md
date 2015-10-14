@@ -12,12 +12,14 @@
 * Add the ability to specify a project compilation and test commands via `.dir-locals.el`.
 This is done via the variables `projectile-project-compilation-cmd` and `projectile-project-test-cmd`.
 * [#489](https://github.com/bbatsov/projectile/issues/489): New interactive command `projectile-run-project`.
+* Optionally run [monky](http://ananthakumaran.in/monky/) on Mercurial projects.
 
 ### Changes
 
 * `projectile-compile-project` now offers appropriate completion
   targets even when called from a subdirectory.
 * Add an argument specifying the regexp to search to `projectile-grep`.
+* Use `help-projectile-grep` instead of `helm-find-file` when selecting a project.
 
 ### Bugs fixed
 
