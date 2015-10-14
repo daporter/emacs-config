@@ -274,16 +274,16 @@ When the region is active offer to drop all contained stashes."
 
 (defvar magit-stashes-section-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "k"  'magit-stash-clear)
+    (define-key map [remap magit-delete-thing] 'magit-stash-clear)
     map)
   "Keymap for `stashes' section.")
 
 (defvar magit-stash-section-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\r" 'magit-stash-show)
+    (define-key map [remap magit-visit-thing]  'magit-stash-show)
+    (define-key map [remap magit-delete-thing] 'magit-stash-drop)
     (define-key map "a"  'magit-stash-apply)
     (define-key map "A"  'magit-stash-pop)
-    (define-key map "k"  'magit-stash-drop)
     map)
   "Keymap for `stash' sections.")
 
@@ -303,23 +303,11 @@ instead of \"Stashes:\"."
 
 ;;; List Stashes
 
-(defcustom magit-stashes-buffer-name-format "*magit-stashes: %a*"
-  "Name format for buffers used to list stashes.
-
-The following `format'-like specs are supported:
-%a the absolute filename of the repository toplevel.
-%b the basename of the repository toplevel."
-  :package-version '(magit . "2.1.0")
-  :group 'magit-log
-  :type 'string)
-
 ;;;###autoload
 (defun magit-stash-list ()
   "List all stashes in a buffer."
   (interactive)
-  (magit-mode-setup magit-stashes-buffer-name-format nil
-                    #'magit-stashes-mode
-                    #'magit-stashes-refresh-buffer "refs/stash"))
+  (magit-mode-setup #'magit-stashes-mode "refs/stash"))
 
 (define-derived-mode magit-stashes-mode magit-reflog-mode "Magit Stashes"
   "Mode for looking at lists of stashes."
@@ -337,39 +325,24 @@ The following `format'-like specs are supported:
 ;;; Show Stash
 
 (defcustom magit-stash-sections-hook
-  '(magit-insert-stash-index
-    magit-insert-stash-worktree
+  '(magit-insert-stash-worktree
+    magit-insert-stash-index
     magit-insert-stash-untracked)
   "Hook run to insert sections into stash buffers."
   :package-version '(magit . "2.1.0")
   :group 'magit-log
   :type 'hook)
 
-(defcustom magit-stash-buffer-name-format "*magit-stash: %a*"
-  "Name format for buffers used to show stash diffs.
-
-The following `format'-like specs are supported:
-%a the absolute filename of the repository toplevel.
-%b the basename of the repository toplevel."
-  :package-version '(magit . "2.1.0")
-  :group 'magit-modes
-  :type 'string)
-
 ;;;###autoload
-(defun magit-stash-show (stash &optional noselect args files)
+(defun magit-stash-show (stash &optional args files)
   "Show all diffs of a stash in a buffer."
-  (interactive (nconc (list (or (and (not current-prefix-arg)
-                                     (magit-stash-at-point))
-                                (magit-read-stash "Show stash"))
-                            nil)
-                      (cl-destructuring-bind (args files)
-                          (magit-diff-arguments)
-                        (list (delete "--stat" args)
-                              files))))
-  (magit-mode-setup magit-stash-buffer-name-format
-                    (if noselect 'display-buffer 'pop-to-buffer)
-                    #'magit-stash-mode
-                    #'magit-stash-refresh-buffer stash nil args files))
+  (interactive (cons (or (and (not current-prefix-arg)
+                              (magit-stash-at-point))
+                         (magit-read-stash "Show stash"))
+                     (cl-destructuring-bind (args files)
+                         (magit-diff-arguments)
+                       (list (delete "--stat" args) files))))
+  (magit-mode-setup #'magit-stash-mode stash nil args files))
 
 (define-derived-mode magit-stash-mode magit-diff-mode "Magit Stash"
   "Mode for looking at individual stashes."

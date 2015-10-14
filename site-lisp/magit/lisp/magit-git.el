@@ -236,7 +236,7 @@ add a section in the respective process buffer."
                                         magit-process-error-message-re nil t)
                                        (match-string 1))))
                       (let ((magit-git-debug nil))
-                        (with-current-buffer (magit-process-buffer nil t)
+                        (with-current-buffer (magit-process-buffer t)
                           (magit-process-insert-section default-directory
                                                         magit-git-executable
                                                         args exit log))))
@@ -364,14 +364,17 @@ returning the truename."
                ;; both is the case, then we are at the toplevel of
                ;; the same working tree, but also avoided needlessly
                ;; following any symlinks.
-               (let ((default-directory
-                       (setq updir (file-name-as-directory
-                                    (expand-file-name
-                                     (magit-rev-parse-safe "--show-cdup"))))))
-                 (and (string-equal (magit-rev-parse-safe "--show-cdup") "")
-                      (--when-let (magit-rev-parse-safe "--show-toplevel")
-                        (string-equal (magit-expand-git-file-name it)
-                                      topdir)))))
+               (progn
+                 (setq updir (file-name-as-directory
+                              (magit-rev-parse-safe "--show-cdup")))
+                 (setq updir (if (file-name-absolute-p updir)
+                                 (concat (file-remote-p default-directory) updir)
+                               (expand-file-name updir)))
+                 (let ((default-directory updir))
+                   (and (string-equal (magit-rev-parse-safe "--show-cdup") "")
+                        (--when-let (magit-rev-parse-safe "--show-toplevel")
+                          (string-equal (magit-expand-git-file-name it)
+                                        topdir))))))
               updir
             (concat (file-remote-p default-directory)
                     (file-name-as-directory topdir))))
@@ -454,8 +457,8 @@ tracked file."
 (defun magit-tracked-files ()
   (magit-list-files "--cached"))
 
-(defun magit-untracked-files (&optional all)
-  (magit-list-files "--other" (unless all "--exclude-standard")))
+(defun magit-untracked-files (&optional all files)
+  (magit-list-files "--other" (unless all "--exclude-standard") "--" files))
 
 (defun magit-modified-files (&optional nomodules)
   (magit-git-items "diff-files" "-z" "--name-only"

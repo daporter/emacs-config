@@ -433,24 +433,153 @@ Besides these special purpose buffers, there also exists an overview
 buffer, called the *status buffer*.  Its usually from this buffer that
 the user invokes Git commands, or creates or visits other buffers.
 
+- Key: M-x magit-toggle-buffer-lock, magit-toggle-buffer-lock
+
+  This command locks the current buffer to its value or if the buffer
+  is already locked, then it unlocks it.
+
+  Locking a buffer to its value, prevents it from being reused to
+  display another value.  The name of a locked buffer contains its
+  value, which allows telling it apart from other locked buffers and
+  the unlocked buffer.
+
+  Not all Magit buffers can be locked to their values, for example it
+  wouldn't make sense to lock a status buffer.
+
+  There can only be a single unlocked buffer using a certain
+  major-mode per repository.  So when a buffer is being unlocked and
+  another unlocked buffer already exists for that mode and repository,
+  then the former buffer is instead deleted and the latter is
+  displayed in its place.
+
+*** Switching Buffers
+
+- Function: magit-display-buffer buffer
+
+  This function is a wrapper around ~display-buffer~ and is used to
+  display any Magit buffer. It displays BUFFER in some window and,
+  unlike ~display-buffer~, also selects that window, provided
+  ~magit-display-buffer-noselect~ is nil.  It also runs the hooks
+  mentioned below.
+
+- Variable: magit-display-buffer-noselect
+
+  When this is non-nil, then ~magit-display-buffer~ only displays the
+  buffer but forgoes also selecting the window.  This variable should
+  not be set globally, it is only intended to be let-bound, by code
+  that automatically updates "the other window".  This is used for
+  example when the revision buffer is updated when you move inside the
+  log buffer.
+
+- User Option: magit-display-buffer-function
+
+  The function specified here is called by ~magit-display-buffer~ with
+  one argument, a buffer, to actually display that buffer.  This
+  function should call ~display-buffer~ with that buffer as first and a
+  list of display actions as second argument.
+
+  Instead of using a wrapper around ~display-buffer~, that function
+  itself can be used here, in which case the display actions have to
+  be specified by adding them to ~display-buffer-alist~ instead.
+
+  To learn about display actions, see [[info:elisp#Choosing a Window for
+  Display]].
+
+- Function: magit-display-buffer-traditional buffer
+
+  This function is the current default value of option
+  ~magit-display-buffer-function~.  Before that option and this function
+  were added, the behavior was hard-coded in many places all over the
+  code base but now all the rules are contained in this one function
+  (except for the "noselect" special case mentioned above).
+
+  If you want to use different rules, then a good way of doing that is
+  to start with a copy of this function and then adjust it to your
+  needs.  More functions to choose from will be added in the future,
+  and eventually the default will change.
+
+- User Option: magit-pre-display-buffer-hook
+
+  This hook is run by ~magit-display-buffer~ before displaying the
+  buffer.
+
+- Function: magit-save-window-configuration
+
+  This function saves the current window configuration.  Later when
+  the buffer is buried, it may be restored by
+  ~magit-restore-window-configuration~.
+
+- User Option: magit-post-display-buffer-hook
+
+  This hook is run by ~magit-display-buffer~ after displaying the
+  buffer.
+
+- Function: magit-maybe-set-dedicated
+
+  This function remembers when a new window was created to display the
+  buffer.  That information is used by ~magit-mode-quit-window~, to
+  determine whether the window should be deleted when its last Magit
+  buffer is buried.
+
 *** Naming Buffers
 
-While it often is enough to have one buffer of a certain Magit mode
-per repository, this is not always the case.  You might, for example,
-want to view the diffs for two commits at the same time.  To do so,
-first rename the existing revision buffer.  Then show another commit.
-Usually that would reuse the existing buffer, but because its name no
-longer matches the default name, a new buffer is created instead.  The
-new buffer uses the default name, and therefore will be reused to show
-other commits as usual.
+- User Option: magit-generate-buffer-name-function
 
-- Key: M-x magit-rename-buffer, magit-rename-buffer
+  The function used to generate the names of Magit buffers.
 
-  This command changes the name of the current Magit buffer by
-  appending ~<N>~ and thereby keeping Magit from re-using it to display
-  other information of the same kind.
+  Such a function should take ~magit-uniquify-buffer-names~ as well as
+  ~magit-buffer-name-format~ into account.  If it doesn't, then its
+  doc-string should say so.  If it supports %-sequences not mentioned
+  in the doc-string of ~magit-buffer-name-format~, then its own
+  doc-string should describe them.
 
-  With a prefix argument, the user can pick an arbitrary name.
+- Function: magit-generate-buffer-name-default-function mode
+
+  This function returns a buffer name suitable for a buffer whose
+  major-mode is MODE and which shows information about the repository
+  in which ~default-directory~ is located.
+
+  This function uses ~magit-buffer-name-format~, supporting the
+  %-sequences mentioned the documentation of that option.  It also
+  respects ~magit-uniquify-buffer-names~.
+
+- User Option: magit-buffer-name-format
+
+  The format string used to name Magit buffers.
+
+  At least the following %-sequences are supported:
+
+  - ~%m~ The name of the major-mode, but with the ~-mode~ suffix removed.
+
+  - ~%M~ Like ~%m~ but abbreviate ~magit-status-mode~ as ~magit~.
+
+  - ~%v~ The value the buffer is locked to, in parentheses, if it is the
+    buffer is actually locked to its value.  An empty string
+    otherwise.
+
+  - ~%V~ Like ~%v~, but the string is prefixed with a space, unless it is
+    an empty string.
+
+  - ~%t~ The top-level directory of the working tree of the repository,
+    or if ~magit-uniquify-buffer-name~ is non-nil an abbreviation of
+    that.
+
+  The value should always contain either ~%m~ or ~%M~ as well as ~%t~.  If
+  ~magit-uniquify-buffer-name~ is non-nil, then the value must end with
+  ~%t~.
+
+- User Option: magit-uniquify-buffer-names
+
+  This option controls whether the names of Magit buffers are
+  uniquified.  If the names are not being uniquified, then they
+  contain the full name to the top-level of the working tree of the
+  corresponding repository.  If they are being uniquified, then they
+  end with the basename of the top-level, or if that would conflict
+  with the name used for other buffers, then the names of all these
+  buffers are adjusted until they no longer conflict.
+
+  This is done using the ~uniquify~ package; custoize its options to
+  control how buffer names are uniquified.
 
 *** Quitting Windows
 
@@ -513,10 +642,15 @@ refresh explicitly.
 
 After running a command which may change the state of the current
 repository, the current Magit buffer and the corresponding status
-buffer are refreshed.  This ensures that the displayed information is
-up-to-date but can lead to a noticeable delay in big repositories.
-Other Magit buffers are not refreshed to keep the delay to a minimum
-and also because doing so can sometimes be undesirable.
+buffer are refreshed.  Status buffer may optionally be automatically
+refreshed whenever a buffer is saved to a file inside the respective
+repository.
+
+Automatically refreshing Magit buffers ensures that the displayed
+information is up-to-date most of the time but can lead to a
+noticeable delay in big repositories.  Other Magit buffers are not
+refreshed to keep the delay to a minimum and also because doing so can
+sometimes be undesirable.
 
 - User Option: magit-revert-buffers
 
@@ -583,6 +717,17 @@ made to the repository outside of Magit.
 
   The file-visiting buffers are always reverted, even if
   ~magit-revert-buffers~ is nil.
+
+- Function: magit-after-save-refresh-status
+
+  This function is intended to be added to ~after-save-hook~.  After
+  doing that the corresponding status buffer is refreshed whenever a
+  buffer is saved to a file inside a repository.
+
+  Note that refreshing a Magit buffer is done by re-creating its
+  contents from scratch, which can be slow in large repositories.  If
+  you are not satisfied with Magit's performance, then you should
+  obviously not add this function to that hook.
   
 - User Option: magit-refresh-buffer-hook
 
@@ -675,18 +820,50 @@ that hook's default value.
   ~magit-section-movement-hook~, then you must remove the hunk-only
   variant in turn.
 
-- Function: magit-log-maybe-show-commit
-
-  This hook function shows the commit at point in another window.  If
-  the section at point is a ~commit~ section and the value of
-  ~magit-diff-auto-show-p~ calls for it, then the commit is shown in
-  another window, using ~magit-show-commit~.
-
 - Function: magit-log-maybe-show-more-commits
 
   This hook function only has an effect in log buffers, and ~point~ is
   on the "show more" section.  If that is the case, then it doubles
   the number of commits that are being shown.
+
+- Function: magit-log-maybe-update-revision-buffer
+
+  When moving inside a log buffer, then this function updates the
+  revision buffer, provided it is already being displayed in another
+  window of the same frame.
+
+- Function: magit-log-maybe-update-blob-buffer
+
+  When moving inside a log buffer and another window of the same frame
+  displays a blob buffer, then this function instead displays the blob
+  buffer for the commit at point in that window.
+
+- Function: magit-status-maybe-update-revision-buffer
+
+  When moving inside a status buffer, then this function updates the
+  revision buffer, provided it is already being displayed in another
+  window of the same frame.
+
+- Function: magit-status-maybe-update-blob-buffer
+
+  When moving inside a status buffer and another window of the same
+  frame displays a blob buffer, then this function instead displays
+  the blob buffer for the commit at point in that window.
+
+- User Option: magit-update-other-window-delay
+
+  Delay before automatically updating the other window.
+
+  When moving around in certain buffers certain other buffers, which
+  are being displayed in another window, may optionally be updated to
+  display information about the section at point.
+
+  When holding down a key to move by more than just one section, then
+  that would update that buffer for each section on the way.  To
+  prevent that, updating the revision buffer is delayed, and this
+  option controls for how long.  For optimal experience you might have
+  to adjust this delay and/or the keyboard repeat rate and delay of
+  your graphical environment or operating system.
 
 *** Section visibility
 
@@ -1005,12 +1182,12 @@ begin with the subcommand, "git" is assumed.
 
 These suffix commands run arbitrary shell commands.
 
-- Key: ! !, magit-shell-command-topdir
+- Key: ! s, magit-shell-command-topdir
 
   This command reads a shell command from the user and executes it in
   the top-level directory of the current repository.
 
-- Key: ! p, magit-shell-command
+- Key: ! S, magit-shell-command
 
   This command reads a shell command from the user and executes it in
   ~default-directory~.  With a prefix argument the command is executed
@@ -1354,19 +1531,6 @@ The following functions can also be added to the above hook:
 - User Option: magit-status-refresh-hook
 
   Hook run after a status buffer has been refreshed.
-
-- User Option: magit-status-buffer-switch-function
-
-  Function used by ~magit-status~ to switch to a status buffer.
-  The function is given one argument, the status buffer.
-
-- User Option: magit-status-buffer-name-format
-
-  Name format for buffers used to display a repository's status.
-
-  The following ~format~-like specs are supported:
-  ~%a~ the absolute filename of the repository top-level.
-  ~%b~ the basename of the repository top-level.
 
 - User Option: magit-log-section-args
 
@@ -1807,37 +1971,6 @@ without having to using one of the diff popups.
   Scroll text downward.
 
 *** Diff options
-
-- User Option: magit-diff-auto-show
-
-  Whether to automatically show the relevant diff or commit.
-
-  When this option is non-nil certain operations cause the relevant
-  changes to be displayed automatically.
-
-  - ~commit~
-  - ~stage-all~
-  - ~log-oneline~
-  - ~log-follow~
-  - ~log-select~
-  - ~blame-follow~
-
-  In the event that expanding very large patches takes a long time, ~C-g~
-  can be used to abort that step.  This is especially useful when you
-  would normally not look at the changes, e.g. because you are
-  committing some binary files.
-
-- User Option: magit-diff-auto-show-delay
-
-  How long to delay showing or updating the revision buffer, when
-  that happens automatically (according to ~magit-diff-auto-show~).
-
-  When holding down a key to move by several lines, then that would
-  update that buffer for each line on the way.  To prevent that,
-  updating the revision buffer is delayed, and this option controls
-  for how long it is delayed.  For optimal experience you might have
-  to adjust this delay and/or the keyboard repeat rate and delay of
-  your graphical environment or operating system.
 
 - User Option: magit-diff-refine-hunk
 
@@ -2327,20 +2460,16 @@ apply variants are described in the next section.
 
   Remove the change at point from the staging area.
 
-- Key: U, magit-reset-index
+- Key: U, magit-unstage-all
+
+  Remove all changes from the staging area.
+
+- Key: M-x magit-reset-index, magit-reset-index
 
   Reset the index to some commit.  The commit is read from the user
   and defaults to the commit at point.  If there is no commit at
   point, then it defaults to ~HEAD~.
 
-  So ~U RET~ with no commit at point does the inverse of ~S~ (or actually
-  ~S yes RET~), i.e. "unstage all staged changes".  If you would rather
-  use a command which always does just that, then rebind ~U~ to
-  ~magit-unstage-all~.
-
-- Key: M-x magit-unstage-all, magit-unstage-all
-
-  Remove all changes from the staging area.
 
 To stage a smaller unit than a range of lines, similar to ~git add
 --patch~ followed by ~e~ would do, then you can use ~magit-ediff-stage~ to
@@ -2948,7 +3077,7 @@ Explicitly enabling ~--interactive~ won't have an effect on the
 following commands as they always use that argument anyway, even if it
 is not enabled in the popup.
 
-- Key: r e, magit-rebase-interactive
+- Key: r i, magit-rebase-interactive
 
   Start an interactive rebase sequence.
 
@@ -2965,7 +3094,7 @@ is not enabled in the popup.
 
   Combine squash and fixup commits with their intended targets.
 
-- Key: r s, magit-rebase-edit-commit
+- Key: r e, magit-rebase-edit-commit
 
   Edit a single older commit using rebase.
 
@@ -3311,7 +3440,7 @@ Also see [[info:gitman#git-reset]].
   defaulting to the commit at point.  The working tree is kept as-is.
   With a prefix argument also reset the working tree.
 
-- Key: U, magit-reset-index
+- Key: M-x magit-reset-index, magit-reset-index
 
   Reset the index to some commit read from the user and defaulting to
   the commit at point.  Keep the ~HEAD~ and working tree as-is, so if
