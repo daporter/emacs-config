@@ -45,6 +45,13 @@ filtered from the list of candidates if the
   :type  '(repeat (choice regexp))
   :group 'helm-buffers)
 
+(defcustom helm-white-buffer-regexp-list nil
+  "The regexp list of not boring buffers.
+These buffers will be displayed even if they match one of
+`helm-boring-buffer-regexp-list'."
+  :type '(repeat (choice regexp))
+  :group 'helm-buffers)
+
 (defcustom helm-buffers-favorite-modes '(lisp-interaction-mode
                                          emacs-lisp-mode
                                          text-mode
@@ -823,7 +830,9 @@ Can be used by any source that list buffers."
 ;;
 ;;
 (defun helm-skip-boring-buffers (buffers _source)
-  (helm-skip-entries buffers helm-boring-buffer-regexp-list))
+  (helm-skip-entries buffers
+                     helm-boring-buffer-regexp-list
+                     helm-white-buffer-regexp-list))
 
 (defun helm-shadow-boring-buffers (buffers _source)
   "Buffers matching `helm-boring-buffer-regexp' will be
@@ -864,8 +873,9 @@ displayed with the `file-name-shadow' face if available."
 (defun helm-buffers-list ()
   "Preconfigured `helm' to list buffers."
   (interactive)
-  (helm--maybe-build-source 'helm-source-buffers-list
-    (helm-make-source "Buffers" 'helm-source-buffers))
+  (unless helm-source-buffers-list
+    (setq helm-source-buffers-list
+          (helm-make-source "Buffers" 'helm-source-buffers)))
   (helm :sources '(helm-source-buffers-list
                    helm-source-ido-virtual-buffers
                    helm-source-buffer-not-found)
@@ -878,8 +888,9 @@ displayed with the `file-name-shadow' face if available."
   "Preconfigured `helm' lightweight version \(buffer -> recentf\)."
   (interactive)
   (require 'helm-files)
-  (helm--maybe-build-source 'helm-source-buffers-list
-    (helm-make-source "Buffers" 'helm-source-buffers))
+  (unless helm-source-buffers-list
+    (setq helm-source-buffers-list
+          (helm-make-source "Buffers" 'helm-source-buffers)))
   (helm :sources helm-mini-default-sources
         :buffer "*helm mini*"
         :ff-transformer-show-only-basename nil
