@@ -3055,7 +3055,7 @@ It is meant to use with `filter-one-by-one' slot."
 
 (defun helm-fuzzy-highlight-matches (candidates _source)
   "The filtered-candidate-transformer function to highlight matches in fuzzy.
-See helm-fuzzy-default-highlight-match."
+See `helm-fuzzy-default-highlight-match'."
   (cl-loop for c in candidates
            collect (funcall helm-fuzzy-matching-highlight-fn c)))
 
@@ -3121,18 +3121,19 @@ and `helm-pattern'."
               (case-fold-search (helm-set-case-fold-search)))
           (clrhash helm-match-hash)
           (cl-dolist (match matchfns)
-            (let (newmatches)
-              (cl-dolist (candidate cands)
-                (unless (gethash candidate helm-match-hash)
-                  (let ((target (helm-candidate-get-display candidate)))
-                    (when (funcall match
-                                   (if match-part-fn
-                                       (funcall match-part-fn target) target))
-                      (helm--accumulate-candidates
-                       candidate newmatches
-                       helm-match-hash item-count limit source)))))
-              ;; filter-one-by-one may return nil candidates, so delq them if some.
-              (setq matches (nconc matches (nreverse (delq nil newmatches)))))))
+            (when (< item-count limit)
+              (let (newmatches)
+                (cl-dolist (candidate cands)
+                  (unless (gethash candidate helm-match-hash)
+                    (let ((target (helm-candidate-get-display candidate)))
+                      (when (funcall match
+                                     (if match-part-fn
+                                         (funcall match-part-fn target) target))
+                        (helm--accumulate-candidates
+                         candidate newmatches
+                         helm-match-hash item-count limit source)))))
+                ;; filter-one-by-one may return nil candidates, so delq them if some.
+                (setq matches (nconc matches (nreverse (delq nil newmatches))))))))
       (error (unless (eq (car err) 'invalid-regexp) ; Always ignore regexps errors.
                (helm-log-error "helm-match-from-candidates in source `%s': %s %s"
                                (assoc-default 'name source) (car err) (cdr err)))
@@ -3736,24 +3737,32 @@ Possible value of DIRECTION are 'next or 'previous."
                                       (assoc-default 'mode-line source))
                                  (default-value 'helm-mode-line-string))
                              source))
-  (let ((follow (and (eq (cdr (assq 'follow source)) 1) "(HF) ")))
+  (let ((follow (and (eq (cdr (assq 'follow source)) 1) " (HF)"))
+        (marked (and helm-marked-candidates
+                     (cl-loop with cur-name = (assoc-default 'name source)
+                              for c in helm-marked-candidates
+                              for name = (assoc-default 'name (car c))
+                              when (string= name cur-name)
+                              collect c))))
     ;; Setup mode-line.
     (if helm-mode-line-string
         (setq mode-line-format
               `(" " mode-line-buffer-identification " "
-                    (:eval (format "L%d" (helm-candidate-number-at-point)))
-                    " " ,follow
-                    (:eval (and helm-marked-candidates
-                                (propertize
-                                 (format "M%d" (length helm-marked-candidates))
-                                 'face 'helm-visible-mark)))
-                    " "
+                    (:eval (format "L%-3d" (helm-candidate-number-at-point)))
+                    ,follow
+                    (:eval ,(and marked
+                                 (concat
+                                  " "
+                                  (propertize
+                                   (format "M%d" (length marked))
+                                   'face 'helm-visible-mark))))
                     (:eval (when ,helm--mode-line-display-prefarg
                              (let ((arg (prefix-numeric-value
                                          (or prefix-arg current-prefix-arg))))
                                (unless (= arg 1)
-                                 (propertize (format "[prefarg:%s] " arg)
+                                 (propertize (format " [prefarg:%s]" arg)
                                              'face 'helm-prefarg)))))
+                    " "
                     (:eval (helm-show-candidate-number
                             (car-safe helm-mode-line-string)))
                     " " helm--mode-line-string-real " " mode-line-end-spaces)
@@ -3826,11 +3835,15 @@ You can specify NAME of candidates e.g \"Buffers\" otherwise
 it is \"Candidate\(s\)\" by default."
   (when helm-alive-p
     (unless (helm-empty-source-p)
-      (propertize
-       (format "[%s %s]"
-               (helm-get-candidate-number 'in-current-source)
-               (or name "Candidate(s)"))
-       'face 'helm-candidate-number))))
+      ;; Build a fixed width string when candidate-number < 1000
+      (let* ((cand-name (or name "Candidate(s)"))
+             (width (length (format "[999 %s]" cand-name))))
+        (propertize
+         (format (concat "%-" (number-to-string width) "s")
+                 (format "[%s %s]"
+                         (helm-get-candidate-number 'in-current-source)
+                         cand-name))
+         'face 'helm-candidate-number)))))
 
 (cl-defun helm-move-selection-common (&key where direction)
   "Move the selection marker to a new position.
@@ -4287,7 +4300,8 @@ before the candidate we want to preselect."
     (when (helm-pos-multiline-p)
       (helm-move--beginning-of-multiline-candidate))
     (when (helm-pos-header-line-p) (forward-line 1))
-    (helm-mark-current-line)))
+    (helm-mark-current-line)
+    (helm-display-mode-line (helm-get-current-source))))
 
 (defun helm-delete-current-selection ()
   "Delete the currently selected item."
@@ -5189,29 +5203,45 @@ visible or invisible in all sources of current helm session"
         (helm-unmark-all)
       (helm-mark-all))))
 
+(defun helm--compute-marked (real source wildcard)
+  (let* ((coerced (helm-coerce-selection real source))
+         (wilds   (and wildcard
+                       (condition-case nil
+                           (helm-file-expand-wildcards coerced t)
+                         (error nil)))))
+    (unless (or wilds (null wildcard)
+                (null
+                 (and (stringp coerced)
+                      (string-match-p "[[*?]" coerced)))) ; [1]
+      ;; When real is a normal filename without wildcard
+      ;; file-expand-wildcards returns a list of one file.
+      ;; When real is a non--existent file it return nil.
+      ;; IOW prevent returning (list "/foo/*.el") when
+      ;; "/foo/*.el" haven't expanded previously and is
+      ;; a non existing file, but allow returning a non
+      ;; existing file that doesn't match a wilcard regexp [1].
+      (setq coerced (file-expand-wildcards coerced t)))
+    (or wilds (and coerced (list coerced)))))
+
 (cl-defun helm-marked-candidates (&key with-wildcard)
   "Return marked candidates of current source if any.
 Otherwise one element list of current selection.
 When key WITH-WILDCARD is specified try to expand a wilcard if some."
   (with-current-buffer helm-buffer
-    (cl-loop with current-src = (helm-get-current-source)
-          for (source . real) in
-          (or (reverse helm-marked-candidates)
-              (list (cons current-src (helm-get-selection))))
-          when (equal (assoc 'name current-src)
-                      (assoc 'name source))
-          ;; When real is a normal filename without wildcard
-          ;; file-expand-wildcards returns a list of one file.
-          ;; When real is a non--existent file it return nil.
-          append (let* ((elm (helm-coerce-selection real source))
-                        (c   (and with-wildcard
-                                  (condition-case nil
-                                      (helm-file-expand-wildcards elm t)
-                                    (error nil)))))
-                   (or c (list elm)))
-          into cands
-          finally do (prog1 (cl-return cands)
-                       (helm-log "Marked candidates = %S" cands)))))
+    (let ((candidates
+           (cl-loop with current-src = (helm-get-current-source)
+                    for (source . real) in (reverse helm-marked-candidates)
+                    when (equal (assq 'name source) (assq 'name current-src))
+                    append (helm--compute-marked real source with-wildcard) 
+                    into cands
+                    finally return (or cands
+                                       (append
+                                        (helm--compute-marked
+                                         (helm-get-selection) current-src
+                                         with-wildcard)
+                                        cands)))))
+      (helm-log "Marked candidates = %S" candidates)
+      candidates)))
 
 (defun helm-current-source-name= (name)
   (save-excursion
@@ -5221,22 +5251,23 @@ When key WITH-WILDCARD is specified try to expand a wilcard if some."
 (defun helm-revive-visible-mark ()
   "Restore marked candidates when helm update display."
   (with-current-buffer helm-buffer
-    (cl-dolist (o helm-visible-mark-overlays)
-      (goto-char (point-min))
-      (while (and (search-forward (overlay-get o 'string) nil t)
-                  (helm-current-source-name= (overlay-get o 'source)))
-        ;; Calculate real value of candidate.
-        ;; It can be nil if candidate have only a display value.
-        (let ((real (get-text-property (point-at-bol 0) 'helm-realvalue)))
-          (if real
-              ;; Check if real value of current candidate is the same
-              ;; than the one stored in overlay.
-              ;; This is needed when some cands have same display names.
-              ;; Using equal allow testing any type of value for real cand.
-              ;; Issue (#706).
-              (and (equal (overlay-get o 'real) real)
-                   (move-overlay o (point-at-bol 0) (1+ (point-at-eol 0))))
-            (move-overlay o (point-at-bol 0) (1+ (point-at-eol 0)))))))))
+    (save-excursion
+      (cl-dolist (o helm-visible-mark-overlays)
+        (goto-char (point-min))
+        (while (and (search-forward (overlay-get o 'string) nil t)
+                    (helm-current-source-name= (overlay-get o 'source)))
+          ;; Calculate real value of candidate.
+          ;; It can be nil if candidate have only a display value.
+          (let ((real (get-text-property (point-at-bol 0) 'helm-realvalue)))
+            (if real
+                ;; Check if real value of current candidate is the same
+                ;; than the one stored in overlay.
+                ;; This is needed when some cands have same display names.
+                ;; Using equal allow testing any type of value for real cand.
+                ;; Issue (#706).
+                (and (equal (overlay-get o 'real) real)
+                     (move-overlay o (point-at-bol 0) (1+ (point-at-eol 0))))
+                (move-overlay o (point-at-bol 0) (1+ (point-at-eol 0))))))))))
 (add-hook 'helm-update-hook 'helm-revive-visible-mark)
 
 (defun helm-next-point-in-list (curpos points &optional prev)
@@ -5307,7 +5338,7 @@ is what is used to perform actions."
   (with-helm-buffer
     (cl-loop for cand in (helm-marked-candidates)
              do (with-helm-current-buffer
-                  (insert cand "\n")))))
+                  (insert (format "%s\n" cand))))))
 
 
 ;;; Follow-mode: Automatical execution of persistent-action
@@ -5360,7 +5391,7 @@ This will enable `helm-follow-mode' automatically in `helm-source-buffers-list'.
                 (message "helm-follow-mode is %s"
                          (if helm-follow-mode
                              "enabled" "disabled"))
-                (helm-display-mode-line src))
+                (helm-display-mode-line src t))
             (unless helm-follow-mode-persistent
               (and sym (set sym (remove (assq 'follow src) src)))))
           (message "Not enough candidates for helm-follow-mode")))))
