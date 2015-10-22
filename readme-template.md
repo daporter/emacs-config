@@ -4,7 +4,7 @@ A modern list api for Emacs. No 'cl required.
 
 ## Installation
 
-It's available on [marmalade](http://marmalade-repo.org/) and [Melpa](http://melpa.milkbox.net/):
+It's available on [marmalade](http://marmalade-repo.org/) and [Melpa](https://melpa.org/):
 
     M-x package-install dash
 
@@ -19,11 +19,18 @@ If you want the function combinators, then also:
 
 Add this to the big comment block at the top:
 
-    ;; Package-Requires: ((dash "2.12.0"))
+    ;; Package-Requires: ((dash "2.12.1"))
 
 To get function combinators:
 
-    ;; Package-Requires: ((dash "2.12.0") (dash-functional "1.2.0") (emacs "24"))
+    ;; Package-Requires: ((dash "2.12.1") (dash-functional "1.2.0") (emacs "24"))
+
+## Upcoming breaking change!
+
+- For backward compatibility reasons `-zip` return a cons-cell instead of a list
+  with two elements when called on two lists. This is a clunky API, and in an
+  upcoming 3.0 release of Dash it will always return a list. If you rely on the
+  cons-cell return value, use `-zip-pair` instead.
 
 ## Syntax highlighting of dash functions
 
@@ -90,6 +97,8 @@ Oh, and don't edit `README.md` directly, it is auto-generated.
 Change `readme-template.md` or `examples-to-docs.el` instead.
 
 ## Changelist
+
+- Added lexical binding pragma to dash.el
 
 ### From 2.11 to 2.12
 
