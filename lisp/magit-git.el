@@ -303,10 +303,9 @@ call function WASHER with no argument."
 (defmacro magit--with-safe-default-directory (file &rest body)
   (declare (indent 1) (debug (form body)))
   `(catch 'unsafe-default-dir
-     (let ((default-directory
-             (file-name-as-directory (--if-let ,file
-                                         (expand-file-name it)
-                                       default-directory)))
+     (let ((default-directory (file-name-as-directory
+                               (expand-file-name
+                                (or ,file default-directory))))
            previous)
        (while (not (file-accessible-directory-p default-directory))
          (setq default-directory
@@ -387,8 +386,12 @@ returning the truename."
                         (expand-file-name gitdir))))
         (if (magit-bare-repo-p)
             gitdir
-          ;; Step outside the control directory to enter the working tree.
-          (file-name-directory (directory-file-name gitdir)))))))
+          (let ((link (expand-file-name "gitdir" gitdir)))
+            (if (file-exists-p link)
+                ;; Return the linked working tree.
+                (file-name-directory (magit-file-line link))
+              ;; Step outside the control directory to enter the working tree.
+              (file-name-directory (directory-file-name gitdir)))))))))
 
 (defmacro magit-with-toplevel (&rest body)
   (declare (indent defun) (debug (body)))
@@ -515,13 +518,27 @@ range.  Otherwise, it can be any revision or range accepted by
         (setq pos (point)))
       status)))
 
+(defcustom magit-cygwin-mount-points
+  (when (eq system-type 'windows-nt)
+    (cl-sort (--map (if (string-match "^\\(.*\\) on \\(.*\\) type" it)
+                        (cons (match-string 2 it) (match-string 1 it))
+                      (lwarn '(magit) :error
+                             "Failed to parse Cygwin mount: %S" it))
+                    (ignore-errors (process-lines "mount")))
+             #'> :key (-lambda ((cyg . win)) (length cyg))))
+  "Alist of (CYGWIN . WIN32) paths.
+Sorted from longest to shortest Cygwin path."
+  :package-version '(magit . "2.3.0")
+  :group 'magit-process
+  :type '(alist :key-type string :value-type directory))
+
 (defun magit-expand-git-file-name (filename)
   (unless (file-name-absolute-p filename)
     (setq filename (expand-file-name filename)))
-  (if (and (eq system-type 'windows-nt) ; together with cygwin git, see #1318
-           (string-match "^/\\(cygdrive/\\)?\\([a-z]\\)/\\(.*\\)" filename))
-      (concat (match-string 2 filename) ":/"
-              (match-string 3 filename))
+  (-if-let ((cyg . win)
+            (cl-assoc filename magit-cygwin-mount-points
+                      :test (lambda (f cyg) (string-prefix-p cyg f))))
+      (concat win (substring filename (length cyg)))
     filename))
 
 (defun magit-decode-git-path (path)
