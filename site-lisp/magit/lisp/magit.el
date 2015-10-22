@@ -16,7 +16,7 @@
 ;;	Rémi Vanicat      <vanicat@debian.org>
 ;;	Yann Hodique      <yann.hodique@gmail.com>
 
-;; Package-Requires: ((emacs "24.4") (async "20150812") (dash "2.11.0") (with-editor "20150903") (git-commit "20150903") (magit-popup "20150903"))
+;; Package-Requires: ((emacs "24.4") (async "20150909.2257") (dash "20151021.113") (with-editor "20151022") (git-commit "20151022") (magit-popup "20151022"))
 ;; Keywords: git tools vc
 ;; Homepage: https://github.com/magit/magit
 
@@ -997,22 +997,25 @@ existing one."
 (defun magit-find-file-noselect (rev file)
   "Read FILE from REV into a buffer and return the buffer.
 FILE must be relative to the top directory of the repository."
-  (or (magit-get-revision-buffer rev file)
-      (with-current-buffer (magit-get-revision-buffer-create rev file)
-        (let ((inhibit-read-only t))
-          (erase-buffer)
-          (magit-git-insert "cat-file" "-p" (concat rev ":" file)))
-        (setq magit-buffer-revision  (magit-rev-format "%H" rev)
-              magit-buffer-refname   rev
-              magit-buffer-file-name (expand-file-name file (magit-toplevel)))
-        (let ((buffer-file-name magit-buffer-file-name))
-          (normal-mode t))
-        (setq buffer-read-only t)
-        (set-buffer-modified-p nil)
-        (goto-char (point-min))
-        (magit-blob-mode 1)
-        (run-hooks 'magit-find-file-hook)
-        (current-buffer))))
+  (let ((topdir (magit-toplevel)))
+    (when (file-name-absolute-p file)
+      (setq file (file-relative-name file topdir)))
+    (or (magit-get-revision-buffer rev file)
+        (with-current-buffer (magit-get-revision-buffer-create rev file)
+          (let ((inhibit-read-only t))
+            (erase-buffer)
+            (magit-git-insert "cat-file" "-p" (concat rev ":" file)))
+          (setq magit-buffer-revision  (magit-rev-format "%H" rev)
+                magit-buffer-refname   rev
+                magit-buffer-file-name (expand-file-name file topdir))
+          (let ((buffer-file-name magit-buffer-file-name))
+            (normal-mode t))
+          (setq buffer-read-only t)
+          (set-buffer-modified-p nil)
+          (goto-char (point-min))
+          (magit-blob-mode 1)
+          (run-hooks 'magit-find-file-hook)
+          (current-buffer)))))
 
 (defvar magit-find-index-hook nil)
 
@@ -1207,6 +1210,8 @@ This is useful to create a feature branch after work has already
 began on the old branch (likely but not necessarily \"master\")."
   (interactive (list (magit-read-string "Spin off branch")
                      (magit-branch-arguments)))
+  (when (magit-branch-p branch)
+    (user-error "Branch %s already exists" branch))
   (-if-let (current (magit-get-current-branch))
       (let (tracked base)
         (magit-call-git "checkout" args "-b" branch current)
@@ -1445,14 +1450,21 @@ inspect the merge and change the commit message.
 (defun magit-merge-preview (rev)
   "Preview result of merging REV into the current branch."
   (interactive (list (magit-read-other-branch-or-commit "Preview merge")))
-  (magit-mode-setup #'magit-diff-mode rev))
+  (magit-mode-setup #'magit-merge-preview-mode rev))
 
-(defun magit-merge-refresh-preview-buffer (rev)
-  (magit-insert-section (diffbuf)
-    (let* ((branch (magit-get-current-branch))
-           (head (or branch (magit-rev-verify "HEAD"))))
-      (magit-insert-heading (format "Preview merge of %s into %s"
-                                    rev (or branch "HEAD")))
+(define-derived-mode magit-merge-preview-mode magit-diff-mode "Magit Merge"
+  "Mode for previewing a merge."
+  :group 'magit-diff
+  (hack-dir-local-variables-non-file-buffer))
+
+(defun magit-merge-preview-refresh-buffer (rev)
+  (let* ((branch (magit-get-current-branch))
+         (head (or branch (magit-rev-verify "HEAD"))))
+    (setq header-line-format
+          (propertize (format "Preview merge of %s into %s"
+                              rev (or branch "HEAD"))
+                      'face 'magit-header-line))
+    (magit-insert-section (diffbuf)
       (magit-git-wash #'magit-diff-wash-diffs
         "merge-tree" (magit-git-string "merge-base" head rev) head rev))))
 
