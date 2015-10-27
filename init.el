@@ -146,6 +146,11 @@
   (when (executable-find "curl")
     (setq helm-google-suggest-use-curl-p t)))
 
+(use-package chruby
+  :load-path "site-lisp/chruby"
+  :init (chruby "ruby-2.2.3"))
+
+
 ;; (use-package helm
 ;;   :ensure t
 ;;   :diminish helm-mode
@@ -1406,10 +1411,6 @@
 
 ;; (use-package dash-at-point
 ;;   :ensure t)
-
-;; (use-package chruby
-;;   :ensure t
-;;   :init (chruby "ruby-2.1.3"))
 
 ;; (use-package flymake-cursor
 ;;   :ensure t)
