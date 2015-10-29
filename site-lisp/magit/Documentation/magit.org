@@ -7,7 +7,7 @@
 #+TEXINFO_DIR_CATEGORY: Emacs
 #+TEXINFO_DIR_TITLE: Magit: (magit).
 #+TEXINFO_DIR_DESC: Using Git from Emacs with Magit.
-#+SUBTITLE: for version 2.2
+#+SUBTITLE: for version 2.3
 
 #+OPTIONS: H:4 num:3 toc:2
 #+STARTUP: indent
@@ -422,16 +422,16 @@ for buffers visiting files]]).
 * Interface concepts
 ** Modes and Buffers
 
-Magit provides several major modes.  For each of these modes there
+Magit provides several major-modes.  For each of these modes there
 usually exists only one buffer per repository.  Separate modes and
 thus buffers exist for commits, diffs, logs, and some other things.
-
-In this manual we often speak about "Magit buffers".  By that we mean
-buffers whose major-modes derive from ~magit-mode~.
 
 Besides these special purpose buffers, there also exists an overview
 buffer, called the *status buffer*.  Its usually from this buffer that
 the user invokes Git commands, or creates or visits other buffers.
+
+In this manual we often speak about "Magit buffers".  By that we mean
+buffers whose major-modes derive from ~magit-mode~.
 
 - Key: M-x magit-toggle-buffer-lock, magit-toggle-buffer-lock
 
@@ -457,9 +457,9 @@ the user invokes Git commands, or creates or visits other buffers.
 - Function: magit-display-buffer buffer
 
   This function is a wrapper around ~display-buffer~ and is used to
-  display any Magit buffer. It displays BUFFER in some window and,
+  display any Magit buffer.  It displays BUFFER in some window and,
   unlike ~display-buffer~, also selects that window, provided
-  ~magit-display-buffer-noselect~ is nil.  It also runs the hooks
+  ~magit-display-buffer-noselect~ is ~nil~.  It also runs the hooks
   mentioned below.
 
 - Variable: magit-display-buffer-noselect
@@ -487,7 +487,7 @@ the user invokes Git commands, or creates or visits other buffers.
 
 - Function: magit-display-buffer-traditional buffer
 
-  This function is the current default value of option
+  This function is the current default value of the option
   ~magit-display-buffer-function~.  Before that option and this function
   were added, the behavior was hard-coded in many places all over the
   code base but now all the rules are contained in this one function
@@ -516,10 +516,11 @@ the user invokes Git commands, or creates or visits other buffers.
 
 - Function: magit-maybe-set-dedicated
 
-  This function remembers when a new window was created to display the
-  buffer.  That information is used by ~magit-mode-quit-window~, to
-  determine whether the window should be deleted when its last Magit
-  buffer is buried.
+  This function remembers if a new window had to be created to display
+  the buffer, or whether an existing window was reused.  This
+  information is later used by ~magit-mode-quit-window~, to determine
+  whether the window should be deleted when its last Magit buffer is
+  buried.
 
 *** Naming Buffers
 
@@ -527,11 +528,12 @@ the user invokes Git commands, or creates or visits other buffers.
 
   The function used to generate the names of Magit buffers.
 
-  Such a function should take ~magit-uniquify-buffer-names~ as well as
-  ~magit-buffer-name-format~ into account.  If it doesn't, then its
-  doc-string should say so.  If it supports %-sequences not mentioned
-  in the doc-string of ~magit-buffer-name-format~, then its own
-  doc-string should describe them.
+  Such a function should take the options ~magit-uniquify-buffer-names~
+  as well as ~magit-buffer-name-format~ into account.  If it doesn't,
+  then should be clearly stated in the doc-string.  And if it supports
+  %-sequences beyond those mentioned in the doc-string of the option
+  ~magit-buffer-name-format~, then its own doc-string should describe
+  the additions.
 
 - Function: magit-generate-buffer-name-default-function mode
 
@@ -539,9 +541,9 @@ the user invokes Git commands, or creates or visits other buffers.
   major-mode is MODE and which shows information about the repository
   in which ~default-directory~ is located.
 
-  This function uses ~magit-buffer-name-format~, supporting the
-  %-sequences mentioned the documentation of that option.  It also
-  respects ~magit-uniquify-buffer-names~.
+  This function uses ~magit-buffer-name-format~ and supporting all of
+  the %-sequences mentioned the documentation of that option.  It also
+  respects the option ~magit-uniquify-buffer-names~.
 
 - User Option: magit-buffer-name-format
 
@@ -549,36 +551,45 @@ the user invokes Git commands, or creates or visits other buffers.
 
   At least the following %-sequences are supported:
 
-  - ~%m~ The name of the major-mode, but with the ~-mode~ suffix removed.
+  - ~%m~
 
-  - ~%M~ Like ~%m~ but abbreviate ~magit-status-mode~ as ~magit~.
+    The name of the major-mode, but with the ~-mode~ suffix removed.
 
-  - ~%v~ The value the buffer is locked to, in parentheses, if it is the
+  - ~%M~
+
+    Like ~%m~ but abbreviate ~magit-status-mode~ as ~magit~.
+
+  - ~%v~
+
+    The value the buffer is locked to, in parentheses, if it is the
     buffer is actually locked to its value.  An empty string
     otherwise.
 
-  - ~%V~ Like ~%v~, but the string is prefixed with a space, unless it is
-    an empty string.
+  - ~%V~
 
-  - ~%t~ The top-level directory of the working tree of the repository,
-    or if ~magit-uniquify-buffer-name~ is non-nil an abbreviation of
-    that.
+    Like ~%v~, but the string is prefixed with a space, unless it is an
+    empty string.
 
-  The value should always contain either ~%m~ or ~%M~ as well as ~%t~.  If
-  ~magit-uniquify-buffer-name~ is non-nil, then the value must end with
-  ~%t~.
+  - ~%t~
+
+    The top-level directory of the working tree of the repository, or
+    if ~magit-uniquify-buffer-name~ is non-nil an abbreviation of that.
+
+  The value should always contain either ~%m~ or ~%M~, ~%v~ or ~%V~, and ~%t~.
+  If ~magit-uniquify-buffer-name~ is non-nil, then the value must end
+  with ~%t~.
 
 - User Option: magit-uniquify-buffer-names
 
   This option controls whether the names of Magit buffers are
   uniquified.  If the names are not being uniquified, then they
-  contain the full name to the top-level of the working tree of the
+  contain the full path of the top-level of the working tree of the
   corresponding repository.  If they are being uniquified, then they
   end with the basename of the top-level, or if that would conflict
   with the name used for other buffers, then the names of all these
   buffers are adjusted until they no longer conflict.
 
-  This is done using the ~uniquify~ package; custoize its options to
+  This is done using the ~uniquify~ package; customize its options to
   control how buffer names are uniquified.
 
 *** Quitting Windows
@@ -760,7 +771,7 @@ mode.  Each section also has a type, and some sections also have a
 value.  For each section type there can also be a local keymap, shared
 by all sections of that type.
 
-Taking advantage the section value and type, many commands operate on
+Taking advantage of the section value and type, many commands operate on
 the current section, or when the region is active and selects sections
 of the same type, all of the selected sections.  Commands that only
 make sense for a particular section type (as opposed to just behaving
@@ -4333,9 +4344,11 @@ worked around:
 
   In other words, it's not that Git is slow at outputting the
   differences, or that Magit is slow at parsing the output - the
-  problem is that Git first goes outside and has a smoke.  This has to
-  be fixed in Git but so far nobody volunteered to do it.  Maybe you
-  could do that?
+  problem is that Git first goes outside and has a smoke.
+
+  We actually work around this issue by limiting the commit not only
+  using ~-<N>~ but also using a range.  But unfortunately that's not
+  always possible.
 
 - Whenever "something changes", Magit "refreshes" the status buffer and
   the current Magit buffer by recreating them from scratch.  This is
@@ -4350,10 +4363,10 @@ Now for the things that you can do to improve performance:
 
 Most optional features which can have a negative effect on performance
 are disabled by default.  So start by checking the options you have
-customized.  Even the potentially slow features are expected to only
-lead to barely noticeable delays, but your mileage may vary.  Also
-note that it is now possible to set options on a per-repository or
-per-repository-class basis.  See [[*Per-repository configuration]].
+explicitly enabled.  Even the potentially slow features are expected
+to only lead to barely noticeable delays, but your mileage may vary.
+Also note that it is now possible to set options on a per-repository
+or per-repository-class basis.  See [[*Per-repository configuration]].
 
 You should check the values of at least the following variables:
 
@@ -5138,7 +5151,17 @@ made it into the manual yet, see https://github.com/magit/magit/wiki/FAQ.
 
 ** Magit is slow
 
-See [[*Performance][Performance]].
+See [[*Performance]].
+
+** I changed several thousand files at once and now Magit is unusable
+
+Magit is *currently* not expected to work under such conditions. It sure
+would be nice if it did, and v2.5 will hopefully be a big step into
+that direction.  But it might take until v3.1 to accomplish fully
+satisfactory performance, because that requires some heavy refactoring.
+
+But for now we recommend you use the command line to complete this one
+commit.  Also see [[*Performance]].
 
 ** I am having problems committing
 
@@ -5146,9 +5169,22 @@ That likely means that Magit is having problems finding an appropriate
 emacsclient executable.  See [[info:with-editor#Configuring With-Editor]]
 and [[info:with-editor#Debugging]].
 
-** I am using an Emacs release older than 24.4
+** I don't like how branching and pushing works
 
-At least version 24.4 is required.  There is no way around it.
+In v2.1 the default behavior of the branch and push commands changed,
+which has taken a few users by surprise and left more unsatisfied.
+The next release, v2.4, will try to address these concerns.
+
+** I cannot install the pre-requisits for Magit v2
+
+An Elpa archive featuring obsolete Magit v1.4.2 and its dependencies
+is available from http://magit.vc/elpa/v1.  But note that v1.4.2 is
+obsolete and no longer maintained.
+
+** I am using an Emacs release older than v24.4
+
+At least Emacs v24.4 is required.  There is no way around it, if you
+want to use Magit v2.
 
 If you own the machine you work on, then consider updating to the
 latest release provided by your distribution.  If it doesn't feature a
@@ -5171,9 +5207,13 @@ to do that yourself, then consider informing me about the resources
 that helped you figure what to do for your specific setup, so that I
 can post a link here.  That way those coming after you have it easier.
 
-** I am using a Git release older than 1.9.4
+An Elpa archive featuring obsolete Magit v1.4.2 and its dependencies
+is available from http://magit.vc/elpa/v1.
 
-At least version 1.9.4 is required.  There is no way around it.
+** I am using a Git release older than v1.9.4
+
+At least Git v1.9.4 is required.  There is no way around it, if you
+want to use Magit v2.
 
 If you own the machine, then consider updating to the latest release
 provided by your distribution.  If it doesn't feature a recent enough
@@ -5184,6 +5224,9 @@ Installing Git from source is quite simple. See the instructions at
 https://github.com/git/git/blob/master/INSTALL to get an idea of that
 this involves.  But when you perform the installation then use the
 instructions for the release you are actually installing.
+
+An Elpa archive featuring obsolete Magit v1.4.2 and its dependencies
+is available from http://magit.vc/elpa/v1.
 
 ** I am using MS Windows and cannot push with Magit
 
@@ -5269,24 +5312,27 @@ probably set that variable for a reason, and should therefore
 only undo that setting in Magit by customizing
 ~magit-git-global-arguments~.
 
-** Magit claims repository accessed using Tramp does not exist
+** Point is wrong in the COMMIT_EDITMSG buffer
 
-"There is no Git repository in /ssh:host:/path/to/repository".
+Neither Magit nor `git-commit` fiddle with point in the buffer used to
+write commit messages, so something else must be doing it.
 
-Magit requires at least version ~1.9.4~.  When connecting to a remote
-machine using Tramp it requires that same version on that remote.
+You have probably globally enabled a mode which does restore point in
+file-visiting buffers.  It might be a bit surprising, but when you
+write a commit message, then you are actually editing a file.
 
-By default Tramp searches for programs in the directories given by the
-output of ~getconf PATH~ on the remote host.  Therefore, if the remote
-git version that you intend to use lives in a non-standard location,
-you may need to alter ~tramp-remote-path~.  Consult the Tramp
-documentation on remote programs
-http://www.gnu.org/software/emacs/manual/html_node/tramp/Remote-Programs.html
-for details.
+So you have to figure out which package is doing.  ~saveplace~,
+~pointback~, and ~session~ are likely candidates.  These snippets might
+help:
 
-There are others reasons why Magit/Git might think that there is no
-repository where there actually is one, but when this is being
-reported then it's usually the above.
+#+BEGIN_SRC emacs-lisp
+  (setq session-name-disable-regexp "\\(?:\\`'\\.git/[A-Z_]+\\'\\)")
+
+  (with-eval-after-load 'pointback
+    (lambda ()
+      (when (or git-commit-mode git-rebase-mode)
+	(pointback-mode -1))))
+#+END_SRC
 
 ** Can Magit be used as ediff-version-control-package?
 
