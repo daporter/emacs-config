@@ -26,6 +26,10 @@
 (require 'helm-files)
 (require 'advice)
 
+(declare-function 'helm-describe-function "helm-lib")
+(declare-function 'helm-describe-variable "helm-lib")
+(declare-function 'helm-describe-face "helm-lib")
+
 
 (defgroup helm-elisp nil
   "Elisp related Applications and libraries for Helm."
@@ -492,15 +496,22 @@ Filename completion happen if string start after or between a double quote."
     :action '(("Describe Variable" . helm-describe-variable)
               ("Find Variable" . helm-find-variable)
               ("Info lookup" . helm-info-lookup-symbol)
-              ("Set variable" . helm-set-variable))
+              ("Set Variable" . helm-set-variable))
     :action-transformer
     (lambda (actions candidate)
       (let ((sym (helm-symbolify candidate)))
         (if (custom-variable-p sym)
-            (append actions
-                    '(("Customize Variable" .
-                       (lambda (candidate)
-                         (customize-option (helm-symbolify candidate))))))
+            (append
+             actions
+             (let ((standard-value (eval (car (get sym 'standard-value)))))
+               (unless (equal standard-value (symbol-value sym))
+                 `(("Reset Variable to default value" .
+                    ,(lambda (candidate)
+                       (let ((sym (helm-symbolify candidate)))
+                         (set sym standard-value)))))))
+             '(("Customize Variable" .
+                (lambda (candidate)
+                  (customize-option (helm-symbolify candidate))))))
           actions)))))
 
 (defun helm-def-source--emacs-faces (&optional default)
