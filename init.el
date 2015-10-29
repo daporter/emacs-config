@@ -148,7 +148,7 @@
 
 (use-package chruby
   :load-path "site-lisp/chruby"
-  :init (chruby "ruby-2.2.3"))
+  :config (chruby "ruby-2.2.3"))
 
 
 ;; (use-package helm
