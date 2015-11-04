@@ -159,10 +159,10 @@ This file is not saved."
                       (should (= (point) 1556))
                       (beginning-of-line)
                       (should (= (point) 1505))
-                      (should (looking-back "A Markdown-formatted\n"))
+                      (should (looking-back "A Markdown-formatted\n" nil))
                       (should (not (markdown-prev-line-blank-p)))
                       (markdown-ensure-blank-line-before)
-                      (should (looking-back "A Markdown-formatted\n\n"))
+                      (should (looking-back "A Markdown-formatted\n\n" nil))
                       (should (markdown-prev-line-blank-p))))
 
 (ert-deftest test-markdown-insertion/blank-line-before-2 ()
@@ -170,10 +170,10 @@ This file is not saved."
   (markdown-test-file "syntax.text"
                       (search-forward "as plain text")
                       (should (= (point) 1556))
-                      (should (looking-back "as plain text"))
+                      (should (looking-back "as plain text" nil))
                       (should (not (markdown-prev-line-blank-p)))
                       (markdown-ensure-blank-line-before)
-                      (should (looking-back "as plain text\n\n"))
+                      (should (looking-back "as plain text\n\n" nil))
                       (should (markdown-prev-line-blank-p))))
 
 (ert-deftest test-markdown-insertion/blank-line-before-3 ()
@@ -182,11 +182,11 @@ This file is not saved."
                       (search-forward "web.\n\nMarkdown is not a replacement for HTML")
                       (beginning-of-line)
                       (should (= (point) 2704))
-                      (should (looking-back "web.\n\n"))
+                      (should (looking-back "web.\n\n" nil))
                       (should (markdown-prev-line-blank-p))
                       (markdown-ensure-blank-line-before)
                       (should (= (point) 2704))
-                      (should (looking-back "web.\n\n"))
+                      (should (looking-back "web.\n\n" nil))
                       (should (markdown-prev-line-blank-p))))
 
 (ert-deftest test-markdown-insertion/blank-line-before-4 ()
@@ -992,7 +992,7 @@ Test point position upon removal and insertion."
                           (end-of-line)
                           (markdown-insert-reference-link "link" "" "")
                           (should (= (point) 35))
-                          (should (looking-back "\\[link\\]: ")))))
+                          (should (looking-back "\\[link\\]: " nil)))))
 
 (ert-deftest test-markdown-insertion/inline-to-reference-link ()
   "Inline link to reference link conversion."
@@ -1039,7 +1039,7 @@ Test point position upon removal and insertion."
                           (markdown-insert-footnote)
                           (should (= (point) 35))
                           (should (= markdown-footnote-counter 1))
-                          (should (looking-back "\\[^1\\]: "))
+                          (should (looking-back "\\[^1\\]: " nil))
                           ;; kill with point in footnote definition
                           (insert "footnote text")
                           (let (kill-ring)
@@ -1053,12 +1053,12 @@ Test point position upon removal and insertion."
                           (markdown-insert-footnote)
                           (should (= (point) 35))
                           (should (= markdown-footnote-counter 2))
-                          (should (looking-back "\\[^2\\]: "))
+                          (should (looking-back "\\[^2\\]: " nil))
                           (insert "footnote text")
                           ;; return to marker
                           (markdown-footnote-return)
                           (should (= (point) 15))
-                          (should (looking-back "\\[^2\\]"))
+                          (should (looking-back "\\[^2\\]" nil))
                           ;; kill with point at marker
                           (let (kill-ring)
                             (markdown-footnote-kill))
@@ -1077,7 +1077,7 @@ Test point position upon removal and insertion."
                           (markdown-insert-footnote)
                           (should (= (point) 28))
                           (should (= markdown-footnote-counter 1))
-                          (should (looking-back "\\[^1\\]: "))
+                          (should (looking-back "\\[^1\\]: " nil))
                           ;; kill with point in footnote definition
                           (insert "footnote text")
                           (let (kill-ring)
@@ -1098,7 +1098,7 @@ Test point position upon removal and insertion."
                           (markdown-insert-footnote)
                           (should (= (point) 29))
                           (should (= markdown-footnote-counter 1))
-                          (should (looking-back "\\[^1\\]: "))
+                          (should (looking-back "\\[^1\\]: " nil))
                           ;; kill with point in footnote definition
                           (insert "footnote text")
                           (let (kill-ring)
@@ -1113,12 +1113,12 @@ Test point position upon removal and insertion."
                           (markdown-insert-footnote)
                           (should (= (point) 29))
                           (should (= markdown-footnote-counter 2))
-                          (should (looking-back "\\[^2\\]: "))
+                          (should (looking-back "\\[^2\\]: " nil))
                           (insert "footnote text")
                           ;; return to marker
                           (markdown-footnote-return)
                           (should (= (point) 12))
-                          (should (looking-back "\\[^2\\]"))
+                          (should (looking-back "\\[^2\\]" nil))
                           ;; kill with point at marker
                           (let (kill-ring)
                             (markdown-footnote-kill))
@@ -1132,7 +1132,7 @@ Test point position upon removal and insertion."
   (markdown-test-string "no text[^1]\n\n[^1]: \n"
                         (end-of-line)
                         (markdown-footnote-goto-text)
-                        (should (looking-back "\\[^1\\]: "))
+                        (should (looking-back "\\[^1\\]: " nil))
                         (let (kill-ring)
                           (markdown-footnote-kill))
                         (should (string-equal (buffer-string) "no text\n"))))
@@ -2366,7 +2366,15 @@ body"
    (should (looking-at "# A top-level header"))
    (beginning-of-defun)
    ;; beginning-of-defun should move up to point-min
-   (should (= (point) (point-min)))))
+   (should (= (point) (point-min)))
+   ;; (beginning-of-defun -1)  should move to the start of the next header
+   (forward-line 2)
+   (beginning-of-defun -1)
+   (should (looking-at "## A second-level header"))
+   (beginning-of-defun -1)
+   (should (looking-at "### Third level ###"))
+   (beginning-of-defun -1)
+   (should (looking-at "### Third level number two ###"))))
 
 (ert-deftest test-markdown-movement/block ()
   "Test block movement."
@@ -2651,7 +2659,7 @@ indented the same amount."
                   ;; Deliberately move the point
                   (end-of-line)
                   ;; Verify changes
-                  (should (looking-back "^## List Cases"))
+                  (should (looking-back "^## List Cases" nil))
                   (should-not (= (point) orig-point))))
           (ofile (progn
                    ;; Register hook
@@ -2789,7 +2797,7 @@ indented the same amount."
    (end-of-line)
    (markdown-insert-gfm-code-block "elisp")
    (should (string-equal (buffer-string)
-                         "line 1\n\n```elisp\n\n```\n\nline 2\n")))
+                         "line 1\n\n``` elisp\n\n```\n\nline 2\n")))
   ;; Test with active region
   (markdown-test-string-gfm "line 1\nline 2\nline 3\n"
    (forward-line)
@@ -2799,7 +2807,7 @@ indented the same amount."
    (should (markdown-use-region-p))
    (markdown-insert-gfm-code-block "elisp")
    (should (string-equal (buffer-string)
-                         "line 1\n\n```elisp\nline 2\n```\n\nline 3\n"))))
+                         "line 1\n\n``` elisp\nline 2\n```\n\nline 3\n"))))
 
 (ert-deftest test-markdown-gfm/code-block-font-lock ()
   "GFM code block font lock test."
@@ -2831,6 +2839,27 @@ indented the same amount."
     (should (string-equal (buffer-string) " #. abc\n def\n"))
     (markdown-indent-region (line-beginning-position) (line-end-position) nil)
     (should (string-equal (buffer-string) " #. abc\n    def\n"))))
+
+(ert-deftest test-markdown-ext/ikiwiki ()
+  (let ((markdown-wiki-link-search-parent-directories t))
+    (progn
+      (find-file "ikiwiki/root")
+      (unwind-protect
+          (progn
+            (markdown-mode)
+            ;; font lock
+            (markdown-test-range-has-property 1 11 'font-lock-face markdown-link-face)
+            (markdown-test-range-has-property 14 33 'font-lock-face markdown-missing-link-face))
+        (kill-buffer)))
+    (progn
+      (find-file "ikiwiki/sub/foo")
+      (unwind-protect
+          (progn
+            (markdown-mode)
+            ;; font lock
+            (markdown-test-range-has-property 1 16 'font-lock-face markdown-missing-link-face)
+            (markdown-test-range-has-property 19 26 'font-lock-face markdown-link-face))
+        (kill-buffer)))))
 
 (provide 'markdown-test)
 
