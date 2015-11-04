@@ -257,10 +257,10 @@
   :bind ("C-c e m" . macrostep-expand))
 
 (use-package magit
-  :load-path "site-lisp/magit"
+  :load-path "site-lisp/magit/lisp"
   :bind (("C-x g" . magit-status))
   :init (progn
-          (use-package git-commit-mode :load-path "site-lisp/git-modes" :defer t)
+          (use-package git-commit-mode :load-path "site-lisp/lisp/git-modes" :defer t)
           (setq magit-last-seen-setup-instructions "1.4.0"))
   :config (progn
             (setq magit-emacsclient-executable "/usr/local/bin/emacsclient")
