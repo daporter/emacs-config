@@ -674,7 +674,7 @@ ACTION must be an action supported by `helm-dired-action'."
 
 (defun helm-ff-git-grep (_candidate)
   "Default action to git-grep `helm-ff-default-directory'."
-  (helm-grep-git-1 helm-ff-default-directory))
+  (helm-grep-git-1 helm-ff-default-directory helm-current-prefix-arg))
 
 (defun helm-find-files-ag (_candidate)
   (helm-grep-ag-1 helm-ff-default-directory))
@@ -2020,12 +2020,11 @@ return FNAME prefixed with [?]."
          (prefix-url (propertize
                       " " 'display
                       (propertize "[@]" 'face 'helm-ff-prefix))))
-    (cond ((or file-or-symlinkp (file-exists-p fname)) fname)
+    (cond (file-or-symlinkp fname)
           ((or (string-match helm-ff-url-regexp fname)
                (and ffap-url-regexp (string-match ffap-url-regexp fname)))
            (concat prefix-url " " fname))
-          ((or new-file (not (file-exists-p fname)))
-           (concat prefix-new " " fname)))))
+          (new-file (concat prefix-new " " fname)))))
 
 (defun helm-ff-score-candidate-for-pattern (str pattern)
   (if (member str '("." ".."))
@@ -2723,12 +2722,11 @@ Called with a prefix arg open files in background without selecting them."
         ;; an existing filename, create or jump to it.
         ;; If the basedir of candidate doesn't exists,
         ;; ask for creating it.
-        (let ((dir (helm-basedir candidate)))
+        (let ((dir (and (not url-p) (helm-basedir candidate))))
           (find-file-at-point
            (cond ((and dir (file-directory-p dir))
-                  (substitute-in-file-name (car marked)))
-                 ;; FIXME Why do we use this on urls ?
-                 (url-p (helm-substitute-in-filename (car marked)))
+                  (substitute-in-file-name candidate))
+                 (url-p candidate)
                  ((funcall make-dir-fn dir) candidate))))))))
 
 (defun helm-shadow-boring-files (files)
@@ -3253,6 +3251,7 @@ utility mdfind.")
     :candidates-process 'helm-find-shell-command-fn
     :filtered-candidate-transformer 'helm-findutils-transformer
     :action-transformer 'helm-transform-file-load-el
+    :persistent-action 'helm-ff-kill-or-find-buffer-fname
     :action 'helm-type-file-actions
     :keymap helm-generic-files-map
     :candidate-number-limit 9999
