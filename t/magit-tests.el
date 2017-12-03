@@ -1,6 +1,6 @@
 ;;; magit-tests.el --- tests for Magit
 
-;; Copyright (C) 2011-2015  The Magit Project Contributors
+;; Copyright (C) 2011-2017  The Magit Project Contributors
 ;;
 ;; License: GPLv3
 
@@ -9,6 +9,8 @@
 (require 'cl-lib)
 (require 'dash)
 (require 'ert)
+(require 'tramp)
+(require 'tramp-sh)
 
 (require 'magit)
 
@@ -17,8 +19,8 @@
   (let ((dir (make-symbol "dir")))
     `(let ((,dir (file-name-as-directory (make-temp-file "magit-" t)))
            (process-environment process-environment))
-       (setenv "GIT_AUTHOR_NAME" "A U Thor")
-       (setenv "GIT_AUTHOR_EMAIL" "a.u.thor@example.com")
+       (push "GIT_AUTHOR_NAME=A U Thor" process-environment)
+       (push "GIT_AUTHOR_EMAIL=a.u.thor@example.com" process-environment)
        (condition-case err
            (cl-letf (((symbol-function #'message) (lambda (&rest _))))
              (let ((default-directory ,dir))
@@ -61,21 +63,27 @@
                      (expand-file-name "repo/"))))))
 
 (ert-deftest magit-toplevel:tramp ()
-  (let ((find-file-visit-truename nil))
+  (cl-letf* ((find-file-visit-truename nil)
+             ;; Override tramp method so that we don't actually
+             ;; require a functioning `sudo'.
+             (sudo-method (cdr (assoc "sudo" tramp-methods)))
+             ((cdr (assq 'tramp-login-program sudo-method))
+              (list shell-file-name))
+             ((cdr (assq 'tramp-login-args sudo-method)) nil))
     (magit-with-test-directory
-      (setq default-directory
-            (concat (format "/sudo:%s@localhost:" (user-login-name))
-                    default-directory))
-      (magit-git "init" "repo")
-      (magit-test-magit-toplevel)
-      (should (equal (magit-toplevel   "repo/.git/")
-                     (expand-file-name "repo/")))
-      (should (equal (magit-toplevel   "repo/.git/objects/")
-                     (expand-file-name "repo/")))
-      (should (equal (magit-toplevel   "repo-link/.git/")
-                     (expand-file-name "repo-link/")))
-      (should (equal (magit-toplevel   "repo-link/.git/objects/")
-                     (expand-file-name "repo/"))))))
+     (setq default-directory
+           (concat (format "/sudo:%s@localhost:" (user-login-name))
+                   default-directory))
+     (magit-git "init" "repo")
+     (magit-test-magit-toplevel)
+     (should (equal (magit-toplevel   "repo/.git/")
+                    (expand-file-name "repo/")))
+     (should (equal (magit-toplevel   "repo/.git/objects/")
+                    (expand-file-name "repo/")))
+     (should (equal (magit-toplevel   "repo-link/.git/")
+                    (expand-file-name "repo-link/")))
+     (should (equal (magit-toplevel   "repo-link/.git/objects/")
+                    (expand-file-name "repo/"))))))
 
 (ert-deftest magit-toplevel:submodule ()
   (let ((find-file-visit-truename nil))
@@ -135,6 +143,37 @@
                  (expand-file-name "repo/")))
   (should (equal (magit-toplevel   "wrap/subsubdir-link")
                  (expand-file-name "repo/"))))
+
+(defun magit-test-magit-get ()
+  (should (equal (magit-get-all "a.b") '("val1" "val2")))
+  (should (equal (magit-get "a.b") "val2"))
+  (let ((default-directory (expand-file-name "../remote/")))
+    (should (equal (magit-get "a.b") "remote-value")))
+  (should (equal (magit-get "CAM.El.Case.VAR") "value"))
+  (should (equal (magit-get "a.b2") "line1\nline2")))
+
+(ert-deftest magit-get ()
+  (magit-with-test-directory
+   (magit-git "init" "remote")
+   (let ((default-directory (expand-file-name "remote/")))
+     (magit-git "commit" "-m" "init" "--allow-empty")
+     (magit-git "config" "a.b" "remote-value"))
+   (magit-git "init" "super")
+   (setq default-directory (expand-file-name "super/"))
+   ;; Some tricky cases:
+   ;; Multiple config values.
+   (magit-git "config" "a.b" "val1")
+   (magit-git "config" "--add" "a.b" "val2")
+   ;; CamelCase variable names.
+   (magit-git "config" "Cam.El.Case.Var" "value")
+   ;; Values with newlines.
+   (magit-git "config" "a.b2" "line1\nline2")
+   ;; Config variables in submodules.
+   (magit-git "submodule" "add" "../remote" "repo/")
+
+   (magit-test-magit-get)
+   (let ((magit--refresh-cache (list (cons 0 0))))
+     (magit-test-magit-get))))
 
 (ert-deftest magit-get-boolean ()
   (magit-with-test-repository
@@ -213,11 +252,11 @@
 
 ;;; Status
 
-(defun magit-test-get-section (type info)
+(defun magit-test-get-section (list file)
   (magit-status-internal default-directory)
-  (--first (equal (magit-section-value it) info)
+  (--first (equal (magit-section-value it) file)
            (magit-section-children
-            (magit-get-section `((,type) (status))))))
+            (magit-get-section `(,list (status))))))
 
 (ert-deftest magit-status:file-sections ()
   (magit-with-test-repository
@@ -226,20 +265,20 @@
       (modify "file")
       (modify "file with space")
       (modify "file with äöüéλ")
-      (should (magit-test-get-section 'untracked "file"))
-      (should (magit-test-get-section 'untracked "file with space"))
-      (should (magit-test-get-section 'untracked "file with äöüéλ"))
+      (should (magit-test-get-section '(untracked) "file"))
+      (should (magit-test-get-section '(untracked) "file with space"))
+      (should (magit-test-get-section '(untracked) "file with äöüéλ"))
       (magit-stage-modified t)
-      (should (magit-test-get-section 'staged "file"))
-      (should (magit-test-get-section 'staged "file with space"))
-      (should (magit-test-get-section 'staged "file with äöüéλ"))
+      (should (magit-test-get-section '(staged) "file"))
+      (should (magit-test-get-section '(staged) "file with space"))
+      (should (magit-test-get-section '(staged) "file with äöüéλ"))
       (magit-git "add" ".")
       (modify "file")
       (modify "file with space")
       (modify "file with äöüéλ")
-      (should (magit-test-get-section 'unstaged "file"))
-      (should (magit-test-get-section 'unstaged "file with space"))
-      (should (magit-test-get-section 'unstaged "file with äöüéλ")))))
+      (should (magit-test-get-section '(unstaged) "file"))
+      (should (magit-test-get-section '(unstaged) "file with space"))
+      (should (magit-test-get-section '(unstaged) "file with äöüéλ")))))
 
 (ert-deftest magit-status:log-sections ()
   (magit-with-test-repository
@@ -250,10 +289,12 @@
     (magit-git "branch" "--set-upstream-to=origin/master")
     (magit-git "reset" "--hard" "HEAD~")
     (magit-git "commit" "-m" "unpushed" "--allow-empty")
-    (should (magit-test-get-section 'unpulled
-                                    (magit-rev-parse "--short" "origin/master")))
-    (should (magit-test-get-section 'unpushed
-                                    (magit-rev-parse "--short" "master")))))
+    (should (magit-test-get-section
+             '(unpulled . "..@{upstream}")
+             (magit-rev-parse "--short" "origin/master")))
+    (should (magit-test-get-section
+             '(unpushed . "@{upstream}..")
+             (magit-rev-parse "--short" "master")))))
 
 ;;; magit-tests.el ends soon
 (provide 'magit-tests)

@@ -1,6 +1,6 @@
 ;;; git-commit.el --- Edit Git commit messages  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2015  The Magit Project Contributors
+;; Copyright (C) 2010-2017  The Magit Project Contributors
 ;;
 ;; You should have received a copy of the AUTHORS.md file which
 ;; lists all contributors.  If not, see http://magit.vc/authors.
@@ -11,7 +11,7 @@
 ;;	Marius Vollmer <marius.vollmer@gmail.com>
 ;; Maintainer: Jonas Bernoulli <jonas@bernoul.li>
 
-;; Package-Requires: ((emacs "24.4") (dash "20151021.113") (with-editor "20151028"))
+;; Package-Requires: ((emacs "24.4") (dash "20170810") (with-editor "20170817"))
 ;; Keywords: git tools vc
 ;; Homepage: https://github.com/magit/magit
 
@@ -84,7 +84,8 @@
 ;; provided by these commands:
 ;;
 ;;   C-c C-s  Insert a Signed-off-by header.
-;;   C-C C-a  Insert a Acked-by header.
+;;   C-c C-a  Insert a Acked-by header.
+;;   C-c C-m  Insert a Modified-by header.
 ;;   C-c C-t  Insert a Tested-by header.
 ;;   C-c C-r  Insert a Reviewed-by header.
 ;;   C-c C-o  Insert a Cc header.
@@ -101,11 +102,10 @@
 ;; files.
 
 ;; Finally this package highlights style errors, like lines that are
-;; too long, or when the second line is not empty.  It may even nag you
-;; when you attempt to finish the commit without having fixed these
-;; issues.  Some people like that nagging, I don't, so you'll have to
-;; enable it.  Which brings me to the last point.  Like any
-;; respectable Emacs package, this one too is highly customizable:
+;; too long, or when the second line is not empty.  It may even nag
+;; you when you attempt to finish the commit without having fixed
+;; these issues.  The style checks and many other settings can easily
+;; be configured:
 ;;
 ;;   M-x customize-group RET git-commit RET
 
@@ -114,6 +114,7 @@
 
 (require 'dash)
 (require 'log-edit)
+(require 'magit-utils nil t)
 (require 'ring)
 (require 'server)
 (require 'with-editor)
@@ -123,6 +124,8 @@
 ;;;; Declarations
 
 (defvar flyspell-generic-check-word-predicate)
+(defvar font-lock-beg)
+(defvar font-lock-end)
 
 (declare-function magit-expand-git-file-name 'magit-git)
 
@@ -132,6 +135,7 @@
 (defgroup git-commit nil
   "Edit Git commit messages."
   :prefix "git-commit-"
+  :link '(info-link "(magit)Editing Commit Messages")
   :group 'tools)
 
 ;;;###autoload
@@ -161,12 +165,6 @@ The major mode configured here is turned on by the minor mode
   :type '(choice (function-item text-mode)
                  (const :tag "No major mode")))
 
-(unless (find-lisp-object-file-name 'git-commit-setup-hook 'defvar)
-  (add-hook 'git-commit-setup-hook 'with-editor-usage-message)
-  (add-hook 'git-commit-setup-hook 'git-commit-propertize-diff)
-  (add-hook 'git-commit-setup-hook 'git-commit-turn-on-auto-fill)
-  (add-hook 'git-commit-setup-hook 'git-commit-setup-changelog-support)
-  (add-hook 'git-commit-setup-hook 'git-commit-save-message))
 (defcustom git-commit-setup-hook
   '(git-commit-save-message
     git-commit-setup-changelog-support
@@ -176,12 +174,13 @@ The major mode configured here is turned on by the minor mode
   "Hook run at the end of `git-commit-setup'."
   :group 'git-commit
   :type 'hook
-  :options '(magit-revert-buffers
-             git-commit-save-message
+  :get (and (featurep 'magit-utils) 'magit-hook-custom-get)
+  :options '(git-commit-save-message
              git-commit-setup-changelog-support
              git-commit-turn-on-auto-fill
              git-commit-turn-on-flyspell
              git-commit-propertize-diff
+             bug-reference-mode
              with-editor-usage-message))
 
 (defcustom git-commit-finish-query-functions
@@ -193,7 +192,7 @@ called.  If any of them returns nil, then the commit is not
 performed and the buffer is not killed.  The user should then
 fix the issue and try again.
 
-The functions are called with one argument.  If it is non-nil
+The functions are called with one argument.  If it is non-nil,
 then that indicates that the user used a prefix argument to
 force finishing the session despite issues.  Functions should
 usually honor this wish and return non-nil."
@@ -201,20 +200,48 @@ usually honor this wish and return non-nil."
   :type 'hook
   :group 'git-commit)
 
-(defcustom git-commit-summary-max-length 50
-  "Fontify characters beyond this column in summary lines as errors."
+(defcustom git-commit-style-convention-checks '(non-empty-second-line)
+  "List of checks performed by `git-commit-check-style-conventions'.
+Valid members are `non-empty-second-line' and `overlong-summary-line'.
+That function is a member of `git-commit-finish-query-functions'."
+  :options '(non-empty-second-line overlong-summary-line)
+  :type '(list :convert-widget custom-hook-convert-widget)
+  :group 'git-commit)
+
+(defcustom git-commit-summary-max-length 68
+  "Column beyond which characters in the summary lines are highlighted.
+
+The highlighting indicates that the summary is getting too long
+by some standards.  It does in no way imply that going over the
+limit a few characters or in some cases even many characters is
+anything that deserves shaming.  It's just a friendly reminder
+that if you can make the summary shorter, then you might want
+to consider doing so."
   :group 'git-commit
   :safe 'numberp
   :type 'number)
 
-(defcustom git-commit-fill-column 72
-  "Automatically wrap commit message lines beyond this column."
+(defcustom git-commit-fill-column nil
+  "Override `fill-column' in commit message buffers.
+
+If this is non-nil, then it should be an integer.  If that is the
+case and the buffer-local value of `fill-column' is not already
+set by the time `git-commit-turn-on-auto-fill' is called as a
+member of `git-commit-setup-hook', then that function sets the
+buffer-local value of `fill-column' to the value of this option.
+
+This option exists mostly for historic reasons.  If you are not
+already using it, then you probably shouldn't start doing so."
   :group 'git-commit
   :safe 'numberp
-  :type 'number)
+  :type '(choice (const :tag "use regular fill-column")
+                 number))
+
+(make-obsolete-variable 'git-commit-fill-column 'fill-column
+                        "Magit 2.11.0" 'set)
 
 (defcustom git-commit-known-pseudo-headers
-  '("Signed-off-by" "Acked-by" "Cc"
+  '("Signed-off-by" "Acked-by" "Modified-by" "Cc"
     "Suggested-by" "Reported-by" "Tested-by" "Reviewed-by")
   "A list of Git pseudo headers to be highlighted."
   :group 'git-commit
@@ -224,7 +251,7 @@ usually honor this wish and return non-nil."
 ;;;; Faces
 
 (defgroup git-commit-faces nil
-  "Faces for highlighting Git commit messages."
+  "Faces used for highlighting Git commit messages."
   :prefix "git-commit-"
   :group 'git-commit
   :group 'faces)
@@ -251,7 +278,7 @@ usually honor this wish and return non-nil."
 
 (defface git-commit-pseudo-header
   '((t :inherit font-lock-string-face))
-  "Font used for pseudo headers in commit messages."
+  "Face used for pseudo headers in commit messages."
   :group 'git-commit-faces)
 
 (defface git-commit-known-pseudo-header
@@ -288,23 +315,30 @@ usually honor this wish and return non-nil."
 
 (defvar git-commit-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-c C-s") 'git-commit-signoff)
+    (cond ((featurep 'jkl)
+           (define-key map (kbd "C-M-i") 'git-commit-prev-message)
+           (define-key map (kbd "C-M-k") 'git-commit-next-message))
+          (t
+           (define-key map (kbd "M-p") 'git-commit-prev-message)
+           (define-key map (kbd "M-n") 'git-commit-next-message)
+           ;; Old bindings to avoid confusion
+           (define-key map (kbd "C-c C-x a") 'git-commit-ack)
+           (define-key map (kbd "C-c C-x i") 'git-commit-suggested)
+           (define-key map (kbd "C-c C-x m") 'git-commit-modified)
+           (define-key map (kbd "C-c C-x o") 'git-commit-cc)
+           (define-key map (kbd "C-c C-x p") 'git-commit-reported)
+           (define-key map (kbd "C-c C-x r") 'git-commit-review)
+           (define-key map (kbd "C-c C-x s") 'git-commit-signoff)
+           (define-key map (kbd "C-c C-x t") 'git-commit-test)))
     (define-key map (kbd "C-c C-a") 'git-commit-ack)
-    (define-key map (kbd "C-c C-t") 'git-commit-test)
-    (define-key map (kbd "C-c C-r") 'git-commit-review)
+    (define-key map (kbd "C-c C-i") 'git-commit-suggested)
+    (define-key map (kbd "C-c C-m") 'git-commit-modified)
     (define-key map (kbd "C-c C-o") 'git-commit-cc)
     (define-key map (kbd "C-c C-p") 'git-commit-reported)
-    (define-key map (kbd "C-c C-i") 'git-commit-suggested)
+    (define-key map (kbd "C-c C-r") 'git-commit-review)
+    (define-key map (kbd "C-c C-s") 'git-commit-signoff)
+    (define-key map (kbd "C-c C-t") 'git-commit-test)
     (define-key map (kbd "C-c M-s") 'git-commit-save-message)
-    (define-key map (kbd "M-p")     'git-commit-prev-message)
-    (define-key map (kbd "M-n")     'git-commit-next-message)
-    ;; Old bindings to avoid confusion
-    (define-key map (kbd "C-c C-x s") 'git-commit-signoff)
-    (define-key map (kbd "C-c C-x a") 'git-commit-ack)
-    (define-key map (kbd "C-c C-x t") 'git-commit-test)
-    (define-key map (kbd "C-c C-x r") 'git-commit-review)
-    (define-key map (kbd "C-c C-x o") 'git-commit-cc)
-    (define-key map (kbd "C-c C-x p") 'git-commit-reported)
     map)
   "Key map used by `git-commit-mode'.")
 
@@ -321,6 +355,8 @@ usually honor this wish and return non-nil."
      :help "Insert an 'Acked-by' header"]
     ["Sign-Off" git-commit-signoff :active t
      :help "Insert a 'Signed-off-by' header"]
+    ["Modified-by" git-commit-modified :active t
+     :help "Insert a 'Modified-by' header"]
     ["Tested-by" git-commit-test :active t
      :help "Insert a 'Tested-by' header"]
     ["Reviewed-by" git-commit-review :active t
@@ -338,12 +374,15 @@ usually honor this wish and return non-nil."
 
 ;;; Hooks
 
+;;;###autoload
 (defconst git-commit-filename-regexp "/\\(\
 \\(\\(COMMIT\\|NOTES\\|PULLREQ\\|TAG\\)_EDIT\\|MERGE_\\|\\)MSG\
-\\|BRANCH_DESCRIPTION\\)\\'")
+\\|\\(BRANCH\\|EDIT\\)_DESCRIPTION\\)\\'")
 
 (eval-after-load 'recentf
   '(add-to-list 'recentf-exclude git-commit-filename-regexp))
+
+(add-to-list 'with-editor-file-name-history-exclude git-commit-filename-regexp)
 
 (defun git-commit-setup-font-lock-in-buffer ()
   (and buffer-file-name
@@ -357,6 +396,9 @@ usually honor this wish and return non-nil."
        (string-match-p git-commit-filename-regexp buffer-file-name)
        (git-commit-setup)))
 
+(defvar git-commit-mode)
+
+;;;###autoload
 (defun git-commit-setup ()
   ;; cygwin git will pass a cygwin path (/cygdrive/c/foo/.git/...),
   ;; try to handle this in window-nt Emacs.
@@ -374,9 +416,20 @@ usually honor this wish and return non-nil."
     (when (file-accessible-directory-p (file-name-directory it))
       (find-alternate-file it)))
   (when git-commit-major-mode
-    (funcall git-commit-major-mode))
+    (let ((auto-mode-alist (list (cons (concat "\\`"
+                                               (regexp-quote buffer-file-name)
+                                               "\\'")
+                                       git-commit-major-mode)))
+          ;; The major-mode hook might want to consult these minor
+          ;; modes, while the minor-mode hooks might want to consider
+          ;; the major mode.
+          (git-commit-mode t)
+          (with-editor-mode t))
+      (normal-mode t)))
   (setq with-editor-show-usage nil)
-  (with-editor-mode 1)
+  (unless with-editor-mode
+    ;; Maybe already enabled when using `shell-command' or an Emacs shell.
+    (with-editor-mode 1))
   (add-hook 'with-editor-finish-query-functions
             'git-commit-finish-query-functions nil t)
   (add-hook 'with-editor-pre-finish-hook
@@ -392,8 +445,7 @@ usually honor this wish and return non-nil."
     (setq save-place nil))
   (save-excursion
     (goto-char (point-min))
-    (when (= (line-beginning-position)
-             (line-end-position))
+    (when (looking-at "\\`\\(\\'\\|\n[^\n]\\)")
       (open-line 1)))
   (run-hooks 'git-commit-setup-hook)
   (set-buffer-modified-p nil))
@@ -415,6 +467,9 @@ usually honor this wish and return non-nil."
   (setq-local comment-end-skip "\n")
   (setq-local comment-use-syntax nil)
   (setq-local font-lock-multiline t)
+  (add-hook 'font-lock-extend-region-functions
+            #'git-commit-extend-region-summary-line
+            t t)
   (font-lock-add-keywords nil (git-commit-mode-font-lock-keywords) t))
 
 (define-minor-mode git-commit-mode
@@ -431,8 +486,13 @@ Don't use it directly, instead enable `global-git-commit-mode'."
 
 (defun git-commit-turn-on-auto-fill ()
   "Unconditionally turn on Auto Fill mode.
-And set `fill-column' to `git-commit-fill-column'."
-  (setq fill-column git-commit-fill-column)
+If `git-commit-fill-column' is non-nil, and `fill-column'
+doesn't already have a buffer-local value, then set that
+to `git-commit-fill-column'."
+  (when (and (numberp git-commit-fill-column)
+             (not (local-variable-p 'fill-column)))
+    (setq fill-column git-commit-fill-column))
+  (setq-local comment-auto-fill-only-comments nil)
   (turn-on-auto-fill))
 
 (defun git-commit-turn-on-flyspell ()
@@ -454,18 +514,23 @@ finally check current non-comment text."
 
 (defun git-commit-check-style-conventions (force)
   "Check for violations of certain basic style conventions.
+
 For each violation ask the user if she wants to proceed anyway.
-This makes sure the summary line isn't too long and that the
-second line is empty."
+Option `git-commit-check-style-conventions' controls which
+conventions are checked."
   (or force
       (save-excursion
         (goto-char (point-min))
         (re-search-forward (git-commit-summary-regexp) nil t)
         (if (equal (match-string 1) "")
             t ; Just try; we don't know whether --allow-empty-message was used.
-          (and (or (equal (match-string 2) "")
+          (and (or (not (memq 'overlong-summary-line
+                              git-commit-style-convention-checks))
+                   (equal (match-string 2) "")
                    (y-or-n-p "Summary line is too long.  Commit anyway? "))
-               (or (equal (match-string 3) "")
+               (or (not (memq 'non-empty-second-line
+                              git-commit-style-convention-checks))
+                   (not (match-string 3))
                    (y-or-n-p "Second line is not empty.  Commit anyway? ")))))))
 
 (defun git-commit-cancel-message ()
@@ -511,6 +576,9 @@ With a numeric prefix ARG, go forward ARG comments."
     (with-temp-buffer
       (insert str)
       (goto-char (point-min))
+      (when (re-search-forward (concat flush " -+ >8 -+$") nil t)
+        (delete-region (point-at-bol) (point-max)))
+      (goto-char (point-min))
       (flush-lines flush)
       (goto-char (point-max))
       (unless (eq (char-before) ?\n)
@@ -529,6 +597,11 @@ With a numeric prefix ARG, go forward ARG comments."
   "Insert a header acknowledging that you have looked at the commit."
   (interactive (git-commit-self-ident))
   (git-commit-insert-header "Acked-by" name mail))
+
+(defun git-commit-modified (name mail)
+  "Insert a header to signal that you have modified the commit."
+  (interactive (git-commit-self-ident))
+  (git-commit-insert-header "Modified-by" name mail))
 
 (defun git-commit-review (name mail)
   "Insert a header acknowledging that you have reviewed the commit."
@@ -600,7 +673,9 @@ With a numeric prefix ARG, go forward ARG comments."
     "Untracked files:"
     "Changed but not updated:"
     "Changes not staged for commit:"
-    "Unmerged paths:"))
+    "Unmerged paths:"
+    "Author:"
+    "Date:"))
 
 (defun git-commit-summary-regexp ()
   (concat
@@ -609,7 +684,21 @@ With a numeric prefix ARG, go forward ARG comments."
    ;; Summary line
    (format "\\(.\\{0,%d\\}\\)\\(.*\\)" git-commit-summary-max-length)
    ;; Non-empty non-comment second line
-   (format "\\(?:\n%s\\|\n\\(.*\\)\\)?" comment-start)))
+   (format "\\(?:\n%s\\|\n\\(.+\\)\\)?" comment-start)))
+
+(defun git-commit-extend-region-summary-line ()
+  "Identify the multiline summary-regexp construct.
+Added to `font-lock-extend-region-functions'."
+  (save-excursion
+    (save-match-data
+      (goto-char (point-min))
+      (when (looking-at (git-commit-summary-regexp))
+        (let ((summary-beg (match-beginning 0))
+              (summary-end (match-end 0)))
+          (when (or (< summary-beg font-lock-beg summary-end)
+                    (< summary-beg font-lock-end summary-end))
+            (setq font-lock-beg (min font-lock-beg summary-beg))
+            (setq font-lock-end (max font-lock-end summary-end))))))))
 
 (defun git-commit-mode-font-lock-keywords ()
   `(;; Comments
@@ -647,6 +736,7 @@ With a numeric prefix ARG, go forward ARG comments."
   (save-excursion
     (goto-char (point-min))
     (when (re-search-forward "^diff --git" nil t)
+      (beginning-of-line)
       (let ((buffer (current-buffer)))
         (insert
          (with-temp-buffer
@@ -654,22 +744,21 @@ With a numeric prefix ARG, go forward ARG comments."
             (with-current-buffer buffer
               (prog1 (buffer-substring-no-properties (point) (point-max))
                 (delete-region (point) (point-max)))))
-           (diff-mode)
+           (let ((diff-default-read-only nil))
+             (diff-mode))
            (let (font-lock-verbose font-lock-support-mode)
-             (if (fboundp 'font-lock-flush)
-                 (font-lock-flush)
+             (if (fboundp 'font-lock-ensure)
+                 (font-lock-ensure)
                (with-no-warnings
                  (font-lock-fontify-buffer))))
            (let (next (pos (point-min)))
              (while (setq next (next-single-property-change pos 'face))
                (put-text-property pos next 'font-lock-face
                                   (get-text-property pos 'face))
-               (setq pos next)))
+               (setq pos next))
+             (put-text-property pos (point-max) 'font-lock-face
+                                (get-text-property pos 'face)))
            (buffer-string)))))))
 
-;;; git-commit.el ends soon
 (provide 'git-commit)
-;; Local Variables:
-;; indent-tabs-mode: nil
-;; End:
 ;;; git-commit.el ends here
