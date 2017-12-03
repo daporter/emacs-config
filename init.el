@@ -16,7 +16,7 @@
   (mapc
    #'(lambda (path)
        (push (expand-file-name path user-emacs-directory) load-path))
-   '("site-lisp" "site-lisp/use-package" "override" "lisp")))
+   '("site-lisp" "override" "lisp")))
 
 (defsubst hook-into-modes (func &rest modes)
   (dolist (mode-hook modes) (add-hook mode-hook func)))
@@ -36,6 +36,19 @@
               (concat (symbol-name mode) "-hook"))))
           lisp-modes))
 
+
+(require 'package)
+(let* ((no-ssl (and (memq system-type '(windows-nt ms-dos))
+                    (not (gnutls-available-p))))
+       (url (concat (if no-ssl "http" "https") "://melpa.org/packages/")))
+  (add-to-list 'package-archives (cons "melpa" url) t))
+(when (< emacs-major-version 24)
+  ;; For important compatibility libraries like cl-lib
+  (add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/")))
+(package-initialize)
+
+
+(unless (package-installed-p 'use-package) (package-install 'use-package))
 (require 'use-package)
 (require 'bind-key)
 (require 'diminish nil t)
@@ -78,15 +91,16 @@
 (eval-and-compile
   (push (expand-file-name "lib" user-emacs-directory) load-path))
 
-(use-package dash         :load-path "site-lisp/dash"         :defer t)
-(use-package flymake-easy :load-path "site-lisp/flymake-easy" :defer t)
+(use-package dash :ensure t :defer t)
+(use-package flymake-easy :ensure t :defer t)
 
 (use-package bookmark
+  :ensure t
   :config (setq bookmark-default-file
                 (expand-file-name "bookmarks" user-data-directory)))
 
 (use-package company
-  :load-path "site-lisp/company-mode"
+  :ensure t
   :diminish company-mode
   :init (add-hook 'after-init-hook 'global-company-mode)
   :config
@@ -98,56 +112,55 @@
       ad-do-it)))
 
 (use-package define-word
-  :load-path "site-lisp/define-word"
+  :ensure t
   :bind (("C-c d" . define-word-at-point)
          ("C-c D" . define-word)))
 
 (use-package exec-path-from-shell
-  :load-path "site-lisp/exec-path-from-shell"
+  :ensure t
   :config (exec-path-from-shell-initialize))
 
-(use-package helm-config
-  :demand t
-  :load-path "site-lisp/helm"
+;; (use-package helm-config
+;;   :ensure t
+;;   :demand t
 
-  :bind (("C-c h"     . helm-mini)
-         ("C-h a"     . helm-apropos)
-         ("C-x C-b"   . helm-buffers-list)
-         ("C-x b"     . helm-buffers-list)
-         ("M-x"       . helm-M-x)
-         ("C-x c o"   . helm-occur)
-         ;;("C-x c s"   . helm-swoop)
-         ("C-x c y"   . helm-yas-complete)
-         ("C-x c Y"   . helm-yas-create-snippet-on-region)
-         ("C-x c SPC" . helm-all-mark-rings))
+;;   :bind (("C-c h"     . helm-mini)
+;;          ("C-h a"     . helm-apropos)
+;;          ("C-x C-b"   . helm-buffers-list)
+;;          ("C-x b"     . helm-buffers-list)
+;;          ("M-x"       . helm-M-x)
+;;          ("C-x c o"   . helm-occur)
+;;          ;;("C-x c s"   . helm-swoop)
+;;          ("C-x c y"   . helm-yas-complete)
+;;          ("C-x c Y"   . helm-yas-create-snippet-on-region)
+;;          ("C-x c SPC" . helm-all-mark-rings))
   
-  :config
-  (use-package helm-files)
-  (use-package helm-buffers)
-  (use-package helm-mode
-    :diminish helm-mode
-    :init
-    (helm-mode 1))
+;;   :config
+;;   (use-package helm-files)
+;;   (use-package helm-buffers)
+;;   (use-package helm-mode
+;;     :diminish helm-mode
+;;     :init
+;;     (helm-mode 1))
 
-  (use-package helm-ls-git
-    :load-path "site-lisp/helm-ls-git")
+;;   (use-package helm-ls-git)
 
-  (bind-key "<tab>" 'helm-execute-persistent-action helm-map)
-  (bind-key "C-i"   'helm-execute-persistent-action helm-map)
-  (bind-key "C-z"   'helm-select-action             helm-map)
+;;   (bind-key "<tab>" 'helm-execute-persistent-action helm-map)
+;;   (bind-key "C-i"   'helm-execute-persistent-action helm-map)
+;;   (bind-key "C-z"   'helm-select-action             helm-map)
 
-  (bind-key "M-x"     'helm-M-x)
-  (bind-key "M-y"     'helm-show-kill-ring)
-  (bind-key "C-x b"   'helm-mini)
-  (bind-key "C-x r b" 'helm-filtered-bookmarks)
+;;   (bind-key "M-x"     'helm-M-x)
+;;   (bind-key "M-y"     'helm-show-kill-ring)
+;;   (bind-key "C-x b"   'helm-mini)
+;;   (bind-key "C-x r b" 'helm-filtered-bookmarks)
 
-  (helm-autoresize-mode 1)
+;;   (helm-autoresize-mode 1)
 
-  (when (executable-find "curl")
-    (setq helm-google-suggest-use-curl-p t)))
+;;   (when (executable-find "curl")
+;;     (setq helm-google-suggest-use-curl-p t)))
 
 (use-package chruby
-  :load-path "site-lisp/chruby"
+  :ensure t
   :config (chruby "ruby-2.2.3"))
 
 
@@ -232,6 +245,11 @@
 ;;          ("C-x c b"   . my/helm-do-grep-book-notes)
 ;;          ("C-x c SPC" . helm-all-mark-rings)))
 
+(use-package paredit
+  :ensure t
+  :commands paredit-mode
+  :diminish paredit-mode)
+
 (use-package lisp-mode
   :defer t
   :preface
@@ -253,28 +271,20 @@
   (apply #'hook-into-modes 'my-lisp-mode-hook lisp-mode-hooks))
 
 (use-package macrostep
-  :load-path "site-lisp/macrostep"
+  :ensure t
   :bind ("C-c e m" . macrostep-expand))
 
 (use-package magit
-  :load-path "site-lisp/magit/lisp"
-  :bind (("C-x g" . magit-status))
-  :init (progn
-          (use-package git-commit-mode :load-path "site-lisp/lisp/git-modes" :defer t)
-          (setq magit-last-seen-setup-instructions "1.4.0"))
-  :config (progn
-            (setq magit-emacsclient-executable "/usr/local/bin/emacsclient")
-            (setq magit-use-overlays nil)))
+  :ensure t
+  :bind (("C-x g" . magit-status)))
 
 (use-package markdown-mode
-  :load-path "site-lisp/markdown-mode"
+  :ensure t
   :mode "\\.markdown\\'"
   :commands markdown-mode
-  :init (use-package markdown-mode+
-          :load-path "site-lisp/markdown-mode-plus"))
+  :init (use-package markdown-mode+ :ensure t))
 
 (use-package notmuch
-  :load-path "site-lisp/notmuch/emacs"
   :bind ("C-c m" . notmuch)
   :config (progn
 
@@ -432,34 +442,23 @@
                               (ding))))))))
 
 (use-package org-journal
-  :load-path "site-lisp/org-journal"
+  :ensure t
   :config (progn
             (setq org-journal-dir "~/Dropbox/journal/")))
 
-(use-package paredit
-  :load-path "site-lisp/paredit"
-  :commands paredit-mode
-  :diminish paredit-mode)
-
 (use-package projectile
-  :load-path "site-lisp/projectile"
+  :ensure t
   :diminish projectile-mode
   :commands projectile-global-mode
   :defer 5
   :bind-keymap ("C-c p" . projectile-command-map)
   :config
-  (use-package helm-projectile
-    :config
-    (setq projectile-completion-system 'helm)
-    (helm-projectile-on))
+  ;; (use-package helm-projectile
+  ;;   :ensure t
+  ;;   :config
+  ;;   (setq projectile-completion-system 'helm)
+  ;;   (helm-projectile-on))
   (projectile-global-mode))
-
-(use-package puppet-mode
-  :load-path "site-lisp/puppet-mode"
-  :mode "\\.pp\\'"
-  :init (use-package flymake-puppet
-          :load-path "site-lisp/flymake-puppet"
-          :init (add-hook 'puppet-mode-hook 'flymake-puppet-load)))
 
 (use-package recentf
   :config (setq recentf-save-file
@@ -469,7 +468,6 @@
   :config (unless (server-running-p) (server-start)))
 
 (use-package sx-load
-  :load-path "site-lisp/sx"
   :commands sx-tab-all-questions
   :init (setq sx-cache-directory (expand-file-name "sx" user-data-directory)))
 
@@ -483,14 +481,14 @@
                            "/ssh:dap900@cloudlogin.nci.org.au:"))))
 
 (use-package twittering-mode
-  :load-path "site-lisp/twittering-mode"
+  :ensure t
   :commands twit)
 
 (use-package url-cache
   :init (setq url-cache-directory (expand-file-name "url/cache" user-data-directory)))
 
 (use-package yaml-mode
-  :load-path "site-lisp/yaml-mode"
+  :ensure t
   :mode "\\.yaml\\'")
 
 ;; (setq-default eval-expression-print-level nil)
@@ -1398,7 +1396,6 @@
 ;; ;; ;; ;;;_ , AUCTeX
 
 ;; ;; ;; (use-package tex-site
-;; ;; ;;   :load-path "site-lisp/auctex/preview/"
 
 ;; ;; ;;   :init (progn
 ;; ;; ;;           (hook-into-modes 'TeX-source-correlate-mode '(LaTeX-mode-hook))
@@ -1551,6 +1548,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(package-selected-packages (quote (markdown-mode+ git-commit-mode magit)))
  '(send-mail-function (quote smtpmail-send-it)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
