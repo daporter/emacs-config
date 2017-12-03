@@ -1,49 +1,41 @@
 -include ../config.mk
 include ../default.mk
 
-MAKEINFO ?= makeinfo
+## ###################################################################
 
-INSTALL_INFO ?= $(shell \
-  hash ginstall-info 2> /dev/null\
-  && printf ginstall-info\
-  || printf install-info)
-
-DOC_LOAD_PATH ?= -L ../../dash -L ../../org/lisp -L ../../ox-texinfo+
-
-.PHONY: texi install clean AUTHORS.md
+.PHONY: texi install clean AUTHORS.md stats
 
 all: info
 
-# Because most users don't have the necessary tools we cannot
-# use "%.texi: %.org".  Instead we have to hardcode each file
-# using a shared target.
-texi: $(TEXIPAGES)
-	@printf "Generating texi files\n"
-	@printf "WARNING: This creates whitespace errors in code blocks.\n"
-	@printf "WARNING: Discard these whitespace errors before committing.\n"
-	@printf "WARNING: Also see https://github.com/magit/magit/issues/1912.\n"
-	@printf "Generating magit.texi\n"
-	@$(EMACSBIN) -batch -Q $(DOC_LOAD_PATH) \
-	-l ox-texinfo+.el magit.org -f org-texinfo+export-to-texinfo
-	@echo >> magit.texi
-	@printf "Generating magit-popup.texi\n"
-	@$(EMACSBIN) -batch -Q $(DOC_LOAD_PATH) \
-	-l ox-texinfo+.el magit-popup.org -f org-texinfo+export-to-texinfo
-	@echo >> magit-popup.texi
-	@printf "Generating with-editor.texi\n"
-	@$(EMACSBIN) -batch -Q $(DOC_LOAD_PATH) \
-	-l ox-texinfo+.el with-editor.org -f org-texinfo+export-to-texinfo
-	@echo >> with-editor.texi
+## Build #############################################################
 
 info: $(INFOPAGES) dir
+html: $(HTMLFILES)
+pdf:  $(PDFFILES)
 
 %.info: %.texi
 	@printf "Generating $@\n"
-	@$(MAKEINFO) $< -o $@
+	@$(MAKEINFO) --no-split $< -o $@
 
-dir: magit.info magit-popup.info with-editor.info
+dir: magit.info
 	@printf "Generating dir\n"
 	@echo $^ | xargs -n 1 $(INSTALL_INFO) --dir=$@
+
+%.html: %.texi
+	@printf "Generating $@\n"
+	@$(MAKEINFO) --html --no-split $(MANUAL_HTML_ARGS) $<
+	@./fixup-html.sh $@
+
+html-dir: $(TEXIFILES)
+	@printf "Generating magit/*.html\n"
+	@$(MAKEINFO) --html $(MANUAL_HTML_ARGS) magit.texi
+	@./fixup-html.sh magit
+
+%.pdf: %.texi
+	@printf "Generating $@\n"
+	@texi2pdf --clean $< > /dev/null
+
+## Install ###########################################################
 
 install: install-info install-docs
 
@@ -55,18 +47,85 @@ install-info: info
 	@$(MKDIR) $(DESTDIR)$(infodir)
 	$(CP) $(INFOPAGES) $(DESTDIR)$(infodir)
 
+## Clean #############################################################
+
 clean:
 	@printf "Cleaning Documentation/*...\n"
-	@$(RM) $(INFOPAGES) dir
+	@$(RMDIR) dir $(INFOPAGES) $(HTMLFILES) $(HTMLDIRS) $(PDFFILES)
+
+## Release management ################################################
+
+ORG_ARGS  = --batch -Q $(ORG_LOAD_PATH)
+ORG_ARGS += -l magit-utils.el -l org-man -l ox-extra -l ox-texinfo+.el
+ORG_EVAL  = --eval "(ox-extras-activate '(ignore-headlines))"
+ORG_EVAL += --eval "(setq indent-tabs-mode nil)"
+ORG_EVAL += --eval "(setq org-src-preserve-indentation nil)"
+ORG_EVAL += --funcall org-texinfo-export-to-texinfo
+
+# This target first bumps version strings in the Org source.  The
+# necessary tools might be missing so other targets do not depend
+# on this target and it has to be run explicitly when appropriate.
+#
+#   AMEND=t make texi    Update manual to be amended to HEAD.
+#   VERSION=N make texi  Update manual for release.
+#
+texi:
+	@$(EMACSBIN) $(ORG_ARGS) $(PKG).org $(ORG_EVAL)
+	@printf "\n" >> $(PKG).texi
+	@rm -f $(PKG).texi~
+
+stats:
+	@printf "Generating statistics\n"
+	@gitstats -c style=/assets/stats.css -c max_authors=999 $(TOP) $(statsdir)
 
 authors: AUTHORS.md
+
 AUTHORS.md:
 	@printf "Generating AUTHORS.md..."
-	@test -d $(TOP).git \
+	@test -e $(TOP).git \
 	&& (printf "$$AUTHORS_HEADER\n" > $@ \
 	&& git log --pretty=format:'- %aN <%aE>' | sort -u >> $@ \
 	&& printf "done\n" ; ) \
 	|| printf "FAILED (non-fatal)\n"
+
+DOMAIN         ?= magit.vc
+CFRONT_DIST    ?= E2LUHBKU1FBV02
+PUBLISH_BUCKET ?= s3://$(DOMAIN)
+PREVIEW_BUCKET ?= s3://preview.$(DOMAIN)
+PUBLISH_URL    ?= http://$(DOMAIN).s3-website.eu-central-1.amazonaws.com
+PREVIEW_URL    ?= http://preview.$(DOMAIN).s3-website.eu-central-1.amazonaws.com
+
+preview-stats: stats
+	@printf "Uploading statistics...\n"
+	@aws s3 sync $(statsdir)      $(PREVIEW_BUCKET)/stats/
+	@printf "Uploaded to $(PREVIEW_URL)/stats/\n"
+
+publish-stats: stats
+	@printf "Uploading statistics...\n"
+	@aws s3 sync $(statsdir)      $(PUBLISH_BUCKET)/stats/
+	@printf "Uploaded to $(PUBLISH_URL)/stats/\n"
+	@printf "Generating CDN invalidation\n"
+	@aws cloudfront create-invalidation \
+	--distribution-id $(CFRONT_DIST) --paths "/stats/*" > /dev/null
+
+preview-manuals: html html-dir pdf
+	@printf "Uploading manuals...\n"
+	@aws s3 sync magit            $(PREVIEW_BUCKET)/manual/magit/
+	@aws s3 cp   magit.html       $(PREVIEW_BUCKET)/manual/
+	@aws s3 cp   magit.pdf        $(PREVIEW_BUCKET)/manual/
+	@printf "Uploaded to $(PREVIEW_URL)/manual/\n"
+
+publish-manuals: html html-dir pdf
+	@printf "Uploading manuals...\n"
+	@aws s3 sync magit            $(PUBLISH_BUCKET)/manual/magit/
+	@aws s3 cp   magit.html       $(PUBLISH_BUCKET)/manual/
+	@aws s3 cp   magit.pdf        $(PUBLISH_BUCKET)/manual/
+	@printf "Uploaded to $(PUBLISH_URL)/manual/\n"
+	@printf "Generating CDN invalidation\n"
+	@aws cloudfront create-invalidation \
+	--distribution-id $(CFRONT_DIST) --paths "/manual/*" > /dev/null
+
+# Templates ##########################################################
 
 define AUTHORS_HEADER
 Authors
@@ -76,7 +135,7 @@ The following people have contributed to Magit, including the
 libraries `git-commit.el`, `magit-popup.el`, and `with-editor.el`
 which are distributed as separate Elpa packages.
 
-For statistics see http://magit.vc/stats/authors.html.
+For statistics see https://magit.vc/stats/authors.html.
 
 Names below are sorted alphabetically.
 
