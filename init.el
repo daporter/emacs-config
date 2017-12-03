@@ -7,15 +7,18 @@
 
 (defconst emacs-start-time (current-time))
 
-(set-face-attribute 'default
-                    nil
-                    :font "Fira Code"
-                    :width 'normal
-                    :height 120
-                    :weight 'light)
-(setq-default line-spacing 3)           ; in pixels
+(when (window-system)
+  (progn
+    (set-face-attribute 'default
+                        nil
+                        :font "Fira Code"
+                        :width 'normal
+                        :height 120
+                        :weight 'light)
+    (setq-default line-spacing 3)       ; in pixels
 
-(toggle-frame-fullscreen)
+    ;; Enable the Fira Code ligatures.
+    (mac-auto-operator-composition-mode 1)))
 
 (unless noninteractive
   (message "Loading %s..." load-file-name))
