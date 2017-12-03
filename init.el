@@ -105,6 +105,30 @@
 (eval-and-compile
   (push (expand-file-name "lib" user-emacs-directory) load-path))
 
+(use-package swiper
+  :ensure t
+  :bind (("C-s" . swiper)
+         ("C-c C-r" . ivy-resume))
+  :init (progn
+          (setq ivy-use-virtual-buffers t)
+          (setq ivy-count-format "(%d/%d) "))
+  :config (ivy-mode 1))
+
+(use-package counsel
+  :ensure t
+  :bind (("M-x"     . counsel-M-x)
+         ("C-x C-f" . counsel-find-file)
+         ("<f1> f"  . counsel-describe-function)
+         ("<f1> v"  . counsel-describe-variable)
+         ("<f1> l"  . counsel-find-library)
+         ("<f2> i"  . counsel-info-lookup-symbol)
+         ("<f2> u"  . counsel-unicode-char)
+         ("C-c g"   . counsel-git)
+         ("C-c j"   . counsel-git-grep)
+         ("C-c k"   . counsel-ag)
+         ("C-x l"   . counsel-locate)
+         ("C-S-o"   . counsel-rhythmbox)))
+
 (use-package dash :ensure t :defer t)
 (use-package flymake-easy :ensure t :defer t)
 
@@ -178,9 +202,7 @@
   :init (use-package markdown-mode+ :ensure t))
 
 (use-package org-journal
-  :ensure t
-  :config (progn
-            (setq org-journal-dir "~/Dropbox/journal/")))
+  :ensure t)
 
 (use-package projectile
   :ensure t
@@ -240,7 +262,9 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(package-selected-packages (quote (markdown-mode+ git-commit-mode magit)))
+ '(package-selected-packages
+   (quote
+    (counsel swiper markdown-mode+ git-commit-mode magit)))
  '(send-mail-function (quote smtpmail-send-it)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
