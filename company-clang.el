@@ -1,6 +1,6 @@
 ;;; company-clang.el --- company-mode completion backend for Clang  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2009, 2011, 2013-2015  Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2011, 2013-2016  Free Software Foundation, Inc.
 
 ;; Author: Nikolaj Schumacher
 
@@ -161,6 +161,7 @@ or automatically through a custom `company-clang-prefix-guesser'."
      ((null meta) nil)
      ((string-match "[^:]:[^:]" meta)
       (substring meta (1+ (match-beginning 0))))
+     ((string-match "(anonymous)" meta) nil)
      ((string-match "\\((.*)[ a-z]*\\'\\)" meta)
       (let ((paren (match-beginning 1)))
         (if (not (eq (aref meta (1- paren)) ?>))
@@ -208,8 +209,9 @@ or automatically through a custom `company-clang-prefix-guesser'."
       (with-current-buffer buf
         (erase-buffer)
         (setq buffer-undo-list t))
-      (let ((process (apply #'start-process "company-clang" buf
-                            company-clang-executable args)))
+      (let* ((process-connection-type nil)
+             (process (apply #'start-file-process "company-clang" buf
+                             company-clang-executable args)))
         (set-process-sentinel
          process
          (lambda (proc status)
@@ -261,7 +263,7 @@ or automatically through a custom `company-clang-prefix-guesser'."
   (apply 'company-clang--start-process
          prefix
          callback
-         (company-clang--build-complete-args (- (point) (length prefix)))))
+         (company-clang--build-complete-args (point))))
 
 (defun company-clang--prefix ()
   (if company-clang-begin-after-member-access
@@ -323,7 +325,7 @@ passed via standard input."
                        (when (and company-clang-insert-arguments anno)
                          (insert anno)
                          (if (string-match "\\`:[^:]" anno)
-                             (company-clang-objc-templatify anno)
+                             (company-template-objc-templatify anno)
                            (company-template-c-like-templatify
                             (concat arg anno))))))))
 
