@@ -13,8 +13,8 @@
                         nil
                         :font "Fira Code"
                         :width 'normal
-                        :height 120
-                        :weight 'light)
+                        :height 110
+                        :weight 'normal)
     (setq-default line-spacing 3)       ; in pixels
 
     ;; Enable the Fira Code ligatures.
