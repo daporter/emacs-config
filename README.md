@@ -15,14 +15,18 @@ Ever find that a command works in your shell, but not in Emacs?
 This happens a lot on OS X, where an Emacs instance started from the GUI inherits a
 default set of environment variables.
 
-This library works solves this problem by copying important environment
+This library solves this problem by copying important environment
 variables from the user's shell: it works by asking your shell to print out the
 variables of interest, then copying them into the Emacs environment.
 
 Compatibility
 -------------
 
-If you use a non-POSIX-standard shell such as `tcsh` or `fish`, your
+At a minimum, this package assumes that your shell is at least UNIX-y: if
+`(getenv "SHELL")` evaluates to something like `".../cmdproxy.exe"`, this
+package probably isn't for you.
+
+Further, if you use a non-POSIX-standard shell such as `tcsh` or `fish`, your
 shell will be asked to execute `sh` as a subshell in order to print
 out the variables in a format which can be reliably parsed. `sh` must
 be a POSIX-compliant shell in this case.
@@ -34,9 +38,9 @@ variables (e.g. using the "export" keyword) may not be visible to
 Installation
 ------------
 
-ELPA packages are available on Marmalade and MELPA.  Alternatively, [download][]
+Installable packages are available via MELPA.  Alternatively, [download][]
 the latest release or clone the repository, and install
-`exec-path-from-shell.el` with `M-x package-install-from-file`.
+`exec-path-from-shell.el` with `M-x package-install-file`.
 
 Usage
 -----
@@ -44,11 +48,12 @@ Usage
 Add the following to your `init.el` (after calling `package-initialize`):
 
 ```el
-(when (memq window-system '(mac ns))
+(when (memq window-system '(mac ns x))
   (exec-path-from-shell-initialize))
 ```
 
-This sets `$MANPATH`, `$PATH` and `exec-path` from your shell, but only on OS X.
+This sets `$MANPATH`, `$PATH` and `exec-path` from your shell, but only on OS X
+and Linux.
 
 You can copy values of other environment variables by customizing
 `exec-path-from-shell-variables` before invoking
@@ -61,7 +66,7 @@ You can copy values of other environment variables by customizing
 
 This function may also be called interactively.
 
-Note that your shell will inherit Emacssenvironment variables when
+Note that your shell will inherit Emacs's environment variables when
 it is run -- to avoid surprises your config files should therefore
 set the environment variables to their exact desired final values,
 i.e. don't do this:
