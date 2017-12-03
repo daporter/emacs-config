@@ -292,7 +292,7 @@
 (use-package projectile
   :ensure t
   :diminish projectile-mode
-  :commands projectile-global-mode
+  :commands projectile-mode
   :defer 5
   :bind-keymap ("C-c p" . projectile-command-map)
   :config
@@ -301,7 +301,7 @@
   ;;   :config
   ;;   (setq projectile-completion-system 'helm)
   ;;   (helm-projectile-on))
-  (projectile-global-mode))
+  (projectile-mode))
 
 (use-package recentf
   :config (setq recentf-save-file
