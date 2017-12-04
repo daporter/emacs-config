@@ -95,19 +95,17 @@
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
   (package-install 'use-package))
+(setq use-package-always-ensure t)
 
-(use-package try :ensure t)
+(use-package try)
 
 (use-package zenburn-theme
-  :ensure t
   :config (load-theme 'zenburn t))
 
 (use-package which-key
-  :ensure t
   :config (which-key-mode 1))
 
 (use-package swiper
-  :ensure t
   :bind (("C-s"     . swiper)
          ("C-c C-r" . ivy-resume))
   :config (progn
@@ -117,7 +115,6 @@
             (ivy-mode 1)))
 
 (use-package counsel
-  :ensure t
   :bind (("M-x"     . counsel-M-x)
          ("C-x C-f" . counsel-find-file)
          ("<f1> f"  . counsel-describe-function)
@@ -131,78 +128,45 @@
          ("C-x l"   . counsel-locate)))
 
 (use-package avy
-  :ensure t
   :bind (("M-g c" . avy-goto-char)
          ("M-g g" . avy-goto-line)
          ("M-g w" . avy-goto-word-1))
   :config (avy-setup-default))
 
 (use-package ace-window
-  :ensure t
   :bind (("C-x o" . ace-window)))
 
-(use-package dash :ensure t :defer t)
-(use-package flymake-easy :ensure t :defer t)
+(use-package dash :defer t)
+(use-package flymake-easy :defer t)
 
 (use-package company
-  :ensure t
   :hook (after-init . global-company-mode))
 
 (use-package define-word
-  :ensure t
   :bind (("C-c d" . define-word-at-point)
          ("C-c D" . define-word)))
 
 (use-package exec-path-from-shell
-  :ensure t
   :config (exec-path-from-shell-initialize))
 
 (use-package chruby
-  :ensure t
   :config (chruby "ruby-2.2.3"))
 
 (use-package paredit
-  :ensure t
   :commands paredit-mode)
 
-(use-package lisp-mode
-  :defer t
-  :preface
-  (defun my-lisp-mode-hook ()
-    (progn
-      (use-package edebug)
-      (use-package eldoc
-        :commands eldoc-mode))
-
-    (auto-fill-mode 1)
-    (paredit-mode 1)
-
-    (local-set-key (kbd "<return>") 'paredit-newline)
-
-    (add-hook 'after-save-hook 'check-parens nil t))
-
-  :init
-  (apply #'hook-into-modes 'my-lisp-mode-hook lisp-mode-hooks))
-
 (use-package macrostep
-  :ensure t
   :bind ("C-c e m" . macrostep-expand))
 
 (use-package magit
-  :ensure t
   :bind (("C-x g" . magit-status)))
 
 (use-package markdown-mode
-  :ensure t
   :mode "\\.markdown\\'"
   :commands markdown-mode
-  :init (use-package markdown-mode+ :ensure t))
-
-(use-package org-journal
-  :ensure t)
+  :init (use-package markdown-mode+))
 
 (use-package projectile
-  :ensure t
   :commands projectile-mode
   :defer 5
   :bind-keymap ("C-c p" . projectile-command-map)
@@ -222,11 +186,9 @@
                            "/ssh:dap900@cloudlogin.nci.org.au:"))))
 
 (use-package twittering-mode
-  :ensure t
   :commands twit)
 
 (use-package yaml-mode
-  :ensure t
   :mode "\\.yaml\\'")
 
 
