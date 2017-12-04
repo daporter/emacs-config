@@ -78,9 +78,6 @@
 
 ;;; Configure libraries
 
-(eval-and-compile
-  (push (expand-file-name "lib" user-emacs-directory) load-path))
-
 (require 'package)
 (setq package-enable-at-startup nil)
 (let* ((no-ssl (and (memq system-type '(windows-nt ms-dos))
