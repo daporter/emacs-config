@@ -7,6 +7,12 @@
 
 (defconst emacs-start-time (current-time))
 
+(unless noninteractive
+  (message "Loading %s..." load-file-name))
+
+(scroll-bar-mode -1)
+(tool-bar-mode -1)
+
 (when (window-system)
   (progn
     (set-face-attribute 'default
@@ -20,17 +26,34 @@
     ;; Enable the Fira Code ligatures.
     (mac-auto-operator-composition-mode 1)))
 
-(unless noninteractive
-  (message "Loading %s..." load-file-name))
-
-;; Suppress `ad-handle-definition' warnings (mostly from 3rd-party packages).
-(setq ad-redefinition-action 'accept)
+(setq inhibit-startup-message t)
 
 (eval-and-compile
   (mapc
    #'(lambda (path)
        (push (expand-file-name path user-emacs-directory) load-path))
    '("site-lisp" "override" "lisp")))
+
+(defvar user-data-directory (expand-file-name "data" user-emacs-directory))
+
+(setq backup-directory-alist
+      (list (cons "." (expand-file-name "backups" user-emacs-directory))))
+
+(setq auto-save-list-file-prefix
+      (expand-file-name "backups/auto-save-list/.saves-" user-emacs-directory))
+
+;; Keep all auto-save files in the temp directory.
+(setq auto-save-file-name-transforms
+      `((".*" ,temporary-file-directory t)))
+
+(when (eq system-type 'darwin)
+  (progn
+    (setq mac-control-modifier 'control)
+    (setq mac-command-modifier 'meta)
+    (setq mac-option-modifier 'super)))
+
+;; Suppress `ad-handle-definition' warnings (mostly from 3rd-party packages).
+(setq ad-redefinition-action 'accept)
 
 (defsubst hook-into-modes (func &rest modes)
   (dolist (mode-hook modes) (add-hook mode-hook func)))
@@ -50,47 +73,8 @@
               (concat (symbol-name mode) "-hook"))))
           lisp-modes))
 
-
-(require 'package)
-(let* ((no-ssl (and (memq system-type '(windows-nt ms-dos))
-                    (not (gnutls-available-p))))
-       (url (concat (if no-ssl "http" "https") "://melpa.org/packages/")))
-  (add-to-list 'package-archives (cons "melpa" url) t))
-(when (< emacs-major-version 24)
-  ;; For important compatibility libraries like cl-lib
-  (add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/")))
-(package-initialize)
-
-
-(unless (package-installed-p 'use-package) (package-install 'use-package))
-(require 'use-package)
-(require 'bind-key)
-(require 'diminish nil t)
-
-(defvar user-data-directory (expand-file-name "data" user-emacs-directory))
-
-
-(setq backup-directory-alist
-      (list (cons "." (expand-file-name "backups" user-emacs-directory))))
-
-(setq auto-save-list-file-prefix
-      (expand-file-name "backups/auto-save-list/.saves-" user-emacs-directory))
-
-;; Keep all auto-save files in the temp directory.
-(setq auto-save-file-name-transforms
-      `((".*" ,temporary-file-directory t)))
-
 (setq-default user-full-name    "David Porter"
               user-mail-address "david.a.porter@gmail.com")
-
-(when (eq system-type 'darwin)
-  (progn
-    (setq mac-control-modifier 'control)
-    (setq mac-command-modifier 'meta)
-    (setq mac-option-modifier 'super)))
-
-(scroll-bar-mode -1)
-(tool-bar-mode -1)
 
 ;; Prevent extraneous tabs.
 (setq-default indent-tabs-mode nil)
@@ -100,10 +84,35 @@
 (when (eq system-type 'darwin)
   (setq insert-directory-program "gls"))
 
+;; `ibuffer' is a bit nicer than `list-buffers'.
+(defalias 'list-buffers 'ibuffer)
+
+
 ;;; Configure libraries
 
 (eval-and-compile
   (push (expand-file-name "lib" user-emacs-directory) load-path))
+
+(require 'package)
+(setq package-enable-at-startup nil)
+(let* ((no-ssl (and (memq system-type '(windows-nt ms-dos))
+                    (not (gnutls-available-p))))
+       (url (concat (if no-ssl "http" "https") "://melpa.org/packages/")))
+  (add-to-list 'package-archives (cons "melpa" url) t))
+(when (< emacs-major-version 24)
+  ;; For important compatibility libraries like cl-lib
+  (add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/")))
+(package-initialize)
+
+(unless (package-installed-p 'use-package)
+  (package-refresh-contents)
+  (package-install 'use-package))
+
+(use-package try :ensure t)
+
+(use-package which-key
+  :ensure t
+  :config (which-key-mode 1))
 
 (use-package swiper
   :ensure t
@@ -126,8 +135,7 @@
          ("C-c g"   . counsel-git)
          ("C-c j"   . counsel-git-grep)
          ("C-c k"   . counsel-ag)
-         ("C-x l"   . counsel-locate)
-         ("C-S-o"   . counsel-rhythmbox)))
+         ("C-x l"   . counsel-locate)))
 
 (use-package dash :ensure t :defer t)
 (use-package flymake-easy :ensure t :defer t)
@@ -139,15 +147,7 @@
 
 (use-package company
   :ensure t
-  :diminish company-mode
-  :init (add-hook 'after-init-hook 'global-company-mode)
-  :config
-  ;; From https://github.com/company-mode/company-mode/issues/87
-  ;; See also https://github.com/company-mode/company-mode/issues/123
-  (defadvice company-pseudo-tooltip-unless-just-one-frontend
-      (around only-show-tooltip-when-invoked activate)
-    (when (company-explicit-action-p)
-      ad-do-it)))
+  :init (add-hook 'after-init-hook 'global-company-mode))
 
 (use-package define-word
   :ensure t
@@ -264,7 +264,7 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (counsel swiper markdown-mode+ git-commit-mode magit)))
+    (which-key try counsel swiper markdown-mode+ git-commit-mode magit)))
  '(send-mail-function (quote smtpmail-send-it)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
