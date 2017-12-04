@@ -110,6 +110,10 @@
 
 (use-package try :ensure t)
 
+(use-package zenburn-theme
+  :ensure t
+  :config (load-theme 'zenburn t))
+
 (use-package which-key
   :ensure t
   :config (which-key-mode 1))
@@ -275,8 +279,7 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (ace-window which-key try counsel swiper markdown-mode+ git-commit-mode magit)))
- '(send-mail-function (quote smtpmail-send-it)))
+    (zenburn-theme ace-window which-key try counsel swiper markdown-mode+ git-commit-mode magit))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
