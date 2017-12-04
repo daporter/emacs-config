@@ -139,6 +139,11 @@
 (use-package company
   :hook (after-init . global-company-mode))
 
+(use-package org-bullets
+  :hook (org-mode . org-bullets-mode))
+
+(use-package org-journal)
+
 (use-package define-word
   :bind (("C-c d" . define-word-at-point)
          ("C-c D" . define-word)))
