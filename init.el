@@ -137,6 +137,10 @@
          ("C-c k"   . counsel-ag)
          ("C-x l"   . counsel-locate)))
 
+(use-package ace-window
+  :ensure t
+  :bind (("C-x o" . ace-window)))
+
 (use-package dash :ensure t :defer t)
 (use-package flymake-easy :ensure t :defer t)
 
@@ -264,7 +268,7 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (which-key try counsel swiper markdown-mode+ git-commit-mode magit)))
+    (ace-window which-key try counsel swiper markdown-mode+ git-commit-mode magit)))
  '(send-mail-function (quote smtpmail-send-it)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
