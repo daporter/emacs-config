@@ -28,23 +28,11 @@
 
 (setq inhibit-startup-message t)
 
-(eval-and-compile
-  (mapc
-   #'(lambda (path)
-       (push (expand-file-name path user-emacs-directory) load-path))
-   '("site-lisp" "override" "lisp")))
-
-(defvar user-data-directory (expand-file-name "data" user-emacs-directory))
-
 (setq backup-directory-alist
       (list (cons "." (expand-file-name "backups" user-emacs-directory))))
 
 (setq auto-save-list-file-prefix
       (expand-file-name "backups/auto-save-list/.saves-" user-emacs-directory))
-
-;; Keep all auto-save files in the temp directory.
-(setq auto-save-file-name-transforms
-      `((".*" ,temporary-file-directory t)))
 
 (when (eq system-type 'darwin)
   (progn
@@ -156,11 +144,6 @@
 (use-package dash :ensure t :defer t)
 (use-package flymake-easy :ensure t :defer t)
 
-(use-package bookmark
-  :ensure t
-  :config (setq bookmark-default-file
-                (expand-file-name "bookmarks" user-data-directory)))
-
 (use-package company
   :ensure t
   :init (add-hook 'after-init-hook 'global-company-mode))
@@ -226,10 +209,6 @@
   :config
   (projectile-mode))
 
-(use-package recentf
-  :config (setq recentf-save-file
-                (expand-file-name "recentf" user-data-directory)))
-
 (use-package server
   :config (unless (server-running-p) (server-start)))
 
@@ -245,9 +224,6 @@
 (use-package twittering-mode
   :ensure t
   :commands twit)
-
-(use-package url-cache
-  :init (setq url-cache-directory (expand-file-name "url/cache" user-data-directory)))
 
 (use-package yaml-mode
   :ensure t

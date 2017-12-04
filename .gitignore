@@ -4,7 +4,6 @@
 /cus-dirs.el
 /loaddefs.elc
 compile.log
-/phunculist/data/
 ede-projects.el
 eshell/
 info/
@@ -12,6 +11,6 @@ mirror
 tramp
 /elpa/
 /projectile-bookmarks.eld
-/data/
 /.emacs.desktop
 /.emacs.desktop.lock
+/recentf
