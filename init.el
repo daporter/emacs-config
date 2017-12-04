@@ -180,8 +180,7 @@
 
 (use-package paredit
   :ensure t
-  :commands paredit-mode
-  :diminish paredit-mode)
+  :commands paredit-mode)
 
 (use-package lisp-mode
   :defer t
@@ -190,7 +189,6 @@
     (progn
       (use-package edebug)
       (use-package eldoc
-        :diminish eldoc-mode
         :commands eldoc-mode))
 
     (auto-fill-mode 1)
@@ -222,7 +220,6 @@
 
 (use-package projectile
   :ensure t
-  :diminish projectile-mode
   :commands projectile-mode
   :defer 5
   :bind-keymap ("C-c p" . projectile-command-map)
