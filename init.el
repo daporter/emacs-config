@@ -120,12 +120,13 @@
 
 (use-package swiper
   :ensure t
-  :bind (("C-s" . swiper)
+  :bind (("C-s"     . swiper)
          ("C-c C-r" . ivy-resume))
-  :init (progn
-          (setq ivy-use-virtual-buffers t)
-          (setq ivy-count-format "(%d/%d) "))
-  :config (ivy-mode 1))
+  :config (progn
+            (setq ivy-use-virtual-buffers t)
+            (setq ivy-count-format "(%d/%d) ")
+            (setq ivy-display-style 'fancy)
+            (ivy-mode 1)))
 
 (use-package counsel
   :ensure t
