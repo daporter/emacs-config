@@ -137,6 +137,13 @@
          ("C-c k"   . counsel-ag)
          ("C-x l"   . counsel-locate)))
 
+(use-package avy
+  :ensure t
+  :bind (("M-g c" . avy-goto-char)
+         ("M-g g" . avy-goto-line)
+         ("M-g w" . avy-goto-word-1))
+  :config (avy-setup-default))
+
 (use-package ace-window
   :ensure t
   :bind (("C-x o" . ace-window)))
