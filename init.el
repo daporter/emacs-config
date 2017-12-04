@@ -19,7 +19,7 @@
                         nil
                         :font "Fira Code"
                         :width 'normal
-                        :height 110
+                        :height 120
                         :weight 'normal)
     (setq-default line-spacing 3)       ; in pixels
 
