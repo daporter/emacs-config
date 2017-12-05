@@ -1,0 +1,140 @@
+* Interface Tweaks
+  #+BEGIN_SRC emacs-lisp
+    (scroll-bar-mode -1)
+    (tool-bar-mode -1)
+
+    (when (window-system)
+      (progn
+        (set-face-attribute 'default
+                            nil
+                            :font "Fira Code"
+                            :width 'normal
+                            :height 120
+                            :weight 'normal)
+        (setq-default line-spacing 3)       ; in pixels
+
+        ;; Enable the Fira Code ligatures.
+        (mac-auto-operator-composition-mode 1)))
+
+    (setq inhibit-startup-message t)
+
+    (when (eq system-type 'darwin)
+      (progn
+        (setq mac-control-modifier 'control)
+        (setq mac-command-modifier 'meta)
+        (setq mac-option-modifier 'super)))
+
+    (fset 'yes-or-no-p 'y-or-n-p)
+  #+END_SRC
+
+* Configure Package System
+  #+BEGIN_SRC emacs-lisp
+    (require 'package)
+    (setq package-enable-at-startup nil)
+    (let* ((no-ssl (and (memq system-type '(windows-nt ms-dos))
+                        (not (gnutls-available-p))))
+           (url (concat (if no-ssl "http" "https") "://melpa.org/packages/")))
+      (add-to-list 'package-archives (cons "melpa" url) t))
+    (when (< emacs-major-version 24)
+      ;; For important compatibility libraries like cl-lib
+      (add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/")))
+    (package-initialize)
+
+    (unless (package-installed-p 'use-package)
+      (package-refresh-contents)
+      (package-install 'use-package))
+    (setq use-package-always-ensure t)
+  #+END_SRC
+
+* Theme
+
+** Zenburn
+   #+BEGIN_SRC emacs-lisp
+      (use-package zenburn-theme
+        :config (load-theme 'zenburn t))
+   #+END_SRC
+
+* Packages
+
+** Exec Path from Shell
+   #+BEGIN_SRC emacs-lisp
+     (use-package exec-path-from-shell
+       :config (exec-path-from-shell-initialize))
+   #+END_SRC
+
+** Which Key
+   #+BEGIN_SRC emacs-lisp
+      (use-package which-key
+        :config (which-key-mode 1))
+   #+END_SRC
+
+** Swiper, Counsel, Avy
+   #+BEGIN_SRC emacs-lisp
+     (use-package swiper
+       :bind (("C-s"     . swiper)
+              ("C-c C-r" . ivy-resume))
+       :config (progn
+                 (setq ivy-use-virtual-buffers t)
+                 (setq ivy-count-format "(%d/%d) ")
+                 (setq ivy-display-style 'fancy)
+                 (ivy-mode 1)))
+
+     (use-package counsel
+       :bind (("M-x"     . counsel-M-x)
+              ("C-x C-f" . counsel-find-file)
+              ("<f1> f"  . counsel-describe-function)
+              ("<f1> v"  . counsel-describe-variable)
+              ("<f1> l"  . counsel-find-library)
+              ("<f2> i"  . counsel-info-lookup-symbol)
+              ("<f2> u"  . counsel-unicode-char)
+              ("C-c g"   . counsel-git)
+              ("C-c j"   . counsel-git-grep)
+              ("C-c k"   . counsel-ag)
+              ("C-x l"   . counsel-locate)))
+
+     (use-package avy
+       :bind (("M-g c" . avy-goto-char)
+              ("M-g g" . avy-goto-line)
+              ("M-g w" . avy-goto-word-1))
+       :config (avy-setup-default))
+   #+END_SRC
+
+** Company
+   #+BEGIN_SRC emacs-lisp
+     (use-package company
+       :hook (after-init . global-company-mode))
+   #+END_SRC
+
+** Ace Window
+   #+BEGIN_SRC emacs-lisp
+     (use-package ace-window
+       :bind (("C-x o" . ace-window)))
+   #+END_SRC
+
+** Org
+   #+BEGIN_SRC emacs-lisp
+     (use-package org-bullets
+       :hook (org-mode . org-bullets-mode))
+
+     (use-package org-journal)
+   #+END_SRC
+
+** Magit
+   #+BEGIN_SRC emacs-lisp
+     (use-package magit
+       :bind (("C-x g" . magit-status)))
+   #+END_SRC
+
+** Projectile
+   #+BEGIN_SRC emacs-lisp
+     (use-package projectile
+       :commands projectile-mode
+       :defer 5
+       :bind-keymap ("C-c p" . projectile-command-map)
+       :config (projectile-mode 1))
+   #+END_SRC
+
+** Try
+   #+BEGIN_SRC emacs-lisp
+     (use-package try)
+   #+END_SRC
