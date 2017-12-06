@@ -27,19 +27,47 @@
     (fset 'yes-or-no-p 'y-or-n-p)
   #+END_SRC
 
-* Configure Package System
-  #+BEGIN_SRC emacs-lisp
-    (require 'package)
-    (setq package-enable-at-startup nil)
-    (let* ((no-ssl (and (memq system-type '(windows-nt ms-dos))
-                        (not (gnutls-available-p))))
-           (url (concat (if no-ssl "http" "https") "://melpa.org/packages/")))
-      (add-to-list 'package-archives (cons "melpa" url) t))
-    (when (< emacs-major-version 24)
-      ;; For important compatibility libraries like cl-lib
-      (add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/")))
-    (package-initialize)
+* Basic Settings
 
+  Store backups in dedicated directory ~backups~.
+  #+BEGIN_SRC emacs-lisp
+    (setq backup-directory-alist
+          (list (cons "." (expand-file-name "backups" user-emacs-directory))))
+
+    (setq auto-save-list-file-prefix
+          (expand-file-name "backups/auto-save-list/.saves-" user-emacs-directory))
+  #+END_SRC
+
+  Tell Emacs who I am.
+  #+BEGIN_SRC emacs-lisp
+    (setq-default user-full-name    "David Porter"
+                  user-mail-address "david.a.porter@gmail.com")
+  #+END_SRC
+
+  Suppress ~ad-handle-definition~ warnings (mostly from 3rd-party packages).
+  #+BEGIN_SRC emacs-lisp
+    (setq ad-redefinition-action 'accept)
+  #+END_SRC
+
+  Prevent extraneous tabs.
+  #+BEGIN_SRC emacs-lisp
+    (setq-default indent-tabs-mode nil)
+  #+END_SRC
+
+  On OS X use the GNU Coreutils version of ~ls~ installed by Homebrew,
+  which is called ~gls~.
+  #+BEGIN_SRC emacs-lisp
+    (when (eq system-type 'darwin)
+      (setq insert-directory-program "gls"))
+  #+END_SRC
+
+  ~ibuffer~ is a bit nicer than ~list-buffers~.
+  #+BEGIN_SRC emacs-lisp
+    (defalias 'list-buffers 'ibuffer)
+  #+END_SRC
+
+* ~use-package~
+  #+BEGIN_SRC emacs-lisp
     (unless (package-installed-p 'use-package)
       (package-refresh-contents)
       (package-install 'use-package))
@@ -47,7 +75,6 @@
   #+END_SRC
 
 * Theme
-
 ** Zenburn
    #+BEGIN_SRC emacs-lisp
       (use-package zenburn-theme
@@ -55,12 +82,17 @@
    #+END_SRC
 
 * Packages
-
 ** Exec Path from Shell
    #+BEGIN_SRC emacs-lisp
      (use-package exec-path-from-shell
        :config (exec-path-from-shell-initialize))
    #+END_SRC
+** Server
+  Run as a server for use with ~emacsclient~.
+  #+BEGIN_SRC emacs-lisp
+    (use-package server
+      :config (unless (server-running-p) (server-start)))
+  #+END_SRC
 
 ** Which Key
    #+BEGIN_SRC emacs-lisp
@@ -134,7 +166,41 @@
        :config (projectile-mode 1))
    #+END_SRC
 
+** Define Word
+   #+BEGIN_SRC emacs-lisp
+     (use-package define-word
+       :bind (("C-c d" . define-word-at-point)
+              ("C-c D" . define-word)))
+   #+END_SRC
+
+** Chruby
+   #+BEGIN_SRC emacs-lisp
+     (use-package chruby
+       :config (chruby "ruby-2.2.3"))
+   #+END_SRC
+
+** Markdown
+   #+BEGIN_SRC emacs-lisp
+     (use-package markdown-mode
+       :mode "\\.markdown\\'"
+       :commands markdown-mode
+       :init (use-package markdown-mode+))
+   #+END_SRC
+
+** Twitter
+   #+BEGIN_SRC emacs-lisp
+     (use-package twittering-mode
+       :commands twit)
+   #+END_SRC
+
+** YAML
+   #+BEGIN_SRC emacs-lisp
+     (use-package yaml-mode
+       :mode "\\.yaml\\'")
+   #+END_SRC
+
 ** Try
    #+BEGIN_SRC emacs-lisp
      (use-package try)
    #+END_SRC
+

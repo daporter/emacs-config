@@ -1,100 +1,23 @@
-;;; package --- Summary
-;;; Commentary:
-
-;; Phunculist's Emacs configuration.
-
-;;; Code:
-
+;; Record current time in order to calculate time taken to for Emacs
+;; to start.
 (defconst emacs-start-time (current-time))
 
-(setq backup-directory-alist
-      (list (cons "." (expand-file-name "backups" user-emacs-directory))))
+;; Configure package system.
+(require 'package)
+(setq package-enable-at-startup nil)
+(let* ((no-ssl (and (memq system-type '(windows-nt ms-dos))
+                    (not (gnutls-available-p))))
+       (url (concat (if no-ssl "http" "https") "://melpa.org/packages/")))
+  (add-to-list 'package-archives (cons "melpa" url) t))
+(when (< emacs-major-version 24)
+  ;; For important compatibility libraries like cl-lib
+  (add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/")))
+(package-initialize)
 
-(setq auto-save-list-file-prefix
-      (expand-file-name "backups/auto-save-list/.saves-" user-emacs-directory))
+;; Load rest of Emacs config from an Org file.
+(org-babel-load-file (expand-file-name "my-init.org" user-emacs-directory))
 
-
-;; Suppress `ad-handle-definition' warnings (mostly from 3rd-party packages).
-(setq ad-redefinition-action 'accept)
-
-(defsubst hook-into-modes (func &rest modes)
-  (dolist (mode-hook modes) (add-hook mode-hook func)))
-
-(defvar lisp-modes '(emacs-lisp-mode
-                     inferior-emacs-lisp-mode
-                     ielm-mode
-                     lisp-mode
-                     inferior-lisp-mode
-                     lisp-interaction-mode
-                     slime-repl-mode))
-
-(defvar lisp-mode-hooks
-  (mapcar (function
-           (lambda (mode)
-             (intern
-              (concat (symbol-name mode) "-hook"))))
-          lisp-modes))
-
-(setq-default user-full-name    "David Porter"
-              user-mail-address "david.a.porter@gmail.com")
-
-;; Prevent extraneous tabs.
-(setq-default indent-tabs-mode nil)
-
-;; On OS X, use the GNU Coreutils version of `ls', installed by
-;; Homebrew, which is called `gls'.
-(when (eq system-type 'darwin)
-  (setq insert-directory-program "gls"))
-
-;; `ibuffer' is a bit nicer than `list-buffers'.
-(defalias 'list-buffers 'ibuffer)
-
-
-;;; Configure libraries
-
-
-(use-package dash :defer t)
-(use-package flymake-easy :defer t)
-
-(use-package define-word
-  :bind (("C-c d" . define-word-at-point)
-         ("C-c D" . define-word)))
-
-(use-package chruby
-  :config (chruby "ruby-2.2.3"))
-
-(use-package paredit
-  :commands paredit-mode)
-
-(use-package macrostep
-  :bind ("C-c e m" . macrostep-expand))
-
-(use-package markdown-mode
-  :mode "\\.markdown\\'"
-  :commands markdown-mode
-  :init (use-package markdown-mode+))
-
-(use-package server
-  :config (unless (server-running-p) (server-start)))
-
-(use-package tramp
-  :config (progn
-            ;; Configure Tramp for use with the NCI cloud VMs.
-            (setq tramp-default-method "ssh")
-            (add-to-list 'tramp-default-proxies-alist
-                         '("130\\.56\\."
-                           nil
-                           "/ssh:dap900@cloudlogin.nci.org.au:"))))
-
-(use-package twittering-mode
-  :commands twit)
-
-(use-package yaml-mode
-  :mode "\\.yaml\\'")
-
-
-;;; Post initialization
-
+;; Calculate and report the time taken for Emacs to start.
 (when window-system
   (let ((elapsed (float-time (time-subtract (current-time)
                                             emacs-start-time))))
@@ -107,9 +30,6 @@
                  (message "Loading %s...done (%.3fs) [after-init]"
                           ,load-file-name elapsed)))
             t))
-
-
-(org-babel-load-file (expand-file-name "my-init.org" user-emacs-directory))
 
 
 (custom-set-variables
