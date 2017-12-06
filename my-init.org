@@ -154,7 +154,8 @@
 ** Magit
    #+BEGIN_SRC emacs-lisp
      (use-package magit
-       :bind (("C-x g" . magit-status)))
+       :bind (("C-x g" . magit-status))
+       :config (setq magit-completing-read-function 'ivy-completing-read))
    #+END_SRC
 
 ** Projectile
@@ -163,7 +164,9 @@
        :commands projectile-mode
        :defer 5
        :bind-keymap ("C-c p" . projectile-command-map)
-       :config (projectile-mode 1))
+       :config (progn
+                 (setq projectile-completion-system 'ivy)
+                 (projectile-mode 1)))
    #+END_SRC
 
 ** Define Word
