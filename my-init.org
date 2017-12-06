@@ -152,7 +152,8 @@
      (use-package org-bullets
        :hook (org-mode . org-bullets-mode))
 
-     (use-package org-journal)
+     (use-package org-journal
+       :bind (("C-c C-j" . org-journal-new-entry)))
    #+END_SRC
 
 ** Magit
