@@ -85,8 +85,11 @@
 ** Exec Path from Shell
    #+BEGIN_SRC emacs-lisp
      (use-package exec-path-from-shell
-       :config (exec-path-from-shell-initialize))
+       :config (progn
+                 (setq exec-path-from-shell-check-startup-files nil)
+                 (exec-path-from-shell-initialize)))
    #+END_SRC
+
 ** Server
   Run as a server for use with ~emacsclient~.
   #+BEGIN_SRC emacs-lisp
