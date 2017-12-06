@@ -184,15 +184,17 @@
 ** Chruby
    #+BEGIN_SRC emacs-lisp
      (use-package chruby
-       :config (chruby "ruby-2.2.3"))
+       :commands chruby-use)
    #+END_SRC
 
 ** Markdown
    #+BEGIN_SRC emacs-lisp
      (use-package markdown-mode
        :mode "\\.markdown\\'"
-       :commands markdown-mode
-       :init (use-package markdown-mode+))
+       :commands markdown-mode)
+
+     (use-package markdown-mode+
+       :after markdown-mode)
    #+END_SRC
 
 ** Twitter
@@ -209,6 +211,7 @@
 
 ** Try
    #+BEGIN_SRC emacs-lisp
-     (use-package try)
+     (use-package try
+       :commands try)
    #+END_SRC
 
