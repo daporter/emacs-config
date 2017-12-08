@@ -1,7 +1,19 @@
-* Interface Tweaks
+* Display Settings
+
+  I’ve been using Emacs for many years, and appreciate a certain
+  minimalist approach to its display. While you can turn these off
+  with the menu items now, it is just as easy to set them here.
+
   #+BEGIN_SRC emacs-lisp
-    (scroll-bar-mode -1)
-    (tool-bar-mode -1)
+    (setq inhibit-startup-message t)
+    (setq initial-scratch-message "")
+    (setq visible-bell t)
+
+    (when (window-system)
+      (tool-bar-mode -1)
+      (when (fboundp 'horizontal-scroll-bar-mode)
+        (horizontal-scroll-bar-mode -1))
+      (scroll-bar-mode -1))
 
     (when (window-system)
       (progn
@@ -16,8 +28,6 @@
         ;; Enable the Fira Code ligatures.
         (mac-auto-operator-composition-mode 1)))
 
-    (setq inhibit-startup-message t)
-
     (when (eq system-type 'darwin)
       (progn
         (setq mac-control-modifier 'control)
@@ -27,9 +37,57 @@
     (fset 'yes-or-no-p 'y-or-n-p)
   #+END_SRC
 
-* Basic Settings
+** Fill Mode
 
-  Store backups in dedicated directory ~backups~.
+   Automatically wrapping when you get to the end of a line (or the
+   fill-region):
+
+   #+BEGIN_SRC emacs-lisp
+     (use-package auto-fill
+       :after org
+       :bind (("C-c T f" . auto-fill-mode)
+              ("C-c T t" . toggle-truncate-lines))
+       :hook (org-mode . turn-on-auto-fill))
+   #+END_SRC
+
+   #+RESULTS:
+
+* General Settings
+
+** Customization Section
+
+   While I would rather program my configurations, sometimes the Emacs
+   menu system is “good enough”, but I want it in its own file:
+
+   #+BEGIN_SRC emacs-lisp
+     (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+     (when (file-exists-p custom-file)
+       (load custom-file))
+   #+END_SRC
+
+** Modernizing Emacs
+
+   With a long history of working on small machines without gigabytes
+   of RAM, we might as well let Emacs be the beast it has always
+   dreamed of being.
+
+   First, let’s increase the cache before starting garbage collection:
+
+   #+BEGIN_SRC emacs-lisp
+     (setq gc-cons-threshold 50000000)
+   #+END_SRC
+
+   Found [[https://github.com/wasamasa/dotemacs/blob/master/init.org#init][here]] how to remove the warnings from the GnuTLS library when
+   using HTTPS… increase the minimum prime bits size:
+
+   #+BEGIN_SRC emacs-lisp
+     (setq gnutls-min-prime-bits 4096)
+   #+END_SRC
+
+** Backups
+
+  Store backups in dedicated directory ~backups~:
+
   #+BEGIN_SRC emacs-lisp
     (setq backup-directory-alist
           (list (cons "." (expand-file-name "backups" user-emacs-directory))))
@@ -38,30 +96,37 @@
           (expand-file-name "backups/auto-save-list/.saves-" user-emacs-directory))
   #+END_SRC
 
-  Tell Emacs who I am.
+** Misc
+
+  Tell Emacs who I am:
+
   #+BEGIN_SRC emacs-lisp
     (setq-default user-full-name    "David Porter"
                   user-mail-address "david.a.porter@gmail.com")
   #+END_SRC
 
-  Suppress ~ad-handle-definition~ warnings (mostly from 3rd-party packages).
+  Suppress ~ad-handle-definition~ warnings (mostly from 3rd-party packages):
+
   #+BEGIN_SRC emacs-lisp
     (setq ad-redefinition-action 'accept)
   #+END_SRC
 
-  Prevent extraneous tabs.
+  Prevent extraneous tabs:
+
   #+BEGIN_SRC emacs-lisp
     (setq-default indent-tabs-mode nil)
   #+END_SRC
 
   On OS X use the GNU Coreutils version of ~ls~ installed by Homebrew,
-  which is called ~gls~.
+  which is called ~gls~:
+
   #+BEGIN_SRC emacs-lisp
     (when (eq system-type 'darwin)
       (setq insert-directory-program "gls"))
   #+END_SRC
 
-  ~ibuffer~ is a bit nicer than ~list-buffers~.
+  ~ibuffer~ is a bit nicer than ~list-buffers~:
+
   #+BEGIN_SRC emacs-lisp
     (defalias 'list-buffers 'ibuffer)
   #+END_SRC
@@ -148,11 +213,31 @@
    #+END_SRC
 
 ** Org
+
+   We have to tell Org mode that it's okay to execute =sh= code:
+
+   #+BEGIN_SRC emacs-lisp
+     (use-package org
+       :config (org-babel-do-load-languages
+                'org-babel-load-languages '((sh . t))))
+   #+END_SRC
+
+   (We can add other languages to this list as the need arises.)
+
+   Then we use a couple of Org helper packages. =org-bullets= replaces
+   the asterisks in headings with nice glyphs:
+
    #+BEGIN_SRC emacs-lisp
      (use-package org-bullets
+       :after (org)
        :hook (org-mode . org-bullets-mode))
+   #+END_SRC
 
+   =org-journal= makes it easy to keep an Org mode-based journal:
+
+   #+BEGIN_SRC emacs-lisp
      (use-package org-journal
+       :after (org)
        :bind (("C-c C-j" . org-journal-new-entry)))
    #+END_SRC
 
