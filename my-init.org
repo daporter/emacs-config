@@ -246,12 +246,24 @@
 ** Projectile
    #+BEGIN_SRC emacs-lisp
      (use-package projectile
-       :commands projectile-mode
+       :after (ivy)
        :defer 5
-       :bind-keymap ("C-c p" . projectile-command-map)
+       :commands projectile-mode
        :config (progn
                  (setq projectile-completion-system 'ivy)
                  (projectile-mode 1)))
+   #+END_SRC
+
+   Counsel-projectile provides further Ivy integration with Projectile
+   by taking advantage of Ivy's mechanism to select from a list of
+   actions and/or apply an action without leaving the completion
+   session. The main keybinding for invoking Projectile becomes =C-c p
+   SPC=.
+
+   #+BEGIN_SRC emacs-lisp
+     (use-package counsel-projectile
+       :after (projectile)
+       :config (counsel-projectile-on))
    #+END_SRC
 
 ** Spelling
