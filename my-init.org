@@ -269,6 +269,26 @@
                  (projectile-mode 1)))
    #+END_SRC
 
+** Spelling
+
+   #+BEGIN_SRC emacs-lisp
+     (use-package ispell
+       :commands (ispell-word
+                  ispell-region
+                  ispell-buffer)
+       :config (when (executable-find "hunspell")
+                 (setq-default ispell-program-name "hunspell")
+                 (setq ispell-really-hunspell t)))
+
+     (use-package flyspell
+       :commands (flyspell-mode
+                  turn-on-flyspell
+                  turn-off-flyspell
+                  flyspell-prog-mode)
+       :hook (((text-mode git-commit-mode-hook) . flyspell-mode)
+              (prog-mode . flyspell-prog-mode)))
+   #+END_SRC
+
 ** Define Word
    #+BEGIN_SRC emacs-lisp
      (use-package define-word
