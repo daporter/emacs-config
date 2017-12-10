@@ -352,6 +352,22 @@
               ("C-c D" . define-word)))
    #+END_SRC
 
+** Keyfreq
+
+   I'm interested in choosing more comfortable keybindings for my
+   most-used commands.  In order to find out which commands these are
+   I use =keyfreq=.
+
+   View the statistics by invoking =keyfreq-show= and checking the
+   resulting buffer =*frequencies*=.
+
+   #+BEGIN_SRC emacs-lisp
+     (use-package keyfreq
+       :config (progn
+                 (keyfreq-mode 1)
+                 (keyfreq-autosave-mode 1)))
+   #+END_SRC
+
 ** Chruby
    #+BEGIN_SRC emacs-lisp
      (use-package chruby
