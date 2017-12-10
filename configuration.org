@@ -210,8 +210,11 @@
 
    #+BEGIN_SRC emacs-lisp
      (use-package org
-       :config (org-babel-do-load-languages
-                'org-babel-load-languages '((sh . t))))
+       :config (progn
+                 (org-babel-do-load-languages
+                  'org-babel-load-languages '((sh . t)))
+                 ;; syntax-highlight source code blocks:
+                 (setq org-src-fontify-natively t))) 
    #+END_SRC
 
    (We can add other languages to this list as the need arises.)
