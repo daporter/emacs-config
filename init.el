@@ -15,7 +15,8 @@
 (package-initialize)
 
 ;; Load rest of Emacs config from an Org file.
-(org-babel-load-file (expand-file-name "my-init.org" user-emacs-directory))
+(let ((f (expand-file-name "configuration.org" user-emacs-directory)))
+  (org-babel-load-file f))
 
 ;; Calculate and report the time taken for Emacs to start.
 (when window-system

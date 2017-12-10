@@ -14,5 +14,5 @@ tramp
 /.emacs.desktop
 /.emacs.desktop.lock
 /recentf
-/my-init.el
+/configuration.el
 /bookmarks
