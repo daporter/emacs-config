@@ -372,12 +372,19 @@
    Emacs.  =xah-fly-keys= makes its keybinding choices command
    frequency statistics and ease-of-use scores.
 
+   As can be seen below, I create my own keymap and bind it to =SPC
+   z=, so that, for example, =swiper= is invoked with =SPC z h=.
+
    #+BEGIN_SRC emacs-lisp
      (use-package xah-fly-keys
        :after (swiper)
        :config (progn
-                 (xah-fly-keys 1)
-                 (define-key xah-fly-key-map (kbd "b") 'swiper)))
+                 (setq my-keymap (make-sparse-keymap))
+                 (define-key my-keymap (kbd "h") 'swiper)
+                 (define-key my-keymap (kbd "t") 'avy-goto-char)
+                 (define-key my-keymap (kbd "n") 'avy-goto-word-1)
+                 (define-key xah-fly-leader-key-map (kbd "z") my-keymap)
+                 (xah-fly-keys 1)))
    #+END_SRC
 
 ** Chruby
