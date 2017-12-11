@@ -368,6 +368,17 @@
                  (keyfreq-autosave-mode 1)))
    #+END_SRC
 
+** Xah Fly Keys
+
+   This will be an experiment with using a modal editing system in
+   Emacs.  =xah-fly-keys= makes its keybinding choices command
+   frequency statistics and ease-of-use scores.
+
+   #+BEGIN_SRC emacs-lisp
+     (use-package xah-fly-keys
+       :config (xah-fly-keys 1))
+   #+END_SRC
+
 ** Chruby
    #+BEGIN_SRC emacs-lisp
      (use-package chruby

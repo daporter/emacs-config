@@ -5,7 +5,7 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (keyfreq undo-tree counsel-projectile auto-fill fill smartparens smartparens-config zenburn-theme ace-window which-key try counsel swiper markdown-mode+ git-commit-mode magit)))
+    (xah-fly-keys keyfreq undo-tree counsel-projectile auto-fill fill smartparens smartparens-config zenburn-theme ace-window which-key try counsel swiper markdown-mode+ git-commit-mode magit)))
  '(projectile-mode t nil (projectile)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
