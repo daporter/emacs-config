@@ -34,6 +34,12 @@
         (fset 'yes-or-no-p 'y-or-n-p)
   #+END_SRC
 
+  Always show the current column in the modeline:
+
+  #+BEGIN_SRC emacs-lisp
+    (column-number-mode 1)
+  #+END_SRC
+
 * General Settings
 
 ** Customization Section
