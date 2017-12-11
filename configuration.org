@@ -153,8 +153,6 @@
 ** Swiper, Counsel, Avy
    #+BEGIN_SRC emacs-lisp
      (use-package swiper
-       :bind (("C-s"     . swiper)
-              ("C-c C-r" . ivy-resume))
        :config (progn
                  (setq ivy-use-virtual-buffers t)
                  (setq ivy-count-format "(%d/%d) ")
@@ -376,7 +374,10 @@
 
    #+BEGIN_SRC emacs-lisp
      (use-package xah-fly-keys
-       :config (xah-fly-keys 1))
+       :after (swiper)
+       :config (progn
+                 (xah-fly-keys 1)
+                 (define-key xah-fly-key-map (kbd "b") 'swiper)))
    #+END_SRC
 
 ** Chruby
