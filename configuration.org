@@ -119,6 +119,12 @@
     (defalias 'list-buffers 'ibuffer)
   #+END_SRC
 
+  Wrap lines at close to 80 columns:
+
+  #+BEGIN_SRC emacs-lisp
+    (setq-default fill-column 78)
+  #+END_SRC
+
 * ~use-package~
   #+BEGIN_SRC emacs-lisp
     (unless (package-installed-p 'use-package)
