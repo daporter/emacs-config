@@ -128,10 +128,20 @@
   #+END_SRC
 
 * Theme
+
 ** Zenburn
    #+BEGIN_SRC emacs-lisp
-      (use-package zenburn-theme
-        :config (load-theme 'zenburn t))
+     (use-package zenburn-theme
+       :config (load-theme 'zenburn t))
+   #+END_SRC
+
+** Powerline
+
+   Let's have a nice modeline appearance:
+
+   #+BEGIN_SRC emacs-lisp
+     (use-package powerline
+       :config (powerline-default-theme))
    #+END_SRC
 
 * Packages
@@ -218,7 +228,7 @@
                  (org-babel-do-load-languages
                   'org-babel-load-languages '((sh . t)))
                  ;; syntax-highlight source code blocks:
-                 (setq org-src-fontify-natively t))) 
+                 (setq org-src-fontify-natively t)))
    #+END_SRC
 
    (We can add other languages to this list as the need arises.)
