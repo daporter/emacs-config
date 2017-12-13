@@ -169,9 +169,9 @@
 ** Swiper, Counsel, Avy
    #+BEGIN_SRC emacs-lisp
      (use-package swiper
+       :bind (("C-s" . swiper))
        :config (progn
                  (setq ivy-use-virtual-buffers t)
-                 (setq ivy-count-format "(%d/%d) ")
                  (setq ivy-display-style 'fancy)
                  (ivy-mode 1)))
 
