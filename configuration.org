@@ -162,8 +162,11 @@
 
 ** Which Key
    #+BEGIN_SRC emacs-lisp
-      (use-package which-key
-        :config (which-key-mode 1))
+     (use-package which-key
+       :after (god-mode)
+       :config (progn
+                 (which-key-enable-god-mode-support)
+                 (which-key-mode 1)))
    #+END_SRC
 
 ** Swiper, Counsel, Avy
