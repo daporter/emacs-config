@@ -19,7 +19,7 @@
           (progn
             (set-face-attribute 'default
                                 nil
-                                :font "Fira Code"
+                                :font "DejaVu Sans Mono"
                                 :width 'normal
                                 :height 120
                                 :weight 'normal)
