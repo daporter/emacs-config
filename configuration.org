@@ -338,6 +338,7 @@
                    ("C-M-t"         . sp-transpose-sexp)
                    ("M-<backspace>" . sp-backward-kill-sexp))
        :config (progn
+                 (setq sp-base-key-bindings 'sp)
                  (smartparens-global-strict-mode 1)
                  (show-smartparens-global-mode 1)
                  (sp-use-smartparens-bindings)))
@@ -346,7 +347,7 @@
    Note that, according to the documentation, the way to specify which
    default set of keybindings to use is to set the variable
    =sp-base-key-bindings=. However, I couldn't get that to work so I
-   just call =sp-use-smartparens-bindings= directly.
+   just call =sp-use-smartparens-bindings= as well.
 
 ** Projectile
    #+BEGIN_SRC emacs-lisp
