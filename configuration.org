@@ -423,8 +423,17 @@
        :bind (("<escape>" . god-mode-all)
               (:map god-local-mode-map
                     ("i" . god-local-mode)
-                    ("." . repeat)))
+                    ("." . repeat))
+              (:map minibuffer-local-map
+                    ("<escape>" . dp/silent-god-local-mode))
+              (:map ivy-minibuffer-map
+                    ("<escape>" . dp/silent-god-local-mode)))
        :config (progn
+                 (defun dp/silent-god-local-mode ()
+                   (interactive)
+                   (cl-letf (((symbol-function #'message) #'ignore))
+                     (call-interactively #'god-local-mode)))
+
                  (defun dp/update-cursor ()
                    (setq cursor-type (if (or god-local-mode buffer-read-only)
                                          'box
