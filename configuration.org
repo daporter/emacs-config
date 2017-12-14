@@ -125,6 +125,12 @@
     (setq-default fill-column 78)
   #+END_SRC
 
+  Bind =M-x compile= to a convenient keybinding:
+
+  #+BEGIN_SRC emacs-lisp
+    (global-set-key (kbd "C-c c") 'compile)
+  #+END_SRC
+
 * ~use-package~
   #+BEGIN_SRC emacs-lisp
     (unless (package-installed-p 'use-package)
