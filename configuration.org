@@ -178,7 +178,8 @@
 ** Swiper, Counsel, Avy
    #+BEGIN_SRC emacs-lisp
      (use-package swiper
-       :bind (("C-s" . swiper))
+       :bind (("C-s" . swiper)
+              ("C-c C-r" . ivy-resume))
        :config (progn
                  (setq ivy-use-virtual-buffers t)
                  (setq ivy-display-style 'fancy)
