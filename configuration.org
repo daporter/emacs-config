@@ -213,8 +213,8 @@
 
    #+BEGIN_SRC emacs-lisp
      (use-package avy
-       :bind (("M-g C-c" . avy-goto-char)
-              ("M-g C-w" . avy-goto-word-1)
+       :bind (("C-c C-," . avy-goto-char)
+              ("C-c C-." . avy-goto-word-1)
               ("M-g C-g" . avy-goto-line))
        :config (avy-setup-default))
    #+END_SRC
