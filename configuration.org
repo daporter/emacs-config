@@ -328,15 +328,15 @@
      (use-package smartparens-config
        :ensure smartparens
        :bind (:map sp-keymap
-                   ("C-M-a" . sp-beginning-of-sexp)
-                   ("C-M-e" . sp-end-of-sexp)
-                   ("C-S-u" . sp-up-sexp)
-                   ("C-S-d" . sp-backward-down-sexp)
-                   ("C-S-f" . sp-forward-symbol)
-                   ("C-S-b" . sp-backward-symbol)
-                   ("M-]"   . sp-unwrap-sexp)
-                   ("M-["   . sp-backward-unwrap-sexp)
-                   ("C-M-t" . sp-transpose-sexp)
+                   ("C-M-a"         . sp-beginning-of-sexp)
+                   ("C-M-e"         . sp-end-of-sexp)
+                   ("C-S-u"         . sp-up-sexp)
+                   ("C-S-d"         . sp-backward-down-sexp)
+                   ("C-S-f"         . sp-forward-symbol)
+                   ("C-S-b"         . sp-backward-symbol)
+                   ("M-]"           . sp-unwrap-sexp)
+                   ("M-["           . sp-backward-unwrap-sexp)
+                   ("C-M-t"         . sp-transpose-sexp)
                    ("M-<backspace>" . sp-backward-kill-sexp))
        :config (progn
                  (smartparens-global-strict-mode 1)
