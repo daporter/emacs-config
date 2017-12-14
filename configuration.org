@@ -175,7 +175,7 @@
 ** Which Key
    #+BEGIN_SRC emacs-lisp
      (use-package which-key
-       :after (god-mode)
+       :after god-mode
        :config (progn
                  (which-key-enable-god-mode-support)
                  (which-key-mode 1)))
@@ -261,7 +261,7 @@
 
    #+BEGIN_SRC emacs-lisp
      (use-package org-bullets
-       :after (org)
+       :after org
        :hook (org-mode . org-bullets-mode))
    #+END_SRC
 
@@ -269,7 +269,7 @@
 
    #+BEGIN_SRC emacs-lisp
      (use-package org-journal
-       :after (org)
+       :after org
        :bind (("C-c C-j" . org-journal-new-entry)))
    #+END_SRC
 
@@ -352,8 +352,7 @@
 ** Projectile
    #+BEGIN_SRC emacs-lisp
      (use-package projectile
-       :after (ivy)
-       :defer 5
+       :after ivy
        :commands projectile-mode
        :config (progn
                  (setq projectile-completion-system 'ivy)
@@ -368,7 +367,7 @@
 
    #+BEGIN_SRC emacs-lisp
      (use-package counsel-projectile
-       :after (projectile)
+       :after projectile
        :config (counsel-projectile-on))
    #+END_SRC
 
