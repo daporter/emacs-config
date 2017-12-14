@@ -352,8 +352,6 @@
 ** Projectile
    #+BEGIN_SRC emacs-lisp
      (use-package projectile
-       :after ivy
-       :commands projectile-mode
        :config (progn
                  (setq projectile-completion-system 'ivy)
                  (projectile-mode 1)))
