@@ -188,7 +188,10 @@
        :bind (:map isearch-mode-map
                    ("C-." . swiper-from-isearch))
        :bind (:map swiper-map
-                   ("M-h" . swiper-avy)))
+                   ("M-h" . swiper-avy))
+       :config (progn
+                 (setq ivy-use-virtual-buffers t)
+                 (ivy-mode 1)))
 
      (use-package counsel
        :bind (("M-x"     . counsel-M-x)
