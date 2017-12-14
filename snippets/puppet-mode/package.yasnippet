@@ -1,7 +1,0 @@
-# name: package { ... }
-# key: package
-# --
-package { '${1:name}':
-  ensure => ${2:installed},
-  require => Package['${3:<requiree>}'],
-}
