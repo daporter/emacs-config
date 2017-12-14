@@ -185,12 +185,10 @@
 
    #+BEGIN_SRC emacs-lisp
      (use-package swiper
-       :bind (("C-s" . swiper)
-              ("C-c C-r" . ivy-resume))
-       :config (progn
-                 (setq ivy-use-virtual-buffers t)
-                 (setq ivy-display-style 'fancy)
-                 (ivy-mode 1)))
+       :bind (:map isearch-mode-map
+                   ("C-." . swiper-from-isearch))
+       :bind (:map swiper-map
+                   ("M-h" . swiper-avy)))
 
      (use-package counsel
        :bind (("M-x"     . counsel-M-x)
@@ -222,6 +220,7 @@
 ** Company
    #+BEGIN_SRC emacs-lisp
      (use-package company
+       :bind ("C-c C-<tab>" . company-complete)
        :hook (after-init . global-company-mode))
    #+END_SRC
 
@@ -238,7 +237,7 @@
 ** Ace Window
    #+BEGIN_SRC emacs-lisp
      (use-package ace-window
-       :bind (("C-x o" . ace-window)))
+       :bind ("C-x o" . ace-window))
    #+END_SRC
 
 ** Org
@@ -270,7 +269,7 @@
    #+BEGIN_SRC emacs-lisp
      (use-package org-journal
        :after org
-       :bind (("C-c C-j" . org-journal-new-entry)))
+       :bind ("C-c C-j" . org-journal-new-entry))
    #+END_SRC
 
 ** WS Butler
@@ -286,7 +285,7 @@
 ** Magit
    #+BEGIN_SRC emacs-lisp
      (use-package magit
-       :bind (("C-x g" . magit-status))
+       :bind ("C-x g" . magit-status)
        :config (setq magit-completing-read-function 'ivy-completing-read))
    #+END_SRC
 
@@ -418,15 +417,16 @@
 
    #+BEGIN_SRC emacs-lisp
      (use-package god-mode
+       :after (swiper switch-buffer-functions)
        :demand t
-       :bind (("<escape>" . god-local-mode)
-              (:map god-local-mode-map
-                    ("i" . god-local-mode)
-                    ("." . repeat))
-              (:map minibuffer-local-map
-                    ("<escape>" . dp/silent-god-local-mode))
-              (:map ivy-minibuffer-map
-                    ("<escape>" . dp/silent-god-local-mode)))
+       :bind ("<escape>" . god-local-mode)
+       :bind (:map god-local-mode-map
+                   ("i" . god-local-mode)
+                   ("." . repeat))
+       :bind (:map minibuffer-local-map
+                   ("<escape>" . dp/silent-god-local-mode))
+       :bind (:map ivy-minibuffer-map
+                   ("<escape>" . dp/silent-god-local-mode))
        :config (progn
                  (defun dp/silent-god-local-mode ()
                    (interactive)
@@ -434,21 +434,37 @@
                      (call-interactively #'god-local-mode)))
 
                  (defun dp/god-mode-update-cursor ()
-                   (if (or god-local-mode buffer-read-only)
-                       (progn
-                         (set-cursor-color "#DCA3A3") ; zenburn-red+1
-                         (setq cursor-type 'box))
-                     (progn
-                       (set-cursor-color "#DCDCCC") ; zenburn-fg
-                       (setq cursor-type 'bar))))
+                   (cond (god-local-mode
+                          (progn
+                            (set-cursor-color "#DCA3A3") ; zenburn-red+1
+                            (setq cursor-type 'box)))
+                         (buffer-read-only
+                          (progn
+                            (set-cursor-color "#DCDCCC") ; zenburn-fg
+                            (setq cursor-type 'box)))
+                         (t
+                          (progn
+                            (set-cursor-color "#DCDCCC")
+                            (setq cursor-type 'bar)))))
 
-                 (add-hook 'god-mode-enabled-hook  'dp/god-mode-update-cursor)
+                 (add-hook 'god-mode-enabled-hook 'dp/god-mode-update-cursor)
                  (add-hook 'god-mode-disabled-hook 'dp/god-mode-update-cursor)
-
-                 (setq god-exempt-major-modes nil
-                       god-exempt-predicates  nil)
+                 (add-hook 'switch-buffer-functions
+                           (lambda (prev cur)
+                             (dp/god-mode-update-cursor)))
 
                  (god-mode)))
+
+     (use-package god-mode-isearch
+       :ensure god-mode
+       :bind (:map isearch-mode-map
+                   ("<escape>" . god-mode-isearch-activate))
+       :bind (:map god-mode-isearch-map
+                   ("<escape>" . god-mode-isearch-disable)))
+   #+END_SRC
+
+   #+BEGIN_SRC emacs-lisp
+     (use-package switch-buffer-functions)
    #+END_SRC
 
 ** Flycheck
