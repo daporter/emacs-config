@@ -453,6 +453,7 @@
                            (lambda (prev cur)
                              (dp/god-mode-update-cursor)))
 
+                 (add-to-list 'god-exempt-major-modes 'info-mode)
                  (god-mode)))
 
      (use-package god-mode-isearch
