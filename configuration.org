@@ -176,6 +176,7 @@
    #+END_SRC
 
 ** Swiper, Counsel, Avy
+
    #+BEGIN_SRC emacs-lisp
      (use-package swiper
        :bind (("C-s" . swiper)
@@ -198,11 +199,17 @@
               ("C-c k"   . counsel-ag)
               ("C-x l"   . counsel-locate)
               ("M-y"     . counsel-yank-pop)))
+   #+END_SRC
 
+   In the following bindings for =avy-mode= the choices are made so that
+   they're easy to type in =god-mode=. So for example, =M-g C-c= becomes
+   =ggc=, =M-g C-w= becomes =ggw=, etc.
+
+   #+BEGIN_SRC emacs-lisp
      (use-package avy
-       :bind (("M-g c" . avy-goto-char)
-              ("M-g g" . avy-goto-line)
-              ("M-g w" . avy-goto-word-1))
+       :bind (("M-g C-c" . avy-goto-char)
+              ("M-g C-w" . avy-goto-word-1)
+              ("M-g C-g" . avy-goto-line))
        :config (avy-setup-default))
    #+END_SRC
 
