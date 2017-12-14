@@ -420,7 +420,7 @@
    #+BEGIN_SRC emacs-lisp
      (use-package god-mode
        :demand t
-       :bind (("<escape>" . god-mode-all)
+       :bind (("<escape>" . god-local-mode)
               (:map god-local-mode-map
                     ("i" . god-local-mode)
                     ("." . repeat))
@@ -434,13 +434,17 @@
                    (cl-letf (((symbol-function #'message) #'ignore))
                      (call-interactively #'god-local-mode)))
 
-                 (defun dp/update-cursor ()
-                   (setq cursor-type (if (or god-local-mode buffer-read-only)
-                                         'box
-                                       'bar)))
+                 (defun dp/god-mode-update-cursor ()
+                   (if (or god-local-mode buffer-read-only)
+                       (progn
+                         (set-cursor-color "#DCA3A3") ; zenburn-red+1
+                         (setq cursor-type 'box))
+                     (progn
+                       (set-cursor-color "#DCDCCC") ; zenburn-fg
+                       (setq cursor-type 'bar))))
 
-                 (add-hook 'god-mode-enabled-hook 'dp/update-cursor)
-                 (add-hook 'god-mode-disabled-hook 'dp/update-cursor)
+                 (add-hook 'god-mode-enabled-hook  'dp/god-mode-update-cursor)
+                 (add-hook 'god-mode-disabled-hook 'dp/god-mode-update-cursor)
 
                  (setq god-exempt-major-modes nil
                        god-exempt-predicates  nil)
