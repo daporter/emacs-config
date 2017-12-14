@@ -259,6 +259,16 @@
        :bind (("C-c C-j" . org-journal-new-entry)))
    #+END_SRC
 
+** WS Butler
+
+   Trim whitespace from ends of lines.  But only lines that have been touched
+   get trimmed.
+
+   #+BEGIN_SRC emacs-lisp
+     (use-package ws-butler
+       :config (ws-butler-global-mode 1))
+   #+END_SRC
+
 ** Magit
    #+BEGIN_SRC emacs-lisp
      (use-package magit
