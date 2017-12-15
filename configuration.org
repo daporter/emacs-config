@@ -185,10 +185,13 @@
 
    #+BEGIN_SRC emacs-lisp
      (use-package swiper
+       :after god-mode
        :bind (:map isearch-mode-map
                    ("C-." . swiper-from-isearch))
        :bind (:map swiper-map
                    ("M-h" . swiper-avy))
+       :bind (:map ivy-minibuffer-map
+                   ("<escape>" . dp/silent-god-local-mode))
        :config (progn
                  (setq ivy-use-virtual-buffers t)
                  (ivy-mode 1)))
@@ -369,6 +372,7 @@
    #+BEGIN_SRC emacs-lisp
      (use-package counsel-projectile
        :after projectile
+       :commands counsel-projectile
        :config (counsel-projectile-on))
    #+END_SRC
 
@@ -419,15 +423,13 @@
 
    #+BEGIN_SRC emacs-lisp
      (use-package god-mode
-       :after (swiper switch-buffer-functions)
+       :after switch-buffer-functions
        :demand t
        :bind ("<escape>" . god-local-mode)
        :bind (:map god-local-mode-map
                    ("i" . god-local-mode)
                    ("." . repeat))
        :bind (:map minibuffer-local-map
-                   ("<escape>" . dp/silent-god-local-mode))
-       :bind (:map ivy-minibuffer-map
                    ("<escape>" . dp/silent-god-local-mode))
        :config (progn
                  (defun dp/silent-god-local-mode ()
