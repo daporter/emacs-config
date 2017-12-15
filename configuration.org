@@ -487,7 +487,9 @@
 
    #+BEGIN_SRC emacs-lisp
      (use-package yasnippet
-       :config (yas-global-mode 1))
+       :commands (yas-minor-mode)
+       :hook (prog-mode . yas-minor-mode)
+       :config (yas-reload-all))
 
      (use-package yasnippet-snippets
        :after yasnippet)
