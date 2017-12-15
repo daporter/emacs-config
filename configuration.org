@@ -332,18 +332,18 @@
    #+BEGIN_SRC emacs-lisp
      (use-package smartparens-config
        :ensure smartparens
-       :bind (:map sp-keymap
-                   ("C-M-a"         . sp-beginning-of-sexp)
-                   ("C-M-e"         . sp-end-of-sexp)
-                   ("C-S-u"         . sp-up-sexp)
-                   ("C-S-d"         . sp-backward-down-sexp)
-                   ("C-S-f"         . sp-forward-symbol)
-                   ("C-S-b"         . sp-backward-symbol)
-                   ("M-]"           . sp-unwrap-sexp)
-                   ("M-["           . sp-backward-unwrap-sexp)
-                   ("C-M-t"         . sp-transpose-sexp)
-                   ("M-<backspace>" . sp-backward-kill-sexp))
        :config (progn
+                 (define-key sp-keymap (kbd "C-M-a") 'sp-beginning-of-sexp)
+                 (define-key sp-keymap (kbd "C-M-e") 'sp-end-of-sexp)
+                 (define-key sp-keymap (kbd "C-S-u") 'sp-up-sexp)
+                 (define-key sp-keymap (kbd "C-S-d") 'sp-backward-down-sexp)
+                 (define-key sp-keymap (kbd "C-S-f") 'sp-forward-symbol)
+                 (define-key sp-keymap (kbd "C-S-b") 'sp-backward-symbol)
+                 (define-key sp-keymap (kbd "M-]") 'sp-unwrap-sexp)
+                 (define-key sp-keymap (kbd "M-[") 'sp-backward-unwrap-sexp)
+                 (define-key sp-keymap (kbd "C-M-t") 'sp-transpose-sexp)
+                 (define-key sp-keymap (kbd "M-<backspace>") 'sp-backward-kill-sexp)
+
                  (setq sp-base-key-bindings 'sp)
                  (smartparens-global-strict-mode 1)
                  (show-smartparens-global-mode 1)
