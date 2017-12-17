@@ -495,6 +495,23 @@
        :after yasnippet)
    #+END_SRC
 
+** Visible Mark
+
+   I'm going to use this temporarily to help me understand how the mark works
+   in Emacs:
+
+   #+BEGIN_SRC emacs-lisp
+     (use-package visible-mark
+       :init (defface visible-mark-active
+               '((((type tty) (class mono)))
+                 (t (:background "magenta"))) "")
+       :config (progn
+                 (setq visible-mark-max 2)
+                 (setq visible-mark-faces
+                       '(visible-mark-face1 visible-mark-face2))
+                 (global-visible-mark-mode 1)))
+   #+END_SRC
+
 ** Chruby
    #+BEGIN_SRC emacs-lisp
      (use-package chruby
