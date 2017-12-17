@@ -144,7 +144,9 @@
 ** Zenburn
    #+BEGIN_SRC emacs-lisp
      (use-package zenburn-theme
-       :config (load-theme 'zenburn t))
+       :config (progn
+                 (load-theme 'zenburn t)
+                 (set-face-background 'region "#5F5F5F")))
    #+END_SRC
 
 ** Powerline
