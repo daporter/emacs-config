@@ -34,6 +34,12 @@
         (fset 'yes-or-no-p 'y-or-n-p)
   #+END_SRC
 
+  Use a full-screen frame:
+
+  #+BEGIN_SRC emacs-lisp
+    (toggle-frame-fullscreen)
+  #+END_SRC
+
   Always show the current column in the modeline:
 
   #+BEGIN_SRC emacs-lisp
