@@ -137,6 +137,11 @@
     (global-set-key (kbd "C-c c") 'compile)
   #+END_SRC
 
+  Make the cursor a bit easier to find on the screen:
+  #+BEGIN_SRC emacs-lisp
+    (global-hl-line-mode 1)
+  #+END_SRC
+
 * ~use-package~
   #+BEGIN_SRC emacs-lisp
     (unless (package-installed-p 'use-package)
