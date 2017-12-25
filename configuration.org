@@ -535,7 +535,25 @@
                  (global-visible-mark-mode 1)))
    #+END_SRC
 
-** Chruby
+** Ruby
+
+   Enable a Ruby REPL:
+
+   #+BEGIN_SRC emacs-lisp
+     (use-package inf-ruby
+       :hook (ruby-mode . inf-ruby-minor-mode))
+   #+END_SRC
+
+   Robe provides code navigation, documentation lookup and completion for
+   Ruby.
+
+   #+BEGIN_SRC emacs-lisp
+     (use-package robe
+       :after company
+       :hook ruby-mode
+       :init (push 'company-robe company-backends))
+   #+END_SRC
+
    #+BEGIN_SRC emacs-lisp
      (use-package chruby
        :commands chruby-use)
