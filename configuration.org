@@ -153,11 +153,19 @@
 * Theme
 
 ** Zenburn
+
    #+BEGIN_SRC emacs-lisp
      (use-package zenburn-theme
-       :config (progn
-                 (load-theme 'zenburn t)
-                 (set-face-background 'region "#5F5F5F")))
+       :disabled
+       :custom-face (region ((t (:background "#5F5F5F"))))
+       :config (load-theme 'zenburn t))
+   #+END_SRC
+
+** SanityInc Tomorrow
+
+   #+BEGIN_SRC emacs-lisp
+     (use-package color-theme-sanityinc-tomorrow
+       :config (load-theme 'sanityinc-tomorrow-night t))
    #+END_SRC
 
 ** Powerline
