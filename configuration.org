@@ -586,3 +586,11 @@
      (use-package try
        :commands try)
    #+END_SRC
+
+** Gnus
+
+   Store =.gnus.el= in =~/.emacs.d=:
+
+   #+BEGIN_SRC emacs-lisp
+     (setq gnus-init-file (expand-file-name "gnus.el" user-emacs-directory))
+   #+END_SRC
