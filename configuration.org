@@ -198,9 +198,9 @@
 ** Which Key
    #+BEGIN_SRC emacs-lisp
      (use-package which-key
-       :after god-mode
+       ;; :after god-mode
        :config (progn
-                 (which-key-enable-god-mode-support)
+                 ;; (which-key-enable-god-mode-support)
                  (which-key-mode 1)))
    #+END_SRC
 
@@ -208,19 +208,21 @@
 
    #+BEGIN_SRC emacs-lisp
      (use-package swiper
-       :after god-mode
+       ;; :after god-mode
        :bind (:map isearch-mode-map
                    ("C-." . swiper-from-isearch))
        :bind (:map swiper-map
                    ("M-h" . swiper-avy))
-       :bind (:map ivy-minibuffer-map
-                   ("<escape>" . dp/silent-god-local-mode))
+       ;; :bind (:map ivy-minibuffer-map
+       ;;             ("<escape>" . dp/silent-god-local-mode))
        :config (progn
                  (setq ivy-use-virtual-buffers t)
                  (ivy-mode 1)))
 
      (use-package counsel
        :bind (("M-x"     . counsel-M-x)
+              ("C-c C-r" . ivy-resume)
+              ("C-c e" . counsel-recentf)
               ("C-x C-f" . counsel-find-file)
               ("<f1> f"  . counsel-describe-function)
               ("<f1> v"  . counsel-describe-variable)
@@ -446,6 +448,7 @@
 
    #+BEGIN_SRC emacs-lisp
      (use-package god-mode
+       :disabled
        :after switch-buffer-functions
        :demand t
        :bind ("<escape>" . god-local-mode)
@@ -463,15 +466,17 @@
                  (defun dp/god-mode-update-cursor ()
                    (cond (god-local-mode
                           (progn
-                            (set-cursor-color "#DCA3A3") ; zenburn-red+1
+                            ;; (set-cursor-color "#DCA3A3") ; zenburn-red+1
+                            (set-cursor-color "#dc322f") ; solarized red
                             (setq cursor-type 'box)))
                          (buffer-read-only
                           (progn
-                            (set-cursor-color "#DCDCCC") ; zenburn-fg
+                            ;; (set-cursor-color "#DCDCCC") ; zenburn-fg
+                            (set-cursor-color "#93a1a1") ; solarized base1
                             (setq cursor-type 'box)))
                          (t
                           (progn
-                            (set-cursor-color "#DCDCCC")
+                            (set-cursor-color "#002b36")
                             (setq cursor-type 'bar)))))
 
                  (add-hook 'god-mode-enabled-hook 'dp/god-mode-update-cursor)
@@ -484,6 +489,7 @@
                  (god-mode)))
 
      (use-package god-mode-isearch
+       :disabled
        :ensure god-mode
        :bind (:map isearch-mode-map
                    ("<escape>" . god-mode-isearch-activate))
@@ -492,7 +498,8 @@
    #+END_SRC
 
    #+BEGIN_SRC emacs-lisp
-     (use-package switch-buffer-functions)
+     (use-package switch-buffer-functions
+       :disabled)
    #+END_SRC
 
 ** Flycheck
