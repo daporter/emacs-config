@@ -541,12 +541,14 @@
 
    #+BEGIN_SRC emacs-lisp
      (use-package visible-mark
+       :custom-face (visible-mark-face1
+                     ((t (:inherit avy-lead-face-1))))
+       :custom-face (visible-mark-face2
+                     ((t (:inherit avy-lead-face-0))))
        :config (progn
                  (setq visible-mark-max 2)
                  (setq visible-mark-faces
                        '(visible-mark-face1 visible-mark-face2))
-                 (set-face-background 'visible-mark-face1 "#6CA0A3")
-                 (set-face-background 'visible-mark-face2 "#4C7073")
                  (global-visible-mark-mode 1)))
    #+END_SRC
 
