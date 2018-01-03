@@ -533,6 +533,7 @@
      (use-package aggressive-indent
        :config (global-aggressive-indent-mode 1))
    #+END_SRC
+
 ** Visible Mark
 
    I'm going to use this temporarily to help me understand how the mark works
