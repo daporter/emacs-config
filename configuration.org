@@ -423,8 +423,8 @@
 ** Define Word
    #+BEGIN_SRC emacs-lisp
      (use-package define-word
-       :bind (("C-c d" . define-word-at-point)
-              ("C-c D" . define-word)))
+       :bind (("C-c w" . define-word-at-point)
+              ("C-c W" . define-word)))
    #+END_SRC
 
 ** Keyfreq
@@ -570,6 +570,12 @@
        :hook ruby-mode
        :init (push 'company-robe company-backends))
    #+END_SRC
+
+   #+BEGIN_SRC emacs-lisp
+     (use-package dash-at-point
+       :commands dash-at-point
+       :bind ("C-c d" . dash-at-point))
+   #+END_ARC
 
    #+BEGIN_SRC emacs-lisp
      (use-package chruby
