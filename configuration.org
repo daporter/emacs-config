@@ -575,7 +575,7 @@
      (use-package dash-at-point
        :commands dash-at-point
        :bind ("C-c d" . dash-at-point))
-   #+END_ARC
+   #+END_SRC
 
    #+BEGIN_SRC emacs-lisp
      (use-package chruby
