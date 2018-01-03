@@ -5,33 +5,32 @@
   with the menu items now, it is just as easy to set them here.
 
   #+BEGIN_SRC emacs-lisp
-        (setq inhibit-startup-message t)
-        (setq initial-scratch-message "")
-        (setq visible-bell t)
+    (setq inhibit-startup-message t)
+    (setq initial-scratch-message "")
+    (setq visible-bell t)
 
-        (when (window-system)
-          (tool-bar-mode -1)
-          (when (fboundp 'horizontal-scroll-bar-mode)
-            (horizontal-scroll-bar-mode -1))
-          (scroll-bar-mode -1))
+    (when (window-system)
+      (tool-bar-mode -1)
+      (when (fboundp 'horizontal-scroll-bar-mode)
+        (horizontal-scroll-bar-mode -1))
+      (scroll-bar-mode -1))
 
-        (when (window-system)
-          (progn
-            (set-face-attribute 'default
-                                nil
-                                :font "DejaVu Sans Mono"
-                                :width 'normal
-                                :height 120
-                                :weight 'normal)
-            (setq-default line-spacing 3)       ; in pixels
+    (when (window-system) (progn
+                            (set-face-attribute 'default
+                                                nil
+                                                :font "Fira Code"
+                                                :width 'condensed
+                                                :height 120
+                                                :weight 'light)
+                            (setq-default line-spacing 4)       ; in pixels
 
-            ;; Enable the Fira Code ligatures.
-            (mac-auto-operator-composition-mode 1)))
+                            ;; Enable the Fira Code ligatures.
+                            (mac-auto-operator-composition-mode 1)))
 
-        (when (eq system-type 'darwin)
-          (setq mac-option-modifier 'meta))
+    (when (eq system-type 'darwin)
+      (setq mac-option-modifier 'meta))
 
-        (fset 'yes-or-no-p 'y-or-n-p)
+    (fset 'yes-or-no-p 'y-or-n-p)
   #+END_SRC
 
   Use a full-screen frame:
