@@ -578,6 +578,11 @@
    #+END_SRC
 
    #+BEGIN_SRC emacs-lisp
+     (use-package ruby-tools
+       :hook ruby-mode)
+   #+END_SRC
+
+   #+BEGIN_SRC emacs-lisp
      (use-package chruby
        :commands chruby-use)
    #+END_SRC
