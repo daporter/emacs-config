@@ -45,6 +45,18 @@
     (column-number-mode 1)
   #+END_SRC
 
+  Properly display ANSI colours in compilation buffer output.  There is a
+  [[http://endlessparentheses.com/ansi-colors-in-the-compilation-buffer-output.html][blog post]] about it.
+
+  #+BEGIN_SRC emacs-lisp
+    (require 'ansi-color)
+    (defun dp/colourise-compilation ()
+      "Colourise from `compilation-filter-start' to `point'."
+      (let ((inhibit-read-only t))
+        (ansi-color-apply-on-region compilation-filter-start (point))))
+    (add-hook 'compilation-filter-hook #'dp/colourise-compilation)
+  #+END_SRC
+
 * General Settings
 
 ** Customization Section
@@ -323,51 +335,53 @@
 
    Here are the keybindings I'm using:
 
-   |-------------------------+-----------------|
-   | sp-beginning-of-sexp    | "C-M-a"         |
-   | sp-end-of-sexp          | "C-M-e"         |
-   | sp-forward-sexp         | "C-M-f"         |
-   | sp-backward-sexp        | "C-M-b"         |
-   | sp-next-sexp            | "C-M-n"         |
-   | sp-previous-sexp        | "C-M-p"         |
-   | sp-forward-symbol       | "C-S-f"         |
-   | sp-backward-symbol      | "C-S-b"         |
-   |-------------------------+-----------------|
-   | sp-down-sexp            | "C-M-d"         |
-   | sp-up-sexp              | "C-S-u"         |
-   | sp-backward-down-sexp   | "C-S-d"         |
-   | sp-backward-up-sexp     | "C-M-u"         |
-   |-------------------------+-----------------|
-   | sp-unwrap-sexp          | "M-]"           |
-   | sp-backward-unwrap-sexp | "M-["           |
-   | sp-forward-slurp-sexp   | "C-<right>"     |
-   | sp-forward-barf-sexp    | "C-<left>"      |
-   | sp-backward-slurp-sexp  | "C-M-<left>"    |
-   | sp-backward-barf-sexp   | "C-M-<right>"   |
-   |-------------------------+-----------------|
-   | sp-transpose-sexp       | "C-M-t"         |
-   | sp-mark-sexp            | "C-M-SPC"       |
-   | sp-copy-sexp            | "C-M-w"         |
-   | sp-kill-sexp            | "C-M-k"         |
-   | sp-backward-kill-sexp   | "M-<backspace>" |
-   | sp-kill-hybrid-sexp     | "C-k"           |
-   |-------------------------+-----------------|
+   |-------------------------+-------------------|
+   | sp-beginning-of-sexp    | "C-M-a"           |
+   | sp-end-of-sexp          | "C-M-e"           |
+   | sp-forward-sexp         | "C-M-f"           |
+   | sp-backward-sexp        | "C-M-b"           |
+   | sp-next-sexp            | "C-M-n"           |
+   | sp-previous-sexp        | "C-M-p"           |
+   | sp-forward-symbol       | "C-S-f"           |
+   | sp-backward-symbol      | "C-S-b"           |
+   |-------------------------+-------------------|
+   | sp-down-sexp            | "C-M-d"           |
+   | sp-up-sexp              | "C-S-u"           |
+   | sp-backward-down-sexp   | "C-S-d"           |
+   | sp-backward-up-sexp     | "C-M-u"           |
+   |-------------------------+-------------------|
+   | sp-unwrap-sexp          | "M-]"             |
+   | sp-backward-unwrap-sexp | "M-["             |
+   | sp-forward-slurp-sexp   | "C-<right>"       |
+   | sp-forward-barf-sexp    | "C-<left>"        |
+   | sp-backward-slurp-sexp  | "C-M-<left>"      |
+   | sp-backward-barf-sexp   | "C-M-<right>"     |
+   |-------------------------+-------------------|
+   | sp-transpose-sexp       | "C-M-t"           |
+   | sp-mark-sexp            | "C-M-SPC"         |
+   | sp-copy-sexp            | "C-M-w"           |
+   | sp-kill-sexp            | "C-M-k"           |
+   | sp-backward-kill-sexp   | "M-<backspace>"   |
+   | sp-kill-hybrid-sexp     | "C-k"             |
+   | sp-kill-whole-line      | "C-S-<backspace>" |
+   |--------------------------+-------------------|
 
    #+BEGIN_SRC emacs-lisp
      (use-package smartparens-config
        :ensure smartparens
+       :bind (:map sp-keymap
+                   ("C-M-a"           . sp-beginning-of-sexp)
+                   ("C-M-e"           . sp-end-of-sexp)
+                   ("C-S-u"           . sp-up-sexp)
+                   ("C-S-d"           . sp-backward-down-sexp)
+                   ("C-S-f"           . sp-forward-symbol)
+                   ("C-S-b"           . sp-backward-symbol)
+                   ("M-]"             . sp-unwrap-sexp)
+                   ("M-["             . sp-backward-unwrap-sexp)
+                   ("C-M-t"           . sp-transpose-sexp)
+                   ("M-<backspace>"   . sp-backward-kill-sexp)
+                   ("C-S-<backspace>" . sp-kill-whole-line))
        :config (progn
-                 (define-key sp-keymap (kbd "C-M-a") 'sp-beginning-of-sexp)
-                 (define-key sp-keymap (kbd "C-M-e") 'sp-end-of-sexp)
-                 (define-key sp-keymap (kbd "C-S-u") 'sp-up-sexp)
-                 (define-key sp-keymap (kbd "C-S-d") 'sp-backward-down-sexp)
-                 (define-key sp-keymap (kbd "C-S-f") 'sp-forward-symbol)
-                 (define-key sp-keymap (kbd "C-S-b") 'sp-backward-symbol)
-                 (define-key sp-keymap (kbd "M-]") 'sp-unwrap-sexp)
-                 (define-key sp-keymap (kbd "M-[") 'sp-backward-unwrap-sexp)
-                 (define-key sp-keymap (kbd "C-M-t") 'sp-transpose-sexp)
-                 (define-key sp-keymap (kbd "M-<backspace>") 'sp-backward-kill-sexp)
-
                  (setq sp-base-key-bindings 'sp)
                  (smartparens-global-strict-mode 1)
                  (show-smartparens-global-mode 1)
@@ -578,13 +592,19 @@
    #+END_SRC
 
    #+BEGIN_SRC emacs-lisp
+     (use-package yari)
+   #+END_SRC
+
+   #+BEGIN_SRC emacs-lisp
      (use-package ruby-tools
        :hook ruby-mode)
    #+END_SRC
 
+
    #+BEGIN_SRC emacs-lisp
-     (use-package chruby
-       :commands chruby-use)
+     (use-package rvm
+       :hook (ruby-mode . rvm-activate-corresponding-ruby)
+       :config (rvm-use-default))
    #+END_SRC
 
 ** Markdown
