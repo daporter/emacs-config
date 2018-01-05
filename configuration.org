@@ -252,7 +252,6 @@
               ("<f2> i"  . counsel-info-lookup-symbol)
               ("<f2> u"  . counsel-unicode-char)
               ("C-c g"   . counsel-git)
-              ("C-c j"   . counsel-git-grep)
               ("C-c k"   . counsel-ag)
               ("C-x l"   . counsel-locate)
               ("M-y"     . counsel-yank-pop)))
@@ -264,8 +263,7 @@
 
    #+BEGIN_SRC emacs-lisp
      (use-package avy
-       :bind (("C-c C-," . avy-goto-char)
-              ("C-c C-." . avy-goto-word-1)
+       :bind (("C-c j"   . avy-goto-word-1)
               ("M-g C-g" . avy-goto-line))
        :config (avy-setup-default))
    #+END_SRC
