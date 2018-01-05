@@ -18,13 +18,14 @@
     (when (window-system) (progn
                             (set-face-attribute 'default
                                                 nil
-                                                :font "Fira Code"
-                                                :width 'condensed
-                                                :height 120
+                                                :family "Iosevka"
+                                                :width 'normal
+                                                :height 130
                                                 :weight 'light)
+
                             (setq-default line-spacing 4)       ; in pixels
 
-                            ;; Enable the Fira Code ligatures.
+                            ;; Enable ligatures.
                             (mac-auto-operator-composition-mode 1)))
 
     (when (eq system-type 'darwin)
@@ -176,7 +177,17 @@
 
    #+BEGIN_SRC emacs-lisp
      (use-package color-theme-sanityinc-tomorrow
+       :disabled
        :config (load-theme 'sanityinc-tomorrow-night t))
+   #+END_SRC
+
+** Typo
+
+   I'm experimenting with using a non-colour theme. Instead of using colour to
+   distinguish different kinds of text, it uses typography. The theme can be found [[https://github.com/bastibe/.emacs.d/blob/master/lisp/typo-theme.el][here]].
+
+   #+BEGIN_SRC emacs-lisp
+     (load-theme 'typo t)
    #+END_SRC
 
 ** Powerline
@@ -392,6 +403,15 @@
    default set of keybindings to use is to set the variable
    =sp-base-key-bindings=. However, I couldn't get that to work so I
    just call =sp-use-smartparens-bindings= as well.
+
+** Paren-Face
+
+   Make parentheses less visible by dimming them.
+
+   #+BEGIN_SRC emacs-lisp
+     (use-package paren-face
+       :config (global-paren-face-mode))
+   #+END_SRC
 
 ** Projectile
    #+BEGIN_SRC emacs-lisp
