@@ -27,10 +27,20 @@
 
                             ;; Enable ligatures.
                             (mac-auto-operator-composition-mode 1)))
+  #+END_SRC
 
+  On MacOS, interpret the Option key as Meta, and ignore the Command key, so
+  it can be reserved for MacOS-level operations.
+
+  #+BEGIN_SRC emacs-lisp
     (when (eq system-type 'darwin)
-      (setq mac-option-modifier 'meta))
+      (setq mac-option-modifier 'meta
+            mac-command-modifier nil))
+  #+END_SRC
 
+  Type y/n instead of yes/no.
+
+  #+BEGIN_SRC emacs-lisp
     (fset 'yes-or-no-p 'y-or-n-p)
   #+END_SRC
 
