@@ -164,6 +164,13 @@
     (global-hl-line-mode 1)
   #+END_SRC
 
+  Tell Emacs to query for GnuPG passphrases via the minibuffer:
+
+  #+BEGIN_SRC emacs-lisp
+    (use-package epa
+      :config (setq epa-pinentry-mode 'loopback))
+
+  #+END_SRC
 * ~use-package~
   #+BEGIN_SRC emacs-lisp
     (unless (package-installed-p 'use-package)
