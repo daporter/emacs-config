@@ -367,6 +367,10 @@
 (use-package yaml-mode
   :mode "\\.yaml\\'")
 
+;; Since `proced' doesn't work on MacOS, use `vkill' instead.
+(use-package vkill
+  :commands (list-unix-processes))
+
 (use-package hardcore-mode
   :diminish hardcore-mode
   :init (setq too-hardcore-backspace t)
