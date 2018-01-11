@@ -365,6 +365,7 @@
   :mode "\\.yaml\\'")
 
 (use-package hardcore-mode
+  :diminish hardcore-mode
   :init (setq too-hardcore-backspace t)
   :config (global-hardcore-mode 1))
 
