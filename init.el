@@ -329,6 +329,8 @@
                   '(visible-mark-face1 visible-mark-face2))
             (global-visible-mark-mode 1)))
 
+(add-hook 'ruby-mode-hook (lambda () (subword-mode 1)))
+
 (use-package inf-ruby
   :hook (ruby-mode . inf-ruby-minor-mode))
 
