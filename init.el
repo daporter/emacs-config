@@ -245,6 +245,7 @@
 (use-package projectile
   :config (progn
             (setq projectile-completion-system 'ivy)
+            (setq projectile-switch-project-action #'projectile-dired)
             (setq projectile-mode-line
                   '(:eval (format " Proj[%s]" (projectile-project-name))))
             (projectile-mode 1)))
