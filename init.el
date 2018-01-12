@@ -100,6 +100,7 @@
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
   (package-install 'use-package))
+(require 'use-package)
 (setq use-package-always-ensure t)
 
 (use-package diminish)
@@ -194,7 +195,9 @@
   :config (global-undo-tree-mode 1))
 
 (use-package ace-window
-  :bind ("C-x o" . ace-window))
+  :bind ("C-x o" . ace-window)
+  ;; Use the Dvorak home row keys instead of numbers for the window labels.
+  :config (setq aw-keys '(?a ?o ?e ?u ?d ?h ?t ?n ?s)))
 
 (use-package org
   :config (progn
