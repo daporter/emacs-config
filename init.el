@@ -174,7 +174,10 @@
 (use-package avy
   :bind (("C-c j"   . avy-goto-word-1)
          ("M-g C-g" . avy-goto-line))
-  :config (avy-setup-default))
+  :config (progn
+            (avy-setup-default)
+            ;; Favour keys on the Dvorak home row.
+            (setq avy-keys '(?a ?o ?e ?u ?h ?t ?n ?s))))
 
 (use-package company
   :bind ("C-c C-<tab>" . company-complete)
