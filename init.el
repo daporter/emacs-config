@@ -341,7 +341,7 @@
   :hook (ruby-mode . inf-ruby-minor-mode))
 
 (use-package ruby-tools
-  :hook ruby-mode)
+  :hook (ruby-mode . ruby-tools-mode))
 
 (use-package rvm
   :hook (ruby-mode . rvm-activate-corresponding-ruby)
