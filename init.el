@@ -326,13 +326,13 @@
 
 (use-package visible-mark
   :custom-face (visible-mark-face1
-                ((t (:inherit avy-lead-face-1))))
+                ((t (:inherit widget-field))))
   :custom-face (visible-mark-face2
-                ((t (:inherit avy-lead-face-0))))
+                ((t (:inherit ivy-minibuffer-match-face-1))))
   :config (progn
             (setq visible-mark-max 2)
             (setq visible-mark-faces
-                  '(visible-mark-face1 visible-mark-face2))
+                  '(visible-mark-face2 visible-mark-face1))
             (global-visible-mark-mode 1)))
 
 (add-hook 'ruby-mode-hook (lambda () (subword-mode 1)))
