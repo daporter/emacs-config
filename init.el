@@ -226,7 +226,10 @@
 
 (use-package magit
   :bind ("C-x g" . magit-status)
-  :config (setq magit-completing-read-function 'ivy-completing-read))
+  :config (progn
+            (setq magit-completing-read-function 'ivy-completing-read)
+            (setq git-commit-style-convention-checks
+                  '(overlong-summary-line non-empty-second-line))))
 
 (use-package smartparens-config
   :ensure smartparens
