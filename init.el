@@ -33,10 +33,10 @@
   (progn
     (set-face-attribute 'default
                         nil
-                        :family "Iosevka"
+                        :family "DejaVu Sans Mono"
                         :width 'normal
-                        :height 130
-                        :weight 'light)
+                        :height 120
+                        :weight 'normal)
 
     (setq-default line-spacing 4)       ; in pixels
 
@@ -47,11 +47,6 @@
   (setq mac-option-modifier 'meta
         mac-command-modifier 'super))
 
-;; Make the left fringe 2 pixels so the hl-diff indicators aren't so fat.  Leave
-;; the right fringe width at the default 8 pixels
-(fringe-mode '(4 . 8))
-
-(toggle-frame-fullscreen)
 (column-number-mode 1)
 (fset 'yes-or-no-p 'y-or-n-p)
 
@@ -113,14 +108,19 @@
 
 (use-package zenburn-theme
   :disabled
-  :custom-face (region ((t (:background "#5F5F5F"))))
+  ;; :custom-face (region ((t (:background "#5F5F5F"))))
   :config (load-theme 'zenburn t))
 
 (use-package color-theme-sanityinc-tomorrow
   :disabled
   :config (load-theme 'sanityinc-tomorrow-night t))
 
-(load-theme 'typo t)
+(use-package zerodark-theme
+  :config (progn
+            (load-theme 'zerodark t)
+            (zerodark-setup-modeline-format)))
+
+;; (load-theme 'typo t)
 
 (use-package powerline
   :config (powerline-default-theme))
@@ -301,14 +301,7 @@
   :disabled)
 
 (use-package flycheck
-  :config (progn
-            ;; Make the flycheck arrow look like an exclamation point.  But only
-            ;; when emacs runs in a window, not terminal.
-            (when window-system
-              (define-fringe-bitmap 'flycheck-fringe-bitmap-double-arrow
-                [0 24 24 24 24 24 24 0 0 24 24 0 0 0 0 0 0]))
-            (setq flycheck-indication-mode 'right-fringe)
-            (global-flycheck-mode 1)))
+  :config (global-flycheck-mode 1))
 
 (use-package avy-flycheck
   :after (avy flycheck)
@@ -328,10 +321,10 @@
   :config (global-aggressive-indent-mode 1))
 
 (use-package visible-mark
-  :custom-face (visible-mark-face1
-                ((t (:inherit widget-field))))
-  :custom-face (visible-mark-face2
-                ((t (:inherit ivy-minibuffer-match-face-1))))
+  ;; :custom-face (visible-mark-face1
+  ;;               ((t (:inherit widget-field))))
+  ;; :custom-face (visible-mark-face2
+  ;;               ((t (:inherit ivy-minibuffer-match-face-1))))
   :config (progn
             (setq visible-mark-max 2)
             (setq visible-mark-faces
