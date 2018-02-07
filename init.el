@@ -201,9 +201,11 @@
   :config (global-undo-tree-mode 1))
 
 (use-package ace-window
-  :bind ("C-x o" . ace-window)
+  :bind ("M-o" . ace-window)
   ;; Use the Dvorak home row keys instead of numbers for the window labels.
-  :config (setq aw-keys '(?a ?o ?e ?u ?d ?h ?t ?n ?s)))
+  :config (progn
+            (setq aw-keys '(?a ?o ?e ?u ?d ?h ?t ?n ?s))
+            (setq aw-scope 'frame)))
 
 (use-package org
   :config (progn
