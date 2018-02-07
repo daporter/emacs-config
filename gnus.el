@@ -13,7 +13,9 @@
         (nntp "gmane"
               (nntp-address "news.gmane.org"))))
 
-(setq smtpmail-smtp-server "smtp.gmail.com"
+(setq message-send-mail-function 'smtpmail-send-it
+      smtpmail-default-smtp-server "smtp.gmail.com"
+      smtpmail-smtp-server "smtp.gmail.com"
       smtpmail-smtp-service 587)
 
 ;; Make Gnus NOT ignore [Gmail] mailboxes
@@ -23,17 +25,33 @@
 (setq gnus-message-archive-method '(nnimap "gmail")
       gnus-message-archive-group "[Gmail]/Sent Mail")
 
+(setq gnus-sum-thread-tree-false-root      "◇"
+      gnus-sum-thread-tree-single-indent   " "
+      gnus-sum-thread-tree-root            "◆"
+      gnus-sum-thread-tree-vertical        "│ "
+      gnus-sum-thread-tree-leaf-with-other "├─►"
+      gnus-sum-thread-tree-single-leaf     "└─►"
+      gnus-sum-thread-tree-indent          "  ")
+
+(setq gnus-summary-display-arrow t)
+
+(setq gnus-summary-line-format
+      (concat "%U%R %~(pad-left 2)t%*  %B %~(max-right 30)~(pad-right 30)n  "
+              "%~(max-right 90)~(pad-right 90)s %-135=%&user-date;\n"))
+
+(setq gnus-summary-dummy-line-format
+      "       ◇                                 %S\n")
+
+(setq gnus-article-date-headers '(local))
+
+(setq gnus-summary-make-false-root 'dummy)
+
+(setq gnus-use-adaptive-scoring t)
+
 ;; Don't render HTML-mails but show the text part if it's available.
 (with-eval-after-load "mm-decode"
   (add-to-list 'mm-discouraged-alternatives "text/html")
   (add-to-list 'mm-discouraged-alternatives "text/richtext"))
-
-(setq message-required-mail-headers
-      '(From Date Subject X-Mailer User-Agent Message-ID Organization))
-
-(setq message-required-news-headers
-      '(From Date Newsgroups Subject
-             X-Newsreader User-Agent Message-ID Xref Organization))
 
 (setq gnus-visible-headers
       '("To:" "Cc:" "Reply-To:" "From:" "Subject:" "Newsgroups:"
@@ -41,16 +59,6 @@
         "X-Newsreader:" "User-Agent:"))
 
 (setq gnus-ignored-headers "^References:\\|^Xref:")
-
-(setq gnus-sum-thread-tree-single-indent   " "
-      gnus-sum-thread-tree-root            "◆"
-      gnus-sum-thread-tree-false-root      "◇"
-      gnus-sum-thread-tree-vertical        "│ "
-      gnus-sum-thread-tree-leaf-with-other "├─►"
-      gnus-sum-thread-tree-single-leaf     "└─►"
-      gnus-sum-thread-tree-indent          "  ")
-
-(setq gnus-summary-display-arrow t)
 
 (setq gnus-user-date-format-alist
       '(((gnus-seconds-today)           . "Today, %H:%M")
@@ -60,16 +68,10 @@
         ((gnus-seconds-year)            . "%B %d")
         (t                              . "%B %d '%y")))
 
-(setq gnus-summary-line-format
-      (concat "%U%R %~(pad-left 2)t%*  %B %~(max-right 30)~(pad-right 30)n  "
-              "%~(max-right 90)~(pad-right 90)s %-135=%&user-date;\n"))
-
-(setq gnus-article-date-headers '(local))
-
 (setq gnus-parameters
       '(("nnimap+gmail:[Gmail]/goldencheetah"
          (auto-expire . t))
         ("nnimap+gmail:[Gmail]/wattage"
          (auto-expire . t))
-        ("nnimap+gmail:*"
+        ("nnimap.*"
          (display . all))))
