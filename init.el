@@ -17,6 +17,12 @@
 (add-to-list 'package-archives '("org" . "https://orgmode.org/elpa/") t)
 (package-initialize)
 
+;;; Language configuration.
+
+(set-language-environment "UTF-8")
+(set-default-coding-systems 'utf-8)
+(setq default-input-method "latin-9-prefix")
+
 ;;; Display.
 
 (setq inhibit-startup-message t)
